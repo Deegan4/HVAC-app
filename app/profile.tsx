@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -58,7 +58,8 @@ export default function ProfileScreen() {
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [profile, setProfile] = useState({
+  
+  const defaultProfile = useMemo(() => ({
     name: currentTech?.name || 'John Doe',
     email: currentTech?.email || 'john@olivarefrigeration.com',
     phone: currentTech?.phone || '(555) 123-4567',
@@ -66,24 +67,37 @@ export default function ProfileScreen() {
     bio: 'Experienced HVAC technician with 8+ years in commercial and residential systems.',
     emergencyContact: '(555) 987-6543',
     licenseNumber: 'HVAC-2024-JD001',
-  });
+  }), [currentTech]);
+  
+  const [profile, setProfile] = useState(defaultProfile);
+  const [originalProfile, setOriginalProfile] = useState(defaultProfile);
 
   // Load profile data and photo on component mount
   const loadProfileData = useCallback(async () => {
     try {
+      console.log('Loading profile data for technician:', currentTechnicianId);
       const savedProfile = await AsyncStorage.getItem(`profile_${currentTechnicianId}`);
       const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${currentTechnicianId}`);
       
       if (savedProfile) {
-        setProfile(JSON.parse(savedProfile));
+        const parsedProfile = JSON.parse(savedProfile);
+        console.log('Loaded saved profile:', parsedProfile);
+        setProfile(parsedProfile);
+        setOriginalProfile(parsedProfile);
+      } else {
+        console.log('No saved profile found, using default');
+        setProfile(defaultProfile);
+        setOriginalProfile(defaultProfile);
       }
+      
       if (savedPhoto) {
+        console.log('Loaded saved photo');
         setProfilePhoto(savedPhoto);
       }
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
-  }, [currentTechnicianId]);
+  }, [currentTechnicianId, defaultProfile]);
 
   useEffect(() => {
     loadProfileData();
@@ -118,13 +132,22 @@ export default function ProfileScreen() {
 
   const handleSave = async () => {
     try {
+      console.log('Saving profile:', profile);
       await AsyncStorage.setItem(`profile_${currentTechnicianId}`, JSON.stringify(profile));
+      setOriginalProfile(profile);
       Alert.alert('Success', 'Profile updated successfully!');
       setIsEditing(false);
+      console.log('Profile saved successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile. Please try again.');
       console.log('Error saving profile:', error);
     }
+  };
+  
+  const handleCancel = () => {
+    console.log('Canceling edit, reverting to original profile:', originalProfile);
+    setProfile(originalProfile);
+    setIsEditing(false);
   };
 
   const handleChangePhoto = () => {
@@ -415,7 +438,7 @@ export default function ProfileScreen() {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => setIsEditing(false)}
+              onPress={handleCancel}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
