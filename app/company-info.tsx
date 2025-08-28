@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { Building, Mail, Phone, MapPin, Save, Edit3, Globe, FileText } from 'lucide-react-native';
+import { Building, Mail, Phone, MapPin, Save, Edit3, Globe, FileText, AlertCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -27,6 +27,12 @@ interface CompanyInfo {
   description: string;
 }
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
+const REQUIRED_FIELDS = ['name', 'email', 'phone', 'address', 'license'];
+
 export default function CompanyInfoScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
@@ -42,6 +48,8 @@ export default function CompanyInfoScreen() {
     description: 'Professional HVAC and refrigeration services for commercial and residential clients.',
   });
   const [originalInfo, setOriginalInfo] = useState<CompanyInfo>(companyInfo);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load company info on component mount
   const loadCompanyInfo = useCallback(async () => {
@@ -61,52 +69,154 @@ export default function CompanyInfoScreen() {
     loadCompanyInfo();
   }, [loadCompanyInfo]);
 
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+    
+    // Check required fields
+    REQUIRED_FIELDS.forEach(field => {
+      const value = companyInfo[field as keyof CompanyInfo]?.trim();
+      if (!value) {
+        errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      }
+    });
+    
+    // Validate email format
+    if (companyInfo.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(companyInfo.email.trim())) {
+        errors.email = 'Please enter a valid email address';
+      }
+    }
+    
+    // Validate phone format (basic validation)
+    if (companyInfo.phone.trim()) {
+      const phoneRegex = /^[\+]?[1-9][\d\s\-\(\)]{7,}$/;
+      if (!phoneRegex.test(companyInfo.phone.replace(/[\s\-\(\)]/g, ''))) {
+        errors.phone = 'Please enter a valid phone number';
+      }
+    }
+    
+    // Validate emergency phone if provided
+    if (companyInfo.emergencyPhone.trim()) {
+      const phoneRegex = /^[\+]?[1-9][\d\s\-\(\)]{7,}$/;
+      if (!phoneRegex.test(companyInfo.emergencyPhone.replace(/[\s\-\(\)]/g, ''))) {
+        errors.emergencyPhone = 'Please enter a valid emergency phone number';
+      }
+    }
+    
+    // Validate website format if provided
+    if (companyInfo.website.trim()) {
+      const websiteRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+      if (!websiteRegex.test(companyInfo.website.trim())) {
+        errors.website = 'Please enter a valid website URL';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) {
+      Alert.alert(
+        'Validation Error',
+        'Please fix the errors below before saving.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    setIsLoading(true);
     try {
-      await AsyncStorage.setItem('companyInfo', JSON.stringify(companyInfo));
-      setOriginalInfo(companyInfo);
+      // Trim all string values before saving
+      const trimmedInfo = Object.keys(companyInfo).reduce((acc, key) => {
+        acc[key as keyof CompanyInfo] = companyInfo[key as keyof CompanyInfo].trim();
+        return acc;
+      }, {} as CompanyInfo);
+      
+      await AsyncStorage.setItem('companyInfo', JSON.stringify(trimmedInfo));
+      setCompanyInfo(trimmedInfo);
+      setOriginalInfo(trimmedInfo);
+      setValidationErrors({});
       Alert.alert('Success', 'Company information updated successfully!');
       setIsEditing(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to save company information. Please try again.');
       console.log('Error saving company info:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
     setCompanyInfo(originalInfo);
+    setValidationErrors({});
     setIsEditing(false);
   };
 
-  const InfoField = ({ icon: Icon, label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
+  const updateField = (field: keyof CompanyInfo, value: string) => {
+    setCompanyInfo(prev => ({ ...prev, [field]: value }));
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const InfoField = ({ icon: Icon, label, value, onChangeText, multiline = false, keyboardType = 'default', fieldKey, required = false }: {
     icon: any;
     label: string;
     value: string;
     onChangeText: (text: string) => void;
     multiline?: boolean;
     keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'url';
-  }) => (
-    <View style={styles.fieldContainer}>
-      <View style={styles.fieldHeader}>
-        <Icon size={16} color={Colors.text.secondary} />
-        <Text style={styles.fieldLabel}>{label}</Text>
+    fieldKey: string;
+    required?: boolean;
+  }) => {
+    const hasError = validationErrors[fieldKey];
+    
+    return (
+      <View style={styles.fieldContainer}>
+        <View style={styles.fieldHeader}>
+          <Icon size={16} color={hasError ? Colors.status.error : Colors.text.secondary} />
+          <Text style={[styles.fieldLabel, hasError && styles.fieldLabelError]}>
+            {label}{required && ' *'}
+          </Text>
+          {hasError && (
+            <AlertCircle size={14} color={Colors.status.error} style={styles.errorIcon} />
+          )}
+        </View>
+        {isEditing ? (
+          <>
+            <TextInput
+              style={[
+                styles.input,
+                multiline && styles.multilineInput,
+                hasError && styles.inputError
+              ]}
+              value={value}
+              onChangeText={onChangeText}
+              multiline={multiline}
+              numberOfLines={multiline ? 3 : 1}
+              keyboardType={keyboardType}
+              autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'words'}
+              autoCorrect={false}
+              placeholder={required ? `Enter ${label.toLowerCase()}` : `Enter ${label.toLowerCase()} (optional)`}
+              placeholderTextColor={Colors.text.tertiary}
+            />
+            {hasError && (
+              <Text style={styles.errorText}>{validationErrors[fieldKey]}</Text>
+            )}
+          </>
+        ) : (
+          <Text style={styles.fieldValue}>{value || 'Not set'}</Text>
+        )}
       </View>
-      {isEditing ? (
-        <TextInput
-          style={[styles.input, multiline && styles.multilineInput]}
-          value={value}
-          onChangeText={onChangeText}
-          multiline={multiline}
-          numberOfLines={multiline ? 3 : 1}
-          keyboardType={keyboardType}
-          autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'words'}
-          autoCorrect={false}
-        />
-      ) : (
-        <Text style={styles.fieldValue}>{value}</Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -136,35 +246,44 @@ export default function CompanyInfoScreen() {
               icon={Building}
               label="Company Name"
               value={companyInfo.name}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, name: text }))}
+              onChangeText={(text) => updateField('name', text)}
+              fieldKey="name"
+              required
             />
             <InfoField
               icon={Mail}
               label="Email Address"
               value={companyInfo.email}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, email: text }))}
+              onChangeText={(text) => updateField('email', text)}
               keyboardType="email-address"
+              fieldKey="email"
+              required
             />
             <InfoField
               icon={Phone}
               label="Phone Number"
               value={companyInfo.phone}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, phone: text }))}
+              onChangeText={(text) => updateField('phone', text)}
               keyboardType="phone-pad"
+              fieldKey="phone"
+              required
             />
             <InfoField
               icon={Phone}
               label="Emergency Phone"
               value={companyInfo.emergencyPhone}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, emergencyPhone: text }))}
+              onChangeText={(text) => updateField('emergencyPhone', text)}
               keyboardType="phone-pad"
+              fieldKey="emergencyPhone"
             />
             <InfoField
               icon={MapPin}
               label="Address"
               value={companyInfo.address}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, address: text }))}
+              onChangeText={(text) => updateField('address', text)}
               multiline
+              fieldKey="address"
+              required
             />
           </View>
         </View>
@@ -176,20 +295,24 @@ export default function CompanyInfoScreen() {
               icon={Globe}
               label="Website"
               value={companyInfo.website}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, website: text }))}
+              onChangeText={(text) => updateField('website', text)}
               keyboardType="url"
+              fieldKey="website"
             />
             <InfoField
               icon={FileText}
               label="License Number"
               value={companyInfo.license}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, license: text }))}
+              onChangeText={(text) => updateField('license', text)}
+              fieldKey="license"
+              required
             />
             <InfoField
               icon={FileText}
               label="Tax ID"
               value={companyInfo.taxId}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, taxId: text }))}
+              onChangeText={(text) => updateField('taxId', text)}
+              fieldKey="taxId"
             />
           </View>
         </View>
@@ -201,14 +324,16 @@ export default function CompanyInfoScreen() {
               icon={Building}
               label="Business Hours"
               value={companyInfo.businessHours}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, businessHours: text }))}
+              onChangeText={(text) => updateField('businessHours', text)}
+              fieldKey="businessHours"
             />
             <InfoField
               icon={FileText}
               label="Company Description"
               value={companyInfo.description}
-              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, description: text }))}
+              onChangeText={(text) => updateField('description', text)}
               multiline
+              fieldKey="description"
             />
           </View>
         </View>
@@ -222,10 +347,13 @@ export default function CompanyInfoScreen() {
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
               onPress={handleSave}
+              disabled={isLoading}
             >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <Text style={styles.saveButtonText}>
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -297,6 +425,25 @@ const styles = StyleSheet.create({
   multilineInput: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  inputError: {
+    borderColor: Colors.status.error,
+    borderWidth: 1.5,
+  },
+  fieldLabelError: {
+    color: Colors.status.error,
+  },
+  errorIcon: {
+    marginLeft: 'auto',
+  },
+  errorText: {
+    fontSize: 12,
+    color: Colors.status.error,
+    marginTop: 4,
+    marginLeft: 2,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   buttonContainer: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ export const Colors = {
   text: {
     primary: '#1A1A1A',
     secondary: '#6B7280',
+    tertiary: '#9CA3AF',
     light: '#9CA3AF',
     inverse: '#FFFFFF',
   },
@@ -18,6 +19,7 @@ export const Colors = {
     completed: '#10B981',
     cancelled: '#EF4444',
     emergency: '#DC2626',
+    error: '#EF4444',
   },
   border: '#E5E7EB',
   shadow: 'rgba(0, 0, 0, 0.1)',
