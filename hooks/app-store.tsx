@@ -33,7 +33,7 @@ interface AppState {
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const queryClient = useQueryClient();
-  const [currentTechnicianId, setCurrentTechnicianId] = useState<string | null>('tech1');
+  const [currentTechnicianId, setCurrentTechnicianId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);

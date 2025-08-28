@@ -60,13 +60,13 @@ export default function ProfileScreen() {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   
   const defaultProfile = useMemo(() => ({
-    name: currentTech?.name || 'John Doe',
-    email: currentTech?.email || 'john@olivarefrigeration.com',
-    phone: currentTech?.phone || '(555) 123-4567',
-    specialties: currentTech?.specialties.join(', ') || 'HVAC, Refrigeration',
-    bio: 'Experienced HVAC technician with 8+ years in commercial and residential systems.',
-    emergencyContact: '(555) 987-6543',
-    licenseNumber: 'HVAC-2024-JD001',
+    name: currentTech?.name || '',
+    email: currentTech?.email || '',
+    phone: currentTech?.phone || '',
+    specialties: currentTech?.specialties?.join(', ') || '',
+    bio: '',
+    emergencyContact: '',
+    licenseNumber: '',
   }), [currentTech]);
   
   const [profile, setProfile] = useState(defaultProfile);
@@ -312,7 +312,7 @@ export default function ProfileScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <Text style={styles.photoLabel}>{profile.name}</Text>
+          <Text style={styles.photoLabel}>{profile.name || 'Service Technician'}</Text>
           <Text style={styles.photoSubLabel}>{currentTech?.availability || 'Available'}</Text>
         </View>
 

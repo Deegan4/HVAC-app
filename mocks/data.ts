@@ -1,24 +1,6 @@
 import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
 
-export const mockTechnicians: Technician[] = [
-  {
-    id: 'tech1',
-    name: 'John Martinez',
-    email: 'john@olivarefrigeration.com',
-    phone: '(555) 123-4567',
-    specialties: ['HVAC', 'Commercial Refrigeration'],
-    availability: 'available',
-  },
-  {
-    id: 'tech2',
-    name: 'Sarah Chen',
-    email: 'sarah@olivarefrigeration.com',
-    phone: '(555) 234-5678',
-    specialties: ['Residential AC', 'Heat Pumps'],
-    availability: 'busy',
-    currentJobId: 'job2',
-  },
-];
+export const mockTechnicians: Technician[] = [];
 
 export const mockCustomers: Customer[] = [
   {
@@ -89,73 +71,7 @@ export const mockEquipment: Equipment[] = [
   },
 ];
 
-export const mockJobs: Job[] = [
-  {
-    id: 'job1',
-    customerId: 'cust1',
-    customerName: 'Robert Johnson',
-    address: '123 Main St, San Diego, CA 92101',
-    scheduledDate: '2025-01-10',
-    scheduledTime: '09:00',
-    status: 'scheduled',
-    priority: 'normal',
-    type: 'maintenance',
-    description: 'Annual AC maintenance and filter replacement',
-    technicianId: 'tech1',
-    technicianName: 'John Martinez',
-    equipmentId: 'eq1',
-    duration: 60,
-    notes: 'Customer prefers morning appointments',
-  },
-  {
-    id: 'job2',
-    customerId: 'cust2',
-    customerName: 'Maria Garcia',
-    address: '456 Oak Ave, La Jolla, CA 92037',
-    scheduledDate: '2025-01-09',
-    scheduledTime: '14:00',
-    status: 'inProgress',
-    priority: 'high',
-    type: 'repair',
-    description: 'Furnace not heating - urgent repair needed',
-    technicianId: 'tech2',
-    technicianName: 'Sarah Chen',
-    equipmentId: 'eq2',
-    duration: 120,
-  },
-  {
-    id: 'job3',
-    customerId: 'cust3',
-    customerName: 'Pacific Restaurant Group',
-    address: '789 Harbor Dr, San Diego, CA 92101',
-    scheduledDate: '2025-01-09',
-    scheduledTime: '16:00',
-    status: 'scheduled',
-    priority: 'emergency',
-    type: 'repair',
-    description: 'Walk-in cooler temperature fluctuating',
-    equipmentId: 'eq3',
-    duration: 90,
-    notes: 'Commercial priority - restaurant needs immediate service',
-  },
-  {
-    id: 'job4',
-    customerId: 'cust1',
-    customerName: 'Robert Johnson',
-    address: '123 Main St, San Diego, CA 92101',
-    scheduledDate: '2024-12-15',
-    scheduledTime: '10:00',
-    status: 'completed',
-    priority: 'normal',
-    type: 'inspection',
-    description: 'Pre-winter HVAC inspection',
-    technicianId: 'tech1',
-    technicianName: 'John Martinez',
-    duration: 45,
-    completedAt: '2024-12-15T11:00:00',
-    invoiceId: 'inv1',
-  },
-];
+export const mockJobs: Job[] = [];
 
 export const mockInvoices: Invoice[] = [
   {
