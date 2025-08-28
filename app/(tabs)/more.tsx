@@ -20,7 +20,8 @@ import {
   Users,
   FileText,
   BarChart3,
-  Wrench
+  Wrench,
+  Bug
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -70,6 +71,12 @@ export default function MoreScreen() {
       items: [
         { icon: HelpCircle, label: 'Help Center', onPress: () => router.push('/help-center') },
         { icon: FileText, label: 'Terms & Conditions', onPress: () => router.push('/terms-conditions') },
+      ]
+    },
+    {
+      title: 'Developer',
+      items: [
+        { icon: Bug, label: 'Debug Tools', onPress: () => router.push('/debug') },
       ]
     }
   ];
