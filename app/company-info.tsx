@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { Building, Mail, Phone, MapPin, Save, Edit3 } from 'lucide-react-native';
+import { Building, Mail, Phone, MapPin, Save, Edit3, Globe, FileText } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CompanyInfo {
   name: string;
@@ -21,6 +22,9 @@ interface CompanyInfo {
   website: string;
   license: string;
   taxId: string;
+  businessHours: string;
+  emergencyPhone: string;
+  description: string;
 }
 
 export default function CompanyInfoScreen() {
@@ -33,19 +37,54 @@ export default function CompanyInfoScreen() {
     website: 'www.olivarefrigeration.com',
     license: 'HVAC-2024-001',
     taxId: '12-3456789',
+    businessHours: 'Mon-Fri 8AM-6PM, Sat 9AM-4PM',
+    emergencyPhone: '(555) 999-HVAC',
+    description: 'Professional HVAC and refrigeration services for commercial and residential clients.',
   });
+  const [originalInfo, setOriginalInfo] = useState<CompanyInfo>(companyInfo);
 
-  const handleSave = () => {
-    Alert.alert('Success', 'Company information updated successfully!');
+  // Load company info on component mount
+  const loadCompanyInfo = useCallback(async () => {
+    try {
+      const saved = await AsyncStorage.getItem('companyInfo');
+      if (saved) {
+        const parsedInfo = JSON.parse(saved);
+        setCompanyInfo(parsedInfo);
+        setOriginalInfo(parsedInfo);
+      }
+    } catch (error) {
+      console.log('Error loading company info:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCompanyInfo();
+  }, [loadCompanyInfo]);
+
+  const handleSave = async () => {
+    try {
+      await AsyncStorage.setItem('companyInfo', JSON.stringify(companyInfo));
+      setOriginalInfo(companyInfo);
+      Alert.alert('Success', 'Company information updated successfully!');
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save company information. Please try again.');
+      console.log('Error saving company info:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    setCompanyInfo(originalInfo);
     setIsEditing(false);
   };
 
-  const InfoField = ({ icon: Icon, label, value, onChangeText, multiline = false }: {
+  const InfoField = ({ icon: Icon, label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
     icon: any;
     label: string;
     value: string;
     onChangeText: (text: string) => void;
     multiline?: boolean;
+    keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'url';
   }) => (
     <View style={styles.fieldContainer}>
       <View style={styles.fieldHeader}>
@@ -59,6 +98,9 @@ export default function CompanyInfoScreen() {
           onChangeText={onChangeText}
           multiline={multiline}
           numberOfLines={multiline ? 3 : 1}
+          keyboardType={keyboardType}
+          autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'words'}
+          autoCorrect={false}
         />
       ) : (
         <Text style={styles.fieldValue}>{value}</Text>
@@ -101,12 +143,21 @@ export default function CompanyInfoScreen() {
               label="Email Address"
               value={companyInfo.email}
               onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, email: text }))}
+              keyboardType="email-address"
             />
             <InfoField
               icon={Phone}
               label="Phone Number"
               value={companyInfo.phone}
               onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, phone: text }))}
+              keyboardType="phone-pad"
+            />
+            <InfoField
+              icon={Phone}
+              label="Emergency Phone"
+              value={companyInfo.emergencyPhone}
+              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, emergencyPhone: text }))}
+              keyboardType="phone-pad"
             />
             <InfoField
               icon={MapPin}
@@ -122,22 +173,42 @@ export default function CompanyInfoScreen() {
           <Text style={styles.sectionTitle}>Business Details</Text>
           <View style={styles.sectionContent}>
             <InfoField
-              icon={Building}
+              icon={Globe}
               label="Website"
               value={companyInfo.website}
               onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, website: text }))}
+              keyboardType="url"
             />
             <InfoField
-              icon={Building}
+              icon={FileText}
               label="License Number"
               value={companyInfo.license}
               onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, license: text }))}
             />
             <InfoField
-              icon={Building}
+              icon={FileText}
               label="Tax ID"
               value={companyInfo.taxId}
               onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, taxId: text }))}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Operations</Text>
+          <View style={styles.sectionContent}>
+            <InfoField
+              icon={Building}
+              label="Business Hours"
+              value={companyInfo.businessHours}
+              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, businessHours: text }))}
+            />
+            <InfoField
+              icon={FileText}
+              label="Company Description"
+              value={companyInfo.description}
+              onChangeText={(text) => setCompanyInfo(prev => ({ ...prev, description: text }))}
+              multiline
             />
           </View>
         </View>
@@ -146,7 +217,7 @@ export default function CompanyInfoScreen() {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => setIsEditing(false)}
+              onPress={handleCancel}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>

@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -19,33 +21,123 @@ import {
   Wrench,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Edit3,
+  Trash2,
+  X
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Technician } from '@/types';
 
 export default function TeamManagementScreen() {
   const { technicians } = useAppStore();
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTech, setEditingTech] = useState<Technician | null>(null);
+  const [newTech, setNewTech] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    specialties: '',
+    availability: 'available' as const,
+  });
 
   const handleAddTechnician = () => {
+    setShowAddModal(true);
+  };
+
+  const handleSaveNewTechnician = async () => {
+    if (!newTech.name.trim() || !newTech.email.trim() || !newTech.phone.trim()) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      const technicianData: Technician = {
+        id: `tech${Date.now()}`,
+        name: newTech.name.trim(),
+        email: newTech.email.trim(),
+        phone: newTech.phone.trim(),
+        specialties: newTech.specialties.split(',').map(s => s.trim()).filter(s => s),
+        availability: newTech.availability,
+        currentJobId: undefined,
+      };
+
+      const updatedTechnicians = [...technicians, technicianData];
+      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+      
+      setNewTech({ name: '', email: '', phone: '', specialties: '', availability: 'available' });
+      setShowAddModal(false);
+      Alert.alert('Success', 'Technician added successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add technician. Please try again.');
+      console.log('Error adding technician:', error);
+    }
+  };
+
+  const handleEditTechnician = (tech: Technician) => {
+    setEditingTech(tech);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditTechnician = async () => {
+    if (!editingTech) return;
+
+    try {
+      const updatedTechnicians = technicians.map(tech => 
+        tech.id === editingTech.id ? editingTech : tech
+      );
+      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+      
+      setEditingTech(null);
+      setShowEditModal(false);
+      Alert.alert('Success', 'Technician updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update technician. Please try again.');
+      console.log('Error updating technician:', error);
+    }
+  };
+
+  const handleDeleteTechnician = (techId: string) => {
+    const tech = technicians.find(t => t.id === techId);
     Alert.alert(
-      'Add Technician',
-      'This feature would open a form to add a new technician to your team.',
-      [{ text: 'OK' }]
+      'Delete Technician',
+      `Are you sure you want to remove ${tech?.name} from your team?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedTechnicians = technicians.filter(t => t.id !== techId);
+              await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+              Alert.alert('Success', 'Technician removed successfully!');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove technician.');
+            }
+          }
+        }
+      ]
     );
   };
 
-  const handleToggleAvailability = (techId: string, currentStatus: string) => {
+  const handleToggleAvailability = async (techId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'available' ? 'offline' : 'available';
-    Alert.alert(
-      'Update Availability',
-      `Set ${technicians.find(t => t.id === techId)?.name} as ${newStatus}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Update', onPress: () => console.log(`Updated ${techId} to ${newStatus}`) }
-      ]
-    );
+    const tech = technicians.find(t => t.id === techId);
+    
+    try {
+      const updatedTechnicians = technicians.map(t => 
+        t.id === techId ? { ...t, availability: newStatus } : t
+      );
+      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update availability.');
+      console.log('Error updating availability:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -136,12 +228,26 @@ export default function TeamManagementScreen() {
                         {tech.specialties.join(', ')}
                       </Text>
                     </View>
-                    <Switch
-                      value={tech.availability === 'available'}
-                      onValueChange={() => handleToggleAvailability(tech.id, tech.availability)}
-                      trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                      thumbColor={tech.availability === 'available' ? Colors.primary : '#f4f3f4'}
-                    />
+                    <View style={styles.techActions}>
+                      <TouchableOpacity
+                        onPress={() => handleEditTechnician(tech)}
+                        style={styles.actionButton}
+                      >
+                        <Edit3 size={16} color={Colors.text.secondary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteTechnician(tech.id)}
+                        style={styles.actionButton}
+                      >
+                        <Trash2 size={16} color={Colors.status.emergency} />
+                      </TouchableOpacity>
+                      <Switch
+                        value={tech.availability === 'available'}
+                        onValueChange={() => handleToggleAvailability(tech.id, tech.availability)}
+                        trackColor={{ false: Colors.border, true: Colors.primaryLight }}
+                        thumbColor={tech.availability === 'available' ? Colors.primary : '#f4f3f4'}
+                      />
+                    </View>
                   </View>
 
                   {selectedTech === tech.id && (
@@ -194,6 +300,169 @@ export default function TeamManagementScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Add Technician Modal */}
+        <Modal
+          visible={showAddModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add New Technician</Text>
+              <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                <X size={24} color={Colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalContent}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Name *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={newTech.name}
+                  onChangeText={(text) => setNewTech(prev => ({ ...prev, name: text }))}
+                  placeholder="Enter technician name"
+                  autoCapitalize="words"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={newTech.email}
+                  onChangeText={(text) => setNewTech(prev => ({ ...prev, email: text }))}
+                  placeholder="Enter email address"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Phone *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={newTech.phone}
+                  onChangeText={(text) => setNewTech(prev => ({ ...prev, phone: text }))}
+                  placeholder="Enter phone number"
+                  keyboardType="phone-pad"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Specialties</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={newTech.specialties}
+                  onChangeText={(text) => setNewTech(prev => ({ ...prev, specialties: text }))}
+                  placeholder="e.g., HVAC, Refrigeration, Electrical"
+                  multiline
+                />
+                <Text style={styles.inputHint}>Separate multiple specialties with commas</Text>
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowAddModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={handleSaveNewTechnician}
+              >
+                <Text style={styles.modalSaveText}>Add Technician</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
+
+        {/* Edit Technician Modal */}
+        <Modal
+          visible={showEditModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Technician</Text>
+              <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                <X size={24} color={Colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            
+            {editingTech && (
+              <ScrollView style={styles.modalContent}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Name *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingTech.name}
+                    onChangeText={(text) => setEditingTech(prev => prev ? { ...prev, name: text } : null)}
+                    placeholder="Enter technician name"
+                    autoCapitalize="words"
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Email *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingTech.email}
+                    onChangeText={(text) => setEditingTech(prev => prev ? { ...prev, email: text } : null)}
+                    placeholder="Enter email address"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Phone *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingTech.phone}
+                    onChangeText={(text) => setEditingTech(prev => prev ? { ...prev, phone: text } : null)}
+                    placeholder="Enter phone number"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Specialties</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingTech.specialties.join(', ')}
+                    onChangeText={(text) => setEditingTech(prev => prev ? { 
+                      ...prev, 
+                      specialties: text.split(',').map(s => s.trim()).filter(s => s)
+                    } : null)}
+                    placeholder="e.g., HVAC, Refrigeration, Electrical"
+                    multiline
+                  />
+                  <Text style={styles.inputHint}>Separate multiple specialties with commas</Text>
+                </View>
+              </ScrollView>
+            )}
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowEditModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={handleSaveEditTechnician}
+              >
+                <Text style={styles.modalSaveText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -325,5 +594,93 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 16,
     color: Colors.text.primary,
+  },
+  techActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+    backgroundColor: Colors.surface,
+  },
+  inputHint: {
+    fontSize: 12,
+    color: Colors.text.light,
+    marginTop: 4,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  modalSaveButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+  },
+  modalSaveText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
   },
 });

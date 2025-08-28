@@ -123,6 +123,16 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
+  const techniciansMutation = useMutation({
+    mutationFn: async (newTechnicians: Technician[]) => {
+      await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
+      return newTechnicians;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['technicians'] });
+    },
+  });
+
   // Helper functions
   const addJob = (job: Omit<Job, 'id'>) => {
     const newJob: Job = {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Share,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -18,11 +20,17 @@ import {
   Smartphone,
   Key,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Download,
+  Trash2
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppStore } from '@/hooks/app-store';
+// import * as LocalAuthentication from 'expo-local-authentication';
 
 export default function PrivacySecurityScreen() {
+  const { customers, jobs, invoices, technicians } = useAppStore();
   const [settings, setSettings] = useState({
     biometricAuth: true,
     autoLock: true,
@@ -30,39 +38,154 @@ export default function PrivacySecurityScreen() {
     locationTracking: true,
     crashReporting: false,
     analytics: false,
+    autoLockTimeout: 5, // minutes
   });
 
   const [showSensitiveData, setShowSensitiveData] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('');
+
+  // Load settings and check biometric support
+  const loadSettings = useCallback(async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem('privacySettings');
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings));
+      }
+
+      // Check biometric support (simulated for now)
+      setBiometricSupported(Platform.OS !== 'web');
+      setBiometricType(Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint');
+    } catch (error) {
+      console.log('Error loading privacy settings:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const saveSettings = async (newSettings: typeof settings) => {
+    try {
+      await AsyncStorage.setItem('privacySettings', JSON.stringify(newSettings));
+      setSettings(newSettings);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save settings.');
+      console.log('Error saving privacy settings:', error);
+    }
+  };
 
   const handleChangePin = () => {
     Alert.alert(
       'Change PIN',
-      'This would open the PIN change flow with current PIN verification.',
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleResetData = () => {
-    Alert.alert(
-      'Reset App Data',
-      'This will permanently delete all local data. This action cannot be undone.',
+      'To change your PIN, you will need to verify your current PIN first.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Reset', 
-          style: 'destructive', 
-          onPress: () => Alert.alert('Data Reset', 'App data has been reset.')
+          text: 'Continue', 
+          onPress: () => {
+            // In a real app, this would navigate to PIN change screen
+            Alert.alert('PIN Change', 'PIN change functionality would be implemented here.');
+          }
         }
       ]
     );
   };
 
-  const handleExportData = () => {
+  const handleBiometricToggle = async (enabled: boolean) => {
+    if (enabled && !biometricSupported) {
+      Alert.alert(
+        'Biometric Authentication Unavailable',
+        'Your device does not support biometric authentication or no biometrics are enrolled.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    if (enabled) {
+      // Simulate biometric authentication
+      Alert.alert(
+        'Enable Biometric Authentication',
+        `Would you like to enable ${biometricType} authentication?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Enable',
+            onPress: async () => {
+              await saveSettings({ ...settings, biometricAuth: true });
+              Alert.alert('Success', `${biometricType} authentication enabled.`);
+            }
+          }
+        ]
+      );
+    } else {
+      await saveSettings({ ...settings, biometricAuth: false });
+    }
+  };
+
+  const handleResetData = () => {
     Alert.alert(
-      'Export Data',
-      'Export your data for backup or transfer to another device.',
-      [{ text: 'OK' }]
+      'Reset App Data',
+      'This will permanently delete all local data including jobs, customers, invoices, and settings. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Reset', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              // Clear all app data
+              const keys = [
+                'customers', 'jobs', 'invoices', 'technicians', 'equipment',
+                'serviceSettings', 'privacySettings', 'companyInfo', 'userPin'
+              ];
+              
+              await AsyncStorage.multiRemove(keys);
+              Alert.alert('Data Reset', 'All app data has been permanently deleted.');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reset app data.');
+              console.log('Error resetting data:', error);
+            }
+          }
+        }
+      ]
     );
+  };
+
+  const handleExportData = async () => {
+    try {
+      const exportData = {
+        customers,
+        jobs,
+        invoices,
+        technicians,
+        exportDate: new Date().toISOString(),
+        appVersion: '1.0.0',
+      };
+      
+      const jsonData = JSON.stringify(exportData, null, 2);
+      
+      if (Platform.OS === 'web') {
+        // For web, create a download link
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `oliva-refrigeration-backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        Alert.alert('Success', 'Data exported successfully!');
+      } else {
+        // For mobile, use Share API
+        await Share.share({
+          message: jsonData,
+          title: 'Oliva Refrigeration Data Export',
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export data.');
+      console.log('Error exporting data:', error);
+    }
   };
 
   const SecurityItem = ({ icon: Icon, title, description, hasSwitch = false, switchValue, onSwitchChange, onPress, status }: {
@@ -154,19 +277,19 @@ export default function PrivacySecurityScreen() {
             />
             <SecurityItem
               icon={Smartphone}
-              title="Biometric Authentication"
-              description="Use fingerprint or face recognition"
+              title={`${biometricType} Authentication`}
+              description={biometricSupported ? `Use ${biometricType.toLowerCase()} to unlock the app` : 'Not available on this device'}
               hasSwitch
-              switchValue={settings.biometricAuth}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, biometricAuth: value }))}
+              switchValue={settings.biometricAuth && biometricSupported}
+              onSwitchChange={handleBiometricToggle}
             />
             <SecurityItem
               icon={Lock}
               title="Auto-Lock"
-              description="Automatically lock app when inactive"
+              description={`Lock app after ${settings.autoLockTimeout} minutes of inactivity`}
               hasSwitch
               switchValue={settings.autoLock}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, autoLock: value }))}
+              onSwitchChange={(value) => saveSettings({ ...settings, autoLock: value })}
             />
           </View>
         </View>
@@ -181,7 +304,7 @@ export default function PrivacySecurityScreen() {
               description="Encrypt sensitive data on device"
               hasSwitch
               switchValue={settings.dataEncryption}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, dataEncryption: value }))}
+              onSwitchChange={(value) => saveSettings({ ...settings, dataEncryption: value })}
             />
             <TouchableOpacity
               style={styles.securityItem}
@@ -215,10 +338,10 @@ export default function PrivacySecurityScreen() {
             <SecurityItem
               icon={Shield}
               title="Location Tracking"
-              description="Allow location tracking for job routing"
+              description="Allow location tracking for job routing and technician dispatch"
               hasSwitch
               switchValue={settings.locationTracking}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, locationTracking: value }))}
+              onSwitchChange={(value) => saveSettings({ ...settings, locationTracking: value })}
             />
             <SecurityItem
               icon={AlertTriangle}
@@ -226,15 +349,15 @@ export default function PrivacySecurityScreen() {
               description="Send crash reports to improve app stability"
               hasSwitch
               switchValue={settings.crashReporting}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, crashReporting: value }))}
+              onSwitchChange={(value) => saveSettings({ ...settings, crashReporting: value })}
             />
             <SecurityItem
               icon={Shield}
               title="Analytics"
-              description="Share anonymous usage data"
+              description="Share anonymous usage data to improve the app"
               hasSwitch
               switchValue={settings.analytics}
-              onSwitchChange={(value) => setSettings(prev => ({ ...prev, analytics: value }))}
+              onSwitchChange={(value) => saveSettings({ ...settings, analytics: value })}
             />
           </View>
         </View>
@@ -244,16 +367,16 @@ export default function PrivacySecurityScreen() {
           <Text style={styles.sectionTitle}>Data Management</Text>
           <View style={styles.sectionContent}>
             <SecurityItem
-              icon={Shield}
+              icon={Download}
               title="Export Data"
-              description="Download a copy of your data"
+              description={`Export ${customers.length} customers, ${jobs.length} jobs, and ${invoices.length} invoices`}
               onPress={handleExportData}
               status="info"
             />
             <SecurityItem
-              icon={AlertTriangle}
+              icon={Trash2}
               title="Reset App Data"
-              description="Permanently delete all local data"
+              description="Permanently delete all local data and settings"
               onPress={handleResetData}
               status="warning"
             />
@@ -266,19 +389,23 @@ export default function PrivacySecurityScreen() {
           <View style={styles.tipsContainer}>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />
-              <Text style={styles.tipText}>Use a unique PIN that&apos;s not easily guessed</Text>
+              <Text style={styles.tipText}>Use a unique PIN that&apos;s not easily guessed (avoid 1234, 0000)</Text>
             </View>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />
-              <Text style={styles.tipText}>Enable biometric authentication for faster access</Text>
+              <Text style={styles.tipText}>Enable {biometricType.toLowerCase()} authentication for faster, secure access</Text>
             </View>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />
-              <Text style={styles.tipText}>Keep your app updated for the latest security features</Text>
+              <Text style={styles.tipText}>Regularly export your data as a backup</Text>
             </View>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />
-              <Text style={styles.tipText}>Log out when using shared devices</Text>
+              <Text style={styles.tipText}>Keep location tracking enabled for accurate job routing</Text>
+            </View>
+            <View style={styles.tipItem}>
+              <CheckCircle size={16} color={Colors.status.completed} />
+              <Text style={styles.tipText}>Log out when using shared or public devices</Text>
             </View>
           </View>
         </View>
