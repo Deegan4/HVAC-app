@@ -182,12 +182,19 @@ export default function ProfileScreen() {
           multiline={multiline}
           numberOfLines={multiline ? 3 : 1}
           keyboardType={keyboardType}
+          autoCorrect={false}
+          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
         />
       ) : (
         <Text style={styles.fieldValue}>{value}</Text>
       )}
     </View>
-  ));
+  ), (prevProps, nextProps) => {
+    return prevProps.value === nextProps.value && 
+           prevProps.label === nextProps.label && 
+           prevProps.multiline === nextProps.multiline && 
+           prevProps.keyboardType === nextProps.keyboardType;
+  });
   ProfileField.displayName = 'ProfileField';
 
   const getTimeAgo = (dateString: string) => {
@@ -204,34 +211,38 @@ export default function ProfileScreen() {
     return date.toLocaleDateString();
   };
 
-  // Memoized change handlers to prevent re-renders
-  const handleNameChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, name: text }));
+  // Stable change handlers to prevent re-renders
+  const updateProfile = useCallback((field: string, value: string) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
   }, []);
+
+  const handleNameChange = useCallback((text: string) => {
+    updateProfile('name', text);
+  }, [updateProfile]);
 
   const handleEmailChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, email: text }));
-  }, []);
+    updateProfile('email', text);
+  }, [updateProfile]);
 
   const handlePhoneChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, phone: text }));
-  }, []);
+    updateProfile('phone', text);
+  }, [updateProfile]);
 
   const handleBioChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, bio: text }));
-  }, []);
+    updateProfile('bio', text);
+  }, [updateProfile]);
 
   const handleSpecialtiesChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, specialties: text }));
-  }, []);
+    updateProfile('specialties', text);
+  }, [updateProfile]);
 
   const handleLicenseChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, licenseNumber: text }));
-  }, []);
+    updateProfile('licenseNumber', text);
+  }, [updateProfile]);
 
   const handleEmergencyContactChange = useCallback((text: string) => {
-    setProfile(prev => ({ ...prev, emergencyContact: text }));
-  }, []);
+    updateProfile('emergencyContact', text);
+  }, [updateProfile]);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
