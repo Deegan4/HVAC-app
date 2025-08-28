@@ -165,7 +165,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const ProfileField = ({ label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
+  const ProfileField = React.memo(({ label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
     label: string;
     value: string;
     onChangeText: (text: string) => void;
@@ -187,7 +187,8 @@ export default function ProfileScreen() {
         <Text style={styles.fieldValue}>{value}</Text>
       )}
     </View>
-  );
+  ));
+  ProfileField.displayName = 'ProfileField';
 
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -202,6 +203,35 @@ export default function ProfileScreen() {
     
     return date.toLocaleDateString();
   };
+
+  // Memoized change handlers to prevent re-renders
+  const handleNameChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, name: text }));
+  }, []);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, email: text }));
+  }, []);
+
+  const handlePhoneChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, phone: text }));
+  }, []);
+
+  const handleBioChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, bio: text }));
+  }, []);
+
+  const handleSpecialtiesChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, specialties: text }));
+  }, []);
+
+  const handleLicenseChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, licenseNumber: text }));
+  }, []);
+
+  const handleEmergencyContactChange = useCallback((text: string) => {
+    setProfile(prev => ({ ...prev, emergencyContact: text }));
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -253,24 +283,24 @@ export default function ProfileScreen() {
             <ProfileField
               label="Full Name"
               value={profile.name}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, name: text }))}
+              onChangeText={handleNameChange}
             />
             <ProfileField
               label="Email Address"
               value={profile.email}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, email: text }))}
+              onChangeText={handleEmailChange}
               keyboardType="email-address"
             />
             <ProfileField
               label="Phone Number"
               value={profile.phone}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, phone: text }))}
+              onChangeText={handlePhoneChange}
               keyboardType="phone-pad"
             />
             <ProfileField
               label="Bio"
               value={profile.bio}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, bio: text }))}
+              onChangeText={handleBioChange}
               multiline
             />
           </View>
@@ -283,17 +313,17 @@ export default function ProfileScreen() {
             <ProfileField
               label="Specialties"
               value={profile.specialties}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, specialties: text }))}
+              onChangeText={handleSpecialtiesChange}
             />
             <ProfileField
               label="License Number"
               value={profile.licenseNumber}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, licenseNumber: text }))}
+              onChangeText={handleLicenseChange}
             />
             <ProfileField
               label="Emergency Contact"
               value={profile.emergencyContact}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, emergencyContact: text }))}
+              onChangeText={handleEmergencyContactChange}
               keyboardType="phone-pad"
             />
           </View>
