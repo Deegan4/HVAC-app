@@ -17,6 +17,42 @@ import { useAppStore } from '@/hooks/app-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 
+interface ProfileFieldProps {
+  isEditing: boolean;
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  multiline?: boolean;
+  keyboardType?: 'default' | 'email-address' | 'phone-pad';
+}
+
+const ProfileField = React.memo<ProfileFieldProps>(({ isEditing, label, value, onChangeText, multiline = false, keyboardType = 'default' }) => (
+  <View style={styles.fieldContainer}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    {isEditing ? (
+      <TextInput
+        style={[styles.input, multiline && styles.multilineInput]}
+        value={value}
+        onChangeText={onChangeText}
+        multiline={multiline}
+        numberOfLines={multiline ? 3 : 1}
+        keyboardType={keyboardType}
+        autoCorrect={false}
+        autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
+      />
+    ) : (
+      <Text style={styles.fieldValue}>{value}</Text>
+    )}
+  </View>
+), (prevProps, nextProps) => {
+  return prevProps.value === nextProps.value &&
+         prevProps.label === nextProps.label &&
+         prevProps.multiline === nextProps.multiline &&
+         prevProps.keyboardType === nextProps.keyboardType &&
+         prevProps.isEditing === nextProps.isEditing;
+});
+ProfileField.displayName = 'ProfileField';
+
 export default function ProfileScreen() {
   const { technicians, currentTechnicianId, jobs, invoices } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
@@ -165,37 +201,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const ProfileField = React.memo(({ label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    multiline?: boolean;
-    keyboardType?: 'default' | 'email-address' | 'phone-pad';
-  }) => (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {isEditing ? (
-        <TextInput
-          style={[styles.input, multiline && styles.multilineInput]}
-          value={value}
-          onChangeText={onChangeText}
-          multiline={multiline}
-          numberOfLines={multiline ? 3 : 1}
-          keyboardType={keyboardType}
-          autoCorrect={false}
-          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
-        />
-      ) : (
-        <Text style={styles.fieldValue}>{value}</Text>
-      )}
-    </View>
-  ), (prevProps, nextProps) => {
-    return prevProps.value === nextProps.value && 
-           prevProps.label === nextProps.label && 
-           prevProps.multiline === nextProps.multiline && 
-           prevProps.keyboardType === nextProps.keyboardType;
-  });
-  ProfileField.displayName = 'ProfileField';
+
 
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -292,23 +298,27 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Basic Information</Text>
           <View style={styles.sectionContent}>
             <ProfileField
+              isEditing={isEditing}
               label="Full Name"
               value={profile.name}
               onChangeText={handleNameChange}
             />
             <ProfileField
+              isEditing={isEditing}
               label="Email Address"
               value={profile.email}
               onChangeText={handleEmailChange}
               keyboardType="email-address"
             />
             <ProfileField
+              isEditing={isEditing}
               label="Phone Number"
               value={profile.phone}
               onChangeText={handlePhoneChange}
               keyboardType="phone-pad"
             />
             <ProfileField
+              isEditing={isEditing}
               label="Bio"
               value={profile.bio}
               onChangeText={handleBioChange}
@@ -322,16 +332,19 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Professional Information</Text>
           <View style={styles.sectionContent}>
             <ProfileField
+              isEditing={isEditing}
               label="Specialties"
               value={profile.specialties}
               onChangeText={handleSpecialtiesChange}
             />
             <ProfileField
+              isEditing={isEditing}
               label="License Number"
               value={profile.licenseNumber}
               onChangeText={handleLicenseChange}
             />
             <ProfileField
+              isEditing={isEditing}
               label="Emergency Contact"
               value={profile.emergencyContact}
               onChangeText={handleEmergencyContactChange}
