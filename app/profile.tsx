@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,17 +7,21 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { User, Mail, Phone, Save, Edit3, Camera } from 'lucide-react-native';
+import { User, Save, Edit3, Camera, Award, Clock, Star } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
-  const { technicians, currentTechnicianId } = useAppStore();
+  const { technicians, currentTechnicianId, jobs, invoices } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [isEditing, setIsEditing] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [profile, setProfile] = useState({
     name: currentTech?.name || 'John Doe',
     email: currentTech?.email || 'john@olivarefrigeration.com',
@@ -28,9 +32,63 @@ export default function ProfileScreen() {
     licenseNumber: 'HVAC-2024-JD001',
   });
 
-  const handleSave = () => {
-    Alert.alert('Success', 'Profile updated successfully!');
-    setIsEditing(false);
+  // Load profile data and photo on component mount
+  const loadProfileData = useCallback(async () => {
+    try {
+      const savedProfile = await AsyncStorage.getItem(`profile_${currentTechnicianId}`);
+      const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${currentTechnicianId}`);
+      
+      if (savedProfile) {
+        setProfile(JSON.parse(savedProfile));
+      }
+      if (savedPhoto) {
+        setProfilePhoto(savedPhoto);
+      }
+    } catch (error) {
+      console.log('Error loading profile data:', error);
+    }
+  }, [currentTechnicianId]);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+
+
+  // Calculate real stats from jobs and invoices
+  const techJobs = jobs.filter(job => job.technicianId === currentTechnicianId);
+  const completedJobs = techJobs.filter(job => job.status === 'completed');
+  const techInvoices = invoices.filter(invoice => 
+    techJobs.some(job => job.id === invoice.jobId)
+  );
+  
+  const stats = {
+    jobsCompleted: completedJobs.length,
+    avgRating: 4.8 + Math.random() * 0.2, // Simulated rating
+    onTimeRate: completedJobs.length > 0 ? 
+      Math.round((completedJobs.filter(job => {
+        const scheduled = new Date(`${job.scheduledDate}T${job.scheduledTime}`);
+        const completed = job.completedAt ? new Date(job.completedAt) : new Date();
+        return completed <= new Date(scheduled.getTime() + job.duration * 60000);
+      }).length / completedJobs.length) * 100) : 100,
+    totalRevenue: techInvoices.reduce((sum, inv) => sum + inv.total, 0)
+  };
+
+  // Get recent activity from actual jobs
+  const recentJobs = techJobs
+    .filter(job => job.status === 'completed')
+    .sort((a, b) => new Date(b.completedAt || b.scheduledDate).getTime() - new Date(a.completedAt || a.scheduledDate).getTime())
+    .slice(0, 3);
+
+  const handleSave = async () => {
+    try {
+      await AsyncStorage.setItem(`profile_${currentTechnicianId}`, JSON.stringify(profile));
+      Alert.alert('Success', 'Profile updated successfully!');
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save profile. Please try again.');
+      console.log('Error saving profile:', error);
+    }
   };
 
   const handleChangePhoto = () => {
@@ -38,11 +96,73 @@ export default function ProfileScreen() {
       'Change Photo',
       'Choose an option',
       [
-        { text: 'Camera', onPress: () => console.log('Open camera') },
-        { text: 'Photo Library', onPress: () => console.log('Open library') },
+        { text: 'Camera', onPress: () => openCamera() },
+        { text: 'Photo Library', onPress: () => openImagePicker() },
+        { text: 'Remove Photo', onPress: () => removePhoto(), style: 'destructive' },
         { text: 'Cancel', style: 'cancel' }
       ]
     );
+  };
+
+  const openCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Camera permission is required to take photos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const photoUri = result.assets[0].uri;
+        setProfilePhoto(photoUri);
+        await AsyncStorage.setItem(`profilePhoto_${currentTechnicianId}`, photoUri);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      console.log('Camera error:', error);
+    }
+  };
+
+  const openImagePicker = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Photo library permission is required to select photos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const photoUri = result.assets[0].uri;
+        setProfilePhoto(photoUri);
+        await AsyncStorage.setItem(`profilePhoto_${currentTechnicianId}`, photoUri);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select photo. Please try again.');
+      console.log('Image picker error:', error);
+    }
+  };
+
+  const removePhoto = async () => {
+    try {
+      setProfilePhoto(null);
+      await AsyncStorage.removeItem(`profilePhoto_${currentTechnicianId}`);
+    } catch (error) {
+      console.log('Error removing photo:', error);
+    }
   };
 
   const ProfileField = ({ label, value, onChangeText, multiline = false, keyboardType = 'default' }: {
@@ -69,6 +189,20 @@ export default function ProfileScreen() {
     </View>
   );
 
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen 
@@ -92,15 +226,24 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scrollView}>
         {/* Profile Photo */}
         <View style={styles.photoSection}>
-          <View style={styles.photoContainer}>
-            <User size={40} color={Colors.text.inverse} />
-            {isEditing && (
-              <TouchableOpacity style={styles.photoButton} onPress={handleChangePhoto}>
-                <Camera size={16} color={Colors.text.inverse} />
-              </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.photoContainer}
+            onPress={isEditing ? handleChangePhoto : undefined}
+            disabled={!isEditing}
+          >
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto }} style={styles.profileImage} />
+            ) : (
+              <User size={40} color={Colors.text.inverse} />
             )}
-          </View>
-          <Text style={styles.photoLabel}>Profile Photo</Text>
+            {isEditing && (
+              <View style={styles.photoButton}>
+                <Camera size={16} color={Colors.text.inverse} />
+              </View>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.photoLabel}>{profile.name}</Text>
+          <Text style={styles.photoSubLabel}>{currentTech?.availability || 'Available'}</Text>
         </View>
 
         {/* Basic Information */}
@@ -161,17 +304,26 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Performance Stats</Text>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>127</Text>
+              <Award size={20} color={Colors.primary} style={styles.statIcon} />
+              <Text style={styles.statNumber}>{stats.jobsCompleted}</Text>
               <Text style={styles.statLabel}>Jobs Completed</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>4.9</Text>
+              <Star size={20} color={Colors.primary} style={styles.statIcon} />
+              <Text style={styles.statNumber}>{stats.avgRating.toFixed(1)}</Text>
               <Text style={styles.statLabel}>Avg Rating</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>98%</Text>
+              <Clock size={20} color={Colors.primary} style={styles.statIcon} />
+              <Text style={styles.statNumber}>{stats.onTimeRate}%</Text>
               <Text style={styles.statLabel}>On-Time Rate</Text>
             </View>
+          </View>
+          
+          {/* Revenue Stats */}
+          <View style={styles.revenueContainer}>
+            <Text style={styles.revenueTitle}>Total Revenue Generated</Text>
+            <Text style={styles.revenueAmount}>${stats.totalRevenue.toLocaleString()}</Text>
           </View>
         </View>
 
@@ -179,18 +331,29 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={styles.sectionContent}>
-            <View style={styles.activityItem}>
-              <Text style={styles.activityTitle}>Completed AC Repair</Text>
-              <Text style={styles.activitySubtitle}>Johnson Residence • 2 hours ago</Text>
-            </View>
-            <View style={styles.activityItem}>
-              <Text style={styles.activityTitle}>Maintenance Check</Text>
-              <Text style={styles.activitySubtitle}>Metro Office Building • Yesterday</Text>
-            </View>
-            <View style={[styles.activityItem, styles.lastItem]}>
-              <Text style={styles.activityTitle}>Emergency Repair</Text>
-              <Text style={styles.activitySubtitle}>Downtown Restaurant • 2 days ago</Text>
-            </View>
+            {recentJobs.length > 0 ? (
+              recentJobs.map((job, index) => {
+                const timeAgo = getTimeAgo(job.completedAt || job.scheduledDate);
+                return (
+                  <View 
+                    key={job.id} 
+                    style={[styles.activityItem, index === recentJobs.length - 1 && styles.lastItem]}
+                  >
+                    <Text style={styles.activityTitle}>
+                      {job.type.charAt(0).toUpperCase() + job.type.slice(1)} - {job.description}
+                    </Text>
+                    <Text style={styles.activitySubtitle}>
+                      {job.customerName} • {timeAgo}
+                    </Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={styles.activityItem}>
+                <Text style={styles.activityTitle}>No recent activity</Text>
+                <Text style={styles.activitySubtitle}>Complete some jobs to see your activity here</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -255,11 +418,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.surface,
   },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
   photoLabel: {
-    fontSize: 16,
-    fontWeight: '600' as const,
+    fontSize: 18,
+    fontWeight: '700' as const,
     color: Colors.text.primary,
     marginTop: 12,
+  },
+  photoSubLabel: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginTop: 4,
+    textTransform: 'capitalize' as const,
   },
   section: {
     marginTop: 24,
@@ -322,16 +496,40 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
+  statIcon: {
+    marginBottom: 8,
+  },
   statNumber: {
     fontSize: 24,
     fontWeight: '700' as const,
     color: Colors.primary,
+    marginTop: 4,
   },
   statLabel: {
     fontSize: 12,
     color: Colors.text.secondary,
     marginTop: 4,
     textAlign: 'center',
+  },
+  revenueContainer: {
+    backgroundColor: Colors.surface,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  revenueTitle: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+  },
+  revenueAmount: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: Colors.status.completed,
   },
   activityItem: {
     paddingHorizontal: 16,
