@@ -19,17 +19,19 @@ import {
   Building,
   Users,
   FileText,
-  Settings,
   BarChart3,
   Wrench
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { router } from 'expo-router';
 
 export default function MoreScreen() {
   const { technicians, currentTechnicianId } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+
+  const { logout } = useAppStore();
 
   const handleLogout = () => {
     Alert.alert(
@@ -37,7 +39,10 @@ export default function MoreScreen() {
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => console.log('Logout') }
+        { text: 'Logout', style: 'destructive', onPress: () => {
+          logout();
+          router.replace('/');
+        }}
       ]
     );
   };
@@ -46,25 +51,25 @@ export default function MoreScreen() {
     {
       title: 'Business',
       items: [
-        { icon: Building, label: 'Company Info', onPress: () => {} },
-        { icon: Users, label: 'Team Management', onPress: () => {} },
-        { icon: BarChart3, label: 'Reports & Analytics', onPress: () => {} },
-        { icon: Wrench, label: 'Service Settings', onPress: () => {} },
+        { icon: Building, label: 'Company Info', onPress: () => router.push('/company-info') },
+        { icon: Users, label: 'Team Management', onPress: () => router.push('/team-management') },
+        { icon: BarChart3, label: 'Reports & Analytics', onPress: () => router.push('/reports-analytics') },
+        { icon: Wrench, label: 'Service Settings', onPress: () => router.push('/service-settings') },
       ]
     },
     {
       title: 'Account',
       items: [
-        { icon: User, label: 'Profile', onPress: () => {} },
+        { icon: User, label: 'Profile', onPress: () => router.push('/profile') },
         { icon: Bell, label: 'Notifications', hasSwitch: true },
-        { icon: Shield, label: 'Privacy & Security', onPress: () => {} },
+        { icon: Shield, label: 'Privacy & Security', onPress: () => router.push('/privacy-security') },
       ]
     },
     {
       title: 'Support',
       items: [
-        { icon: HelpCircle, label: 'Help Center', onPress: () => {} },
-        { icon: FileText, label: 'Terms & Conditions', onPress: () => {} },
+        { icon: HelpCircle, label: 'Help Center', onPress: () => router.push('/help-center') },
+        { icon: FileText, label: 'Terms & Conditions', onPress: () => router.push('/terms-conditions') },
       ]
     }
   ];
