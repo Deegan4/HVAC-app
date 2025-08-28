@@ -1,0 +1,24 @@
+export const Colors = {
+  primary: '#0066CC',
+  primaryDark: '#004499',
+  primaryLight: '#3385D6',
+  secondary: '#00A651',
+  accent: '#FF6B35',
+  background: '#F5F7FA',
+  surface: '#FFFFFF',
+  text: {
+    primary: '#1A1A1A',
+    secondary: '#6B7280',
+    light: '#9CA3AF',
+    inverse: '#FFFFFF',
+  },
+  status: {
+    scheduled: '#3B82F6',
+    inProgress: '#F59E0B',
+    completed: '#10B981',
+    cancelled: '#EF4444',
+    emergency: '#DC2626',
+  },
+  border: '#E5E7EB',
+  shadow: 'rgba(0, 0, 0, 0.1)',
+};
