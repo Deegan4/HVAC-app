@@ -1,6 +1,15 @@
 import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
 
-export const mockTechnicians: Technician[] = [];
+export const mockTechnicians: Technician[] = [
+  {
+    id: 'tech1',
+    name: 'Current User',
+    email: 'user@olivarefrigeration.com',
+    phone: '(555) 123-4567',
+    specialties: ['HVAC', 'Refrigeration', 'Commercial Systems'],
+    availability: 'available',
+  },
+];
 
 export const mockCustomers: Customer[] = [
   {
