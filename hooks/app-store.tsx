@@ -1,9 +1,10 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
+import OfflineStorageManager from '@/utils/OfflineStorageManager';
 
 interface AppState {
   customers: Customer[];
@@ -16,7 +17,7 @@ interface AppState {
   isAuthenticated: boolean;
   hasPin: boolean;
   addJob: (job: Omit<Job, 'id'>) => void;
-  updateJobStatus: (jobId: string, status: Job['status']) => void;
+  updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoiceStatus: (invoiceId: string, status: Invoice['status']) => void;
@@ -33,7 +34,8 @@ interface AppState {
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const queryClient = useQueryClient();
-  const [currentTechnicianId, setCurrentTechnicianId] = useState<string | null>('tech1');
+  const offlineStorage = OfflineStorageManager.getInstance();
+  const [currentTechnicianId] = useState<string | null>('tech1');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
@@ -102,6 +104,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },
   });
+  const { mutate: mutateJobs } = jobsMutation;
 
   const customersMutation = useMutation({
     mutationFn: async (newCustomers: Customer[]) => {
@@ -112,6 +115,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
   });
+  const { mutate: mutateCustomers } = customersMutation;
 
   const invoicesMutation = useMutation({
     mutationFn: async (newInvoices: Invoice[]) => {
@@ -122,8 +126,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
     },
   });
+  const { mutate: mutateInvoices } = invoicesMutation;
 
-  const techniciansMutation = useMutation({
+  useMutation({
     mutationFn: async (newTechnicians: Technician[]) => {
       await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
       return newTechnicians;
@@ -134,41 +139,60 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
 
   // Helper functions
-  const addJob = (job: Omit<Job, 'id'>) => {
+  const addJob = useCallback((job: Omit<Job, 'id'>) => {
     const newJob: Job = {
       ...job,
       id: `job${Date.now()}`,
     };
-    jobsMutation.mutate([...jobs, newJob]);
-  };
+    mutateJobs([...jobs, newJob]);
+  }, [jobs, mutateJobs]);
 
-  const updateJobStatus = (jobId: string, status: Job['status']) => {
-    const updatedJobs = jobs.map((job: Job) =>
-      job.id === jobId ? { ...job, status } : job
-    );
-    jobsMutation.mutate(updatedJobs);
-  };
+  const updateJobStatus = useCallback(async (jobId: string, status: Job['status']) => {
+    const updatedJobs = jobs.map((job: Job) => {
+      if (job.id === jobId) {
+        const updatedJob = { ...job, status };
+        if (status === 'completed') {
+          updatedJob.completedAt = new Date().toISOString();
+        }
+        return updatedJob;
+      }
+      return job;
+    });
+    
+    // Save to offline storage first
+    const updatedJob = updatedJobs.find((job: Job) => job.id === jobId);
+    if (updatedJob) {
+      try {
+        await offlineStorage.updateJobOffline(updatedJob);
+      } catch (error) {
+        console.error('Error saving job offline:', error);
+      }
+    }
+    
+    // Then update local state
+    mutateJobs(updatedJobs);
+  }, [jobs, mutateJobs, offlineStorage]);
 
-  const setPin = async (pin: string) => {
+  const setPin = useCallback(async (pin: string) => {
     await AsyncStorage.setItem('userPin', pin);
     setStoredPin(pin);
     setHasPin(true);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const authenticatePin = (pin: string): boolean => {
+  const authenticatePin = useCallback((pin: string): boolean => {
     if (storedPin === pin) {
       setIsAuthenticated(true);
       return true;
     }
     return false;
-  };
+  }, [storedPin]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setIsAuthenticated(false);
-  };
+  }, []);
 
-  const addCustomer = (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => {
+  const addCustomer = useCallback((customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => {
     const newCustomer: Customer = {
       ...customer,
       id: `cust${Date.now()}`,
@@ -176,53 +200,53 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       equipment: [],
       serviceHistory: [],
     };
-    customersMutation.mutate([...customers, newCustomer]);
-  };
+    mutateCustomers([...customers, newCustomer]);
+  }, [customers, mutateCustomers]);
 
-  const addInvoice = (invoice: Omit<Invoice, 'id'>) => {
+  const addInvoice = useCallback((invoice: Omit<Invoice, 'id'>) => {
     const newInvoice: Invoice = {
       ...invoice,
       id: `inv${Date.now()}`,
     };
-    invoicesMutation.mutate([...invoices, newInvoice]);
-  };
+    mutateInvoices([...invoices, newInvoice]);
+  }, [invoices, mutateInvoices]);
 
-  const updateInvoiceStatus = (invoiceId: string, status: Invoice['status']) => {
+  const updateInvoiceStatus = useCallback((invoiceId: string, status: Invoice['status']) => {
     const updatedInvoices = invoices.map((invoice: Invoice) =>
       invoice.id === invoiceId ? { ...invoice, status } : invoice
     );
-    invoicesMutation.mutate(updatedInvoices);
-  };
+    mutateInvoices(updatedInvoices);
+  }, [invoices, mutateInvoices]);
 
-  const getTodaysJobs = () => {
+  const getTodaysJobs = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     return jobs.filter((job: Job) => job.scheduledDate === today);
-  };
+  }, [jobs]);
 
-  const getUpcomingJobs = () => {
+  const getUpcomingJobs = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     return jobs.filter((job: Job) => job.scheduledDate >= today && job.status !== 'completed');
-  };
+  }, [jobs]);
 
-  const getJobsByStatus = (status: Job['status']) => {
+  const getJobsByStatus = useCallback((status: Job['status']) => {
     return jobs.filter((job: Job) => job.status === status);
-  };
+  }, [jobs]);
 
-  const getCustomerById = (id: string) => {
+  const getCustomerById = useCallback((id: string) => {
     return customers.find((customer: Customer) => customer.id === id);
-  };
+  }, [customers]);
 
-  const getEquipmentByCustomer = (customerId: string) => {
+  const getEquipmentByCustomer = useCallback((customerId: string) => {
     return equipment.filter((eq: Equipment) => eq.customerId === customerId);
-  };
+  }, [equipment]);
 
-  const getInvoicesByCustomer = (customerId: string) => {
+  const getInvoicesByCustomer = useCallback((customerId: string) => {
     return invoices.filter((invoice: Invoice) => invoice.customerId === customerId);
-  };
+  }, [invoices]);
 
   const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading;
 
-  return {
+  return useMemo(() => ({
     customers,
     equipment,
     jobs,
@@ -246,7 +270,31 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setPin,
     authenticatePin,
     logout,
-  };
+  }), [
+    customers,
+    equipment,
+    jobs,
+    invoices,
+    technicians,
+    currentTechnicianId,
+    isLoading,
+    isAuthenticated,
+    hasPin,
+    addJob,
+    updateJobStatus,
+    addCustomer,
+    addInvoice,
+    updateInvoiceStatus,
+    getTodaysJobs,
+    getUpcomingJobs,
+    getJobsByStatus,
+    getCustomerById,
+    getEquipmentByCustomer,
+    getInvoicesByCustomer,
+    setPin,
+    authenticatePin,
+    logout,
+  ]);
 });
 
 // Helper hooks

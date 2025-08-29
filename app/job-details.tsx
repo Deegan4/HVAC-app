@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -20,18 +22,51 @@ import {
   CheckCircle,
   PlayCircle,
   XCircle,
-  AlertCircle
+
+  Camera,
+  PenTool,
+  Image as ImageIcon
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Job } from '@/types';
+import CameraCapture from '@/components/CameraCapture';
+import SignatureCapture from '@/components/SignatureCapture';
+import OfflineStorageManager from '@/utils/OfflineStorageManager';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
-  const { jobs, updateJobStatus, getCustomerById, customers } = useAppStore();
+  const { jobs, updateJobStatus, getCustomerById } = useAppStore();
+  const [showCamera, setShowCamera] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const [jobPhoto, setJobPhoto] = useState<string | null>(null);
+  const [jobSignature, setJobSignature] = useState<string | null>(null);
+  const offlineStorage = OfflineStorageManager.getInstance();
   
   const job = jobs.find(j => j.id === jobId);
   const customer = job ? getCustomerById(job.customerId) : undefined;
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      if (!job) return;
+      
+      try {
+        const photo = await offlineStorage.getJobPhoto(job.id);
+        const signature = await offlineStorage.getJobSignature(job.id);
+        
+        setJobPhoto(photo);
+        setJobSignature(signature);
+      } catch (error) {
+        console.error('Error loading job assets:', error);
+      }
+    };
+
+    if (job) {
+      loadAssets();
+    }
+  }, [job, offlineStorage]);
+
+
 
   if (!job) {
     return (
@@ -44,6 +79,15 @@ export default function JobDetailsScreen() {
   }
 
   const handleStatusChange = (newStatus: Job['status']) => {
+    if (newStatus === 'completed' && (!jobPhoto || !jobSignature)) {
+      Alert.alert(
+        'Missing Requirements',
+        'Please capture a photo and customer signature before completing the job.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     Alert.alert(
       'Update Status',
       `Change job status to ${newStatus}?`,
@@ -51,15 +95,44 @@ export default function JobDetailsScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Update', 
-          onPress: () => {
-            updateJobStatus(job.id, newStatus);
-            if (newStatus === 'completed') {
-              router.back();
+          onPress: async () => {
+            try {
+              await updateJobStatus(job.id, newStatus);
+              if (newStatus === 'completed') {
+                router.back();
+              }
+            } catch (error) {
+              console.error('Error updating job status:', error);
+              Alert.alert('Error', 'Failed to update job status. Changes saved offline.');
             }
           }
         }
       ]
     );
+  };
+
+  const handleCameraCapture = async (photoUri: string) => {
+    try {
+      await offlineStorage.saveJobPhoto(job.id, photoUri);
+      setJobPhoto(photoUri);
+      setShowCamera(false);
+      Alert.alert('Success', 'Photo saved successfully!');
+    } catch (error) {
+      console.error('Error saving photo:', error);
+      Alert.alert('Error', 'Failed to save photo. Please try again.');
+    }
+  };
+
+  const handleSignatureCapture = async (signatureSvg: string) => {
+    try {
+      await offlineStorage.saveJobSignature(job.id, signatureSvg);
+      setJobSignature(signatureSvg);
+      setShowSignature(false);
+      Alert.alert('Success', 'Signature saved successfully!');
+    } catch (error) {
+      console.error('Error saving signature:', error);
+      Alert.alert('Error', 'Failed to save signature. Please try again.');
+    }
   };
 
   const getStatusColor = (status: Job['status']) => {
@@ -184,6 +257,57 @@ export default function JobDetailsScreen() {
           </View>
         )}
 
+        {/* Photo and Signature Section */}
+        {job.status === 'inProgress' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Job Documentation</Text>
+            <View style={styles.card}>
+              <View style={styles.documentationRow}>
+                <TouchableOpacity
+                  style={[styles.docButton, jobPhoto && styles.docButtonCompleted]}
+                  onPress={() => setShowCamera(true)}
+                >
+                  {jobPhoto ? (
+                    <ImageIcon size={20} color={Colors.status.completed} />
+                  ) : (
+                    <Camera size={20} color={Colors.text.secondary} />
+                  )}
+                  <Text style={[styles.docButtonText, jobPhoto && styles.docButtonTextCompleted]}>
+                    {jobPhoto ? 'Photo Captured' : 'Take Photo'}
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.docButton, jobSignature && styles.docButtonCompleted]}
+                  onPress={() => setShowSignature(true)}
+                >
+                  {jobSignature ? (
+                    <CheckCircle size={20} color={Colors.status.completed} />
+                  ) : (
+                    <PenTool size={20} color={Colors.text.secondary} />
+                  )}
+                  <Text style={[styles.docButtonText, jobSignature && styles.docButtonTextCompleted]}>
+                    {jobSignature ? 'Signature Captured' : 'Get Signature'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              {jobPhoto && (
+                <View style={styles.photoPreview}>
+                  <Text style={styles.previewLabel}>Captured Photo:</Text>
+                  <Image source={{ uri: jobPhoto }} style={styles.photoThumbnail} />
+                </View>
+              )}
+              
+              {jobSignature && (
+                <View style={styles.signaturePreview}>
+                  <Text style={styles.previewLabel}>Customer Signature: ✓</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Action Buttons */}
         {job.status !== 'completed' && job.status !== 'cancelled' && (
           <View style={styles.actionButtons}>
@@ -198,8 +322,13 @@ export default function JobDetailsScreen() {
             )}
             {job.status === 'inProgress' && (
               <TouchableOpacity
-                style={[styles.actionButton, styles.completeButton]}
+                style={[
+                  styles.actionButton, 
+                  styles.completeButton,
+                  (!jobPhoto || !jobSignature) && styles.disabledButton
+                ]}
                 onPress={() => handleStatusChange('completed')}
+                disabled={!jobPhoto || !jobSignature}
               >
                 <CheckCircle size={20} color={Colors.text.inverse} />
                 <Text style={styles.actionButtonText}>Complete Job</Text>
@@ -215,6 +344,30 @@ export default function JobDetailsScreen() {
           </View>
         )}
       </ScrollView>
+      
+      {/* Camera Modal */}
+      <Modal
+        visible={showCamera}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onCancel={() => setShowCamera(false)}
+        />
+      </Modal>
+      
+      {/* Signature Modal */}
+      <Modal
+        visible={showSignature}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SignatureCapture
+          onCapture={handleSignatureCapture}
+          onCancel={() => setShowSignature(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -404,5 +557,58 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: Colors.status.cancelled,
+  },
+  disabledButton: {
+    backgroundColor: Colors.text.light,
+    opacity: 0.6,
+  },
+  documentationRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  docButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  docButtonCompleted: {
+    borderColor: Colors.status.completed,
+    backgroundColor: Colors.status.completed + '10',
+  },
+  docButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  docButtonTextCompleted: {
+    color: Colors.status.completed,
+  },
+  photoPreview: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  signaturePreview: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  previewLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  photoThumbnail: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    resizeMode: 'cover' as const,
   },
 });

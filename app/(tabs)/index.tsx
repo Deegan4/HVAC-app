@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Plus, Clock, MapPin, AlertCircle, CheckCircle, Wrench, Calendar } from 'lucide-react-native';
+import { Plus, Clock, MapPin, AlertCircle, CheckCircle, Wrench, Calendar, List } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore, useTodaysJobs, useJobStats } from '@/hooks/app-store';
 import { Job } from '@/types';
 import LoadingScreen from '@/components/LoadingScreen';
+import CalendarView from '@/components/CalendarView';
 
 export default function ScheduleScreen() {
   const { jobs, isLoading, getUpcomingJobs } = useAppStore();
@@ -23,6 +24,7 @@ export default function ScheduleScreen() {
   const stats = useJobStats();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   const upcomingJobs = useMemo(() => getUpcomingJobs(), [jobs]);
 
@@ -93,18 +95,67 @@ export default function ScheduleScreen() {
     </TouchableOpacity>
   );
 
+
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleJobPress = (job: Job) => {
+    router.push({
+      pathname: '/job-details',
+      params: { jobId: job.id }
+    });
+  };
+
+  const handleAddJob = (date: Date) => {
+    router.push({
+      pathname: '/new-job',
+      params: { 
+        selectedDate: date.toISOString().split('T')[0]
+      }
+    });
+  };
+
   if (isLoading) {
     return <LoadingScreen message="Loading your schedule..." size={56} />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+      {/* View Toggle */}
+      <View style={styles.viewToggle}>
+        <TouchableOpacity
+          style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+          onPress={() => setViewMode('list')}
+        >
+          <List size={20} color={viewMode === 'list' ? Colors.text.inverse : Colors.text.secondary} />
+          <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>List</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
+          onPress={() => setViewMode('calendar')}
+        >
+          <Calendar size={20} color={viewMode === 'calendar' ? Colors.text.inverse : Colors.text.secondary} />
+          <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>Calendar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {viewMode === 'calendar' ? (
+        <CalendarView
+          jobs={jobs}
+          selectedDate={selectedDate}
+          onDateSelect={handleDateSelect}
+          onJobPress={handleJobPress}
+          onAddJob={handleAddJob}
+        />
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
         {/* Stats Overview */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
@@ -165,16 +216,19 @@ export default function ScheduleScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+        </ScrollView>
+      )}
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/new-job')}
-        testID="new-job-fab"
-      >
-        <Plus size={24} color={Colors.text.inverse} />
-      </TouchableOpacity>
+      {/* Floating Action Button - Only show in list view */}
+      {viewMode === 'list' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => router.push('/new-job')}
+          testID="new-job-fab"
+        >
+          <Plus size={24} color={Colors.text.inverse} />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
@@ -352,5 +406,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  toggleButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  toggleTextActive: {
+    color: Colors.text.inverse,
   },
 });

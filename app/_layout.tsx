@@ -33,6 +33,16 @@ function RootLayoutNav() {
         headerStyle: { backgroundColor: '#0066CC' },
         headerTintColor: '#FFFFFF',
       }} />
+      <Stack.Screen name="camera" options={{ 
+        title: "Camera",
+        presentation: "fullScreenModal",
+        headerShown: false,
+      }} />
+      <Stack.Screen name="signature" options={{ 
+        title: "Signature",
+        presentation: "fullScreenModal",
+        headerShown: false,
+      }} />
     </Stack>
   );
 }
