@@ -21,7 +21,8 @@ import {
   FileText,
   BarChart3,
   Wrench,
-  Bug
+  Bug,
+  DollarSign
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -81,6 +82,7 @@ export default function MoreScreen() {
       items: [
         { icon: Building, label: 'Company Info', onPress: () => router.push('/company-info') },
         { icon: Users, label: 'Team Management', onPress: () => router.push('/team-management') },
+        { icon: DollarSign, label: 'Price Book', onPress: () => router.push('/price-book') },
         { icon: BarChart3, label: 'Reports & Analytics', onPress: () => router.push('/reports-analytics') },
         { icon: Wrench, label: 'Service Settings', onPress: () => router.push('/service-settings') },
       ]
