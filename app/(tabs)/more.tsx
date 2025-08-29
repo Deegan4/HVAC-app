@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -26,13 +26,40 @@ import {
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId } = useAppStore();
+  const { technicians, currentTechnicianId, logout } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
-  const { logout } = useAppStore();
+  // Load profile data to get the updated name
+  const loadProfileData = useCallback(async () => {
+    try {
+      if (currentTechnicianId) {
+        const savedProfile = await AsyncStorage.getItem(`profile_${currentTechnicianId}`);
+        if (savedProfile) {
+          setProfileData(JSON.parse(savedProfile));
+        }
+      }
+    } catch (error) {
+      console.log('Error loading profile data:', error);
+    }
+  }, [currentTechnicianId]);
+
+  // Load profile data on mount
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+  // Reload profile data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+    }, [loadProfileData])
+  );
 
   const handleLogout = () => {
     Alert.alert(
@@ -90,9 +117,9 @@ export default function MoreScreen() {
             <User size={32} color={Colors.text.inverse} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{currentTech?.name || 'John Doe'}</Text>
+            <Text style={styles.profileName}>{profileData?.name || currentTech?.name || 'John Doe'}</Text>
             <Text style={styles.profileRole}>Service Technician</Text>
-            <Text style={styles.profileEmail}>{currentTech?.email || 'john@olivarefrigeration.com'}</Text>
+            <Text style={styles.profileEmail}>{profileData?.email || currentTech?.email || 'john@olivarefrigeration.com'}</Text>
           </View>
         </View>
 
