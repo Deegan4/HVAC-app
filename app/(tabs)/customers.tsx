@@ -8,15 +8,19 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Search, Phone, Mail, MapPin, Plus, User } from 'lucide-react-native';
+import { Search, Phone, Mail, MapPin, Plus, User, Trash2 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { Customer } from '@/types';
 
 export default function CustomersScreen() {
-  const { customers, isLoading } = useAppStore();
+  const { customers, isLoading, deleteCustomer } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -39,6 +43,26 @@ export default function CustomersScreen() {
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
+  };
+
+  const handleDeleteCustomer = (customerId: string, customerName: string) => {
+    Alert.alert(
+      'Delete Customer',
+      `Are you sure you want to delete ${customerName}? This action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteCustomer(customerId);
+          },
+        },
+      ]
+    );
   };
 
   if (isLoading) {
@@ -79,52 +103,15 @@ export default function CustomersScreen() {
       >
         <View style={styles.customersList}>
           {filteredCustomers.map(customer => (
-            <TouchableOpacity
+            <CustomerCard
               key={customer.id}
-              style={styles.customerCard}
+              customer={customer}
               onPress={() => router.push({
                 pathname: '/customer-details',
                 params: { customerId: customer.id }
               })}
-              testID={`customer-card-${customer.id}`}
-            >
-              <View style={styles.customerHeader}>
-                <View style={styles.avatarContainer}>
-                  <User size={24} color={Colors.text.inverse} />
-                </View>
-                <View style={styles.customerInfo}>
-                  <Text style={styles.customerName}>{customer.name}</Text>
-                  {customer.notes && (
-                    <Text style={styles.customerNote} numberOfLines={1}>
-                      {customer.notes}
-                    </Text>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.contactInfo}>
-                <View style={styles.contactRow}>
-                  <Phone size={14} color={Colors.text.secondary} />
-                  <Text style={styles.contactText}>{customer.phone}</Text>
-                </View>
-                <View style={styles.contactRow}>
-                  <Mail size={14} color={Colors.text.secondary} />
-                  <Text style={styles.contactText}>{customer.email}</Text>
-                </View>
-                <View style={styles.contactRow}>
-                  <MapPin size={14} color={Colors.text.secondary} />
-                  <Text style={styles.contactText} numberOfLines={1}>
-                    {customer.address}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.customerFooter}>
-                <Text style={styles.customerSince}>
-                  Customer since {new Date(customer.createdAt).toLocaleDateString()}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              onDelete={() => handleDeleteCustomer(customer.id, customer.name)}
+            />
           ))}
         </View>
 
@@ -156,6 +143,118 @@ export default function CustomersScreen() {
         <Plus size={24} color={Colors.text.inverse} />
       </TouchableOpacity>
     </SafeAreaView>
+  );
+}
+
+interface CustomerCardProps {
+  customer: Customer;
+  onPress: () => void;
+  onDelete: () => void;
+}
+
+function CustomerCard({ customer, onPress, onDelete }: CustomerCardProps) {
+  const translateX = new Animated.Value(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 50;
+    },
+    onPanResponderMove: (_, gestureState) => {
+      if (gestureState.dx < 0) {
+        translateX.setValue(Math.max(gestureState.dx, -100));
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx < -50) {
+        Animated.spring(translateX, {
+          toValue: -80,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
+
+  const handleDelete = () => {
+    setIsDeleting(true);
+    Animated.timing(translateX, {
+      toValue: -400,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onDelete();
+    });
+  };
+
+  return (
+    <View style={styles.customerCardContainer}>
+      <Animated.View
+        style={[
+          styles.customerCard,
+          {
+            transform: [{ translateX }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity
+          style={styles.customerCardContent}
+          onPress={onPress}
+          testID={`customer-card-${customer.id}`}
+          disabled={isDeleting}
+        >
+          <View style={styles.customerHeader}>
+            <View style={styles.avatarContainer}>
+              <User size={24} color={Colors.text.inverse} />
+            </View>
+            <View style={styles.customerInfo}>
+              <Text style={styles.customerName}>{customer.name}</Text>
+              {customer.notes && (
+                <Text style={styles.customerNote} numberOfLines={1}>
+                  {customer.notes}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.contactInfo}>
+            <View style={styles.contactRow}>
+              <Phone size={14} color={Colors.text.secondary} />
+              <Text style={styles.contactText}>{customer.phone}</Text>
+            </View>
+            <View style={styles.contactRow}>
+              <Mail size={14} color={Colors.text.secondary} />
+              <Text style={styles.contactText}>{customer.email}</Text>
+            </View>
+            <View style={styles.contactRow}>
+              <MapPin size={14} color={Colors.text.secondary} />
+              <Text style={styles.contactText} numberOfLines={1}>
+                {customer.address}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.customerFooter}>
+            <Text style={styles.customerSince}>
+              Customer since {new Date(customer.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+      
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={handleDelete}
+        testID={`delete-customer-${customer.id}`}
+      >
+        <Trash2 size={20} color={Colors.text.inverse} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -197,15 +296,34 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 140,
   },
+  customerCardContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
   customerCard: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    padding: 16,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  customerCardContent: {
+    padding: 16,
+  },
+  deleteButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
   customerHeader: {
     flexDirection: 'row',

@@ -19,6 +19,7 @@ interface AppState {
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
+  deleteCustomer: (customerId: string) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoiceStatus: (invoiceId: string, status: Invoice['status']) => void;
   getTodaysJobs: () => Job[];
@@ -203,6 +204,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateCustomers([...customers, newCustomer]);
   }, [customers, mutateCustomers]);
 
+  const deleteCustomer = useCallback((customerId: string) => {
+    const updatedCustomers = customers.filter((customer: Customer) => customer.id !== customerId);
+    mutateCustomers(updatedCustomers);
+  }, [customers, mutateCustomers]);
+
   const addInvoice = useCallback((invoice: Omit<Invoice, 'id'>) => {
     const newInvoice: Invoice = {
       ...invoice,
@@ -259,6 +265,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addJob,
     updateJobStatus,
     addCustomer,
+    deleteCustomer,
     addInvoice,
     updateInvoiceStatus,
     getTodaysJobs,
@@ -283,6 +290,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addJob,
     updateJobStatus,
     addCustomer,
+    deleteCustomer,
     addInvoice,
     updateInvoiceStatus,
     getTodaysJobs,
