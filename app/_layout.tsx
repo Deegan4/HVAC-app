@@ -7,6 +7,7 @@ import { AppProvider, useAppStore } from "@/hooks/app-store";
 import LoadingScreen from "@/components/LoadingScreen";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
+import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,17 +49,33 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, setPin, authenticatePin } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, userRole, setPin, setUserRole, authenticatePin } = useAppStore();
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
+  // First check if user has selected a role
+  if (!hasRole) {
+    return (
+      <RoleSelectionScreen 
+        onRoleSelected={(role: UserRole) => {
+          setSelectedRole(role);
+          setUserRole(role);
+        }}
+      />
+    );
+  }
+  
+  // Then check if user has set up a PIN
   if (!hasPin) {
     return (
       <PinSetupScreen 
         onPinSet={setPin}
         isFirstTime={true}
+        userRole={userRole || selectedRole || undefined}
       />
     );
   }
   
+  // Finally check if user is authenticated
   if (!isAuthenticated) {
     return (
       <PinAuthScreen 

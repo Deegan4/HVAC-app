@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
+import { UserRole } from '@/components/RoleSelectionScreen';
 
 interface AppState {
   customers: Customer[];
@@ -13,9 +14,11 @@ interface AppState {
   invoices: Invoice[];
   technicians: Technician[];
   currentTechnicianId: string | null;
+  userRole: UserRole | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   hasPin: boolean;
+  hasRole: boolean;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
@@ -29,6 +32,7 @@ interface AppState {
   getEquipmentByCustomer: (customerId: string) => Equipment[];
   getInvoicesByCustomer: (customerId: string) => Invoice[];
   setPin: (pin: string) => void;
+  setUserRole: (role: UserRole) => void;
   authenticatePin: (pin: string) => boolean;
   logout: () => void;
 }
@@ -37,8 +41,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const queryClient = useQueryClient();
   const offlineStorage = OfflineStorageManager.getInstance();
   const [currentTechnicianId] = useState<string | null>('tech1');
+  const [userRole, setUserRoleState] = useState<UserRole | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);
+  const [hasRole, setHasRole] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
 
   // Load data from AsyncStorage or use mock data
@@ -82,7 +88,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  // Check for existing PIN on app start
+  // Check for existing PIN and role on app start
   useQuery({
     queryKey: ['pin'],
     queryFn: async () => {
@@ -92,6 +98,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         setStoredPin(pin);
       }
       return pin;
+    },
+  });
+
+  useQuery({
+    queryKey: ['userRole'],
+    queryFn: async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      if (role) {
+        setUserRoleState(role as UserRole);
+        setHasRole(true);
+      }
+      return role;
     },
   });
 
@@ -181,6 +199,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setIsAuthenticated(true);
   }, []);
 
+  const setUserRole = useCallback(async (role: UserRole) => {
+    await AsyncStorage.setItem('userRole', role);
+    setUserRoleState(role);
+    setHasRole(true);
+  }, []);
+
   const authenticatePin = useCallback((pin: string): boolean => {
     if (storedPin === pin) {
       setIsAuthenticated(true);
@@ -259,9 +283,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     invoices,
     technicians,
     currentTechnicianId,
+    userRole,
     isLoading,
     isAuthenticated,
     hasPin,
+    hasRole,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -275,6 +301,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getEquipmentByCustomer,
     getInvoicesByCustomer,
     setPin,
+    setUserRole,
     authenticatePin,
     logout,
   }), [
@@ -284,9 +311,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     invoices,
     technicians,
     currentTechnicianId,
+    userRole,
     isLoading,
     isAuthenticated,
     hasPin,
+    hasRole,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -300,6 +329,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getEquipmentByCustomer,
     getInvoicesByCustomer,
     setPin,
+    setUserRole,
     authenticatePin,
     logout,
   ]);

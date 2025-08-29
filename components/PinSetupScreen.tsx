@@ -16,9 +16,10 @@ import SnowingBackground from './SnowingBackground';
 interface PinSetupScreenProps {
   onPinSet: (pin: string) => void;
   isFirstTime?: boolean;
+  userRole?: string;
 }
 
-export default function PinSetupScreen({ onPinSet, isFirstTime = true }: PinSetupScreenProps) {
+export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole }: PinSetupScreenProps) {
   const [pin, setPin] = useState<string>('');
   const [confirmPin, setConfirmPin] = useState<string>('');
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
@@ -159,7 +160,7 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true }: PinSetu
             <Text style={styles.title}>Oliva Refrigeration</Text>
             <Text style={styles.subtitle}>
               {isFirstTime 
-                ? 'Welcome! Set up your security PIN'
+                ? `Welcome ${userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''}! Set up your security PIN`
                 : 'Enter your PIN to continue'
               }
             </Text>
