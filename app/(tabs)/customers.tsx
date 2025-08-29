@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -17,6 +18,7 @@ import { useAppStore } from '@/hooks/app-store';
 export default function CustomersScreen() {
   const { customers, isLoading } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredCustomers = useMemo(() => {
     if (!searchQuery) return customers;
@@ -26,9 +28,18 @@ export default function CustomersScreen() {
       customer.name.toLowerCase().includes(query) ||
       customer.email.toLowerCase().includes(query) ||
       customer.phone.includes(query) ||
-      customer.address.toLowerCase().includes(query)
+      customer.address.toLowerCase().includes(query) ||
+      (customer.notes && customer.notes.toLowerCase().includes(query))
     );
   }, [customers, searchQuery]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Simulate refresh delay
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +66,17 @@ export default function CustomersScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+      >
         <View style={styles.customersList}>
           {filteredCustomers.map(customer => (
             <TouchableOpacity
@@ -113,6 +134,15 @@ export default function CustomersScreen() {
             <Text style={styles.emptyStateText}>
               {searchQuery ? 'No customers found' : 'No customers yet'}
             </Text>
+            {searchQuery ? (
+              <Text style={styles.emptyStateSubtext}>
+                Try adjusting your search terms
+              </Text>
+            ) : (
+              <Text style={styles.emptyStateSubtext}>
+                Tap the + button to add your first customer
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -120,7 +150,7 @@ export default function CustomersScreen() {
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => console.log('Add new customer')}
+        onPress={() => router.push('/new-customer')}
         testID="new-customer-fab"
       >
         <Plus size={24} color={Colors.text.inverse} />
@@ -235,8 +265,15 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: Colors.text.light,
+    fontWeight: '500' as const,
+    color: Colors.text.secondary,
     marginTop: 16,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.text.light,
+    marginTop: 8,
+    textAlign: 'center' as const,
   },
   fab: {
     position: 'absolute',

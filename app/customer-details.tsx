@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { 
   User, 
   Phone, 
@@ -16,7 +16,9 @@ import {
   Wrench,
   Calendar,
   FileText,
-  DollarSign
+  DollarSign,
+  Edit,
+  Plus
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -46,6 +48,19 @@ export default function CustomerDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen 
+        options={{
+          title: customer.name,
+          headerRight: () => (
+            <TouchableOpacity 
+              onPress={() => console.log('Edit customer:', customer.id)}
+              style={styles.headerButton}
+            >
+              <Edit size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          ),
+        }} 
+      />
       <ScrollView style={styles.scrollView}>
         {/* Customer Header */}
         <View style={styles.header}>
@@ -100,11 +115,24 @@ export default function CustomerDetailsScreen() {
         </View>
 
         {/* Equipment */}
-        {equipment.length > 0 && (
-          <View style={styles.section}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Equipment ({equipment.length})</Text>
-            {equipment.map(eq => (
-              <View key={eq.id} style={styles.card}>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => console.log('Add equipment for customer:', customer.id)}
+            >
+              <Plus size={16} color={Colors.primary} />
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+          </View>
+          {equipment.length > 0 ? (
+            equipment.map(eq => (
+              <TouchableOpacity 
+                key={eq.id} 
+                style={styles.card}
+                onPress={() => console.log('View equipment:', eq.id)}
+              >
                 <View style={styles.equipmentHeader}>
                   <Text style={styles.equipmentType}>{eq.type}</Text>
                   {eq.warrantyExpiry && new Date(eq.warrantyExpiry) > new Date() && (
@@ -120,17 +148,42 @@ export default function CustomerDetailsScreen() {
                     Last serviced: {new Date(eq.lastServiceDate).toLocaleDateString()}
                   </Text>
                 )}
-              </View>
-            ))}
-          </View>
-        )}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyEquipment}>
+              <Wrench size={32} color={Colors.text.light} />
+              <Text style={styles.emptyEquipmentText}>No equipment registered</Text>
+              <Text style={styles.emptyEquipmentSubtext}>Tap &quot;Add&quot; to register equipment</Text>
+            </View>
+          )}
+        </View>
 
         {/* Recent Jobs */}
-        {customerJobs.length > 0 && (
-          <View style={styles.section}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Jobs</Text>
-            {customerJobs.slice(0, 5).map(job => (
-              <View key={job.id} style={styles.card}>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => router.push({
+                pathname: '/new-job',
+                params: { customerId: customer.id }
+              })}
+            >
+              <Plus size={16} color={Colors.primary} />
+              <Text style={styles.addButtonText}>New Job</Text>
+            </TouchableOpacity>
+          </View>
+          {customerJobs.length > 0 ? (
+            customerJobs.slice(0, 5).map(job => (
+              <TouchableOpacity 
+                key={job.id} 
+                style={styles.card}
+                onPress={() => router.push({
+                  pathname: '/job-details',
+                  params: { jobId: job.id }
+                })}
+              >
                 <View style={styles.jobHeader}>
                   <Text style={styles.jobDate}>
                     {new Date(job.scheduledDate).toLocaleDateString()}
@@ -143,10 +196,16 @@ export default function CustomerDetailsScreen() {
                 <Text style={styles.jobDescription} numberOfLines={2}>
                   {job.description}
                 </Text>
-              </View>
-            ))}
-          </View>
-        )}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyJobs}>
+              <Calendar size={32} color={Colors.text.light} />
+              <Text style={styles.emptyJobsText}>No jobs scheduled</Text>
+              <Text style={styles.emptyJobsSubtext}>Tap &quot;New Job&quot; to schedule service</Text>
+            </View>
+          )}
+        </View>
 
         {/* Notes */}
         {customer.notes && (
@@ -345,5 +404,72 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 20,
     fontStyle: 'italic' as const,
+  },
+  headerButton: {
+    padding: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  addButtonText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  emptyEquipment: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  emptyEquipmentText: {
+    fontSize: 16,
+    fontWeight: '500' as const,
+    color: Colors.text.secondary,
+    marginTop: 12,
+  },
+  emptyEquipmentSubtext: {
+    fontSize: 14,
+    color: Colors.text.light,
+    marginTop: 4,
+  },
+  emptyJobs: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  emptyJobsText: {
+    fontSize: 16,
+    fontWeight: '500' as const,
+    color: Colors.text.secondary,
+    marginTop: 12,
+  },
+  emptyJobsSubtext: {
+    fontSize: 14,
+    color: Colors.text.light,
+    marginTop: 4,
   },
 });
