@@ -18,6 +18,7 @@ interface PriceBookItem {
 export class ImportExportManager {
   static async exportCustomers(customers: Customer[]): Promise<void> {
     try {
+      console.log('Exporting customers:', customers.length);
       const jsonData = JSON.stringify(customers, null, 2);
       const fileName = `customers_export_${new Date().toISOString().split('T')[0]}.json`;
       
@@ -33,7 +34,7 @@ export class ImportExportManager {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        Alert.alert('Success', 'Customers exported successfully!');
+        Alert.alert('Success', `${customers.length} customers exported successfully!`);
       } else {
         // Mobile export using file system and sharing
         const fileUri = FileSystem.documentDirectory + fileName;
@@ -44,18 +45,21 @@ export class ImportExportManager {
             mimeType: 'application/json',
             dialogTitle: 'Export Customers Data',
           });
+          Alert.alert('Success', `${customers.length} customers exported successfully!`);
         } else {
-          Alert.alert('Success', `Customers exported to: ${fileUri}`);
+          Alert.alert('Success', `${customers.length} customers exported to: ${fileUri}`);
         }
       }
     } catch (error) {
       console.error('Export customers error:', error);
-      Alert.alert('Error', 'Failed to export customers data');
+      Alert.alert('Error', 'Failed to export customers data. Please try again.');
     }
   }
 
   static async importCustomers(): Promise<Customer[] | null> {
     try {
+      console.log('Starting customer import...');
+      
       if (Platform.OS === 'web') {
         // Web import using file input
         return new Promise((resolve) => {
@@ -65,17 +69,20 @@ export class ImportExportManager {
           input.onchange = async (event: any) => {
             const file = event.target.files[0];
             if (file) {
+              console.log('File selected:', file.name);
               const text = await file.text();
               try {
                 const customers = JSON.parse(text);
+                console.log('Parsed customers:', customers.length);
                 if (this.validateCustomersData(customers)) {
                   resolve(customers);
                 } else {
-                  Alert.alert('Error', 'Invalid customers data format');
+                  Alert.alert('Error', 'Invalid customers data format. Please check your file.');
                   resolve(null);
                 }
               } catch (parseError) {
-                Alert.alert('Error', 'Invalid JSON file');
+                console.error('JSON parse error:', parseError);
+                Alert.alert('Error', 'Invalid JSON file. Please select a valid customers export file.');
                 resolve(null);
               }
             } else {
@@ -94,13 +101,15 @@ export class ImportExportManager {
         });
 
         if (!result.canceled && result.assets[0]) {
+          console.log('File selected:', result.assets[0].name);
           const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
           const customers = JSON.parse(fileContent);
+          console.log('Parsed customers:', customers.length);
           
           if (this.validateCustomersData(customers)) {
             return customers;
           } else {
-            Alert.alert('Error', 'Invalid customers data format');
+            Alert.alert('Error', 'Invalid customers data format. Please check your file.');
             return null;
           }
         }
@@ -108,13 +117,14 @@ export class ImportExportManager {
       }
     } catch (error) {
       console.error('Import customers error:', error);
-      Alert.alert('Error', 'Failed to import customers data');
+      Alert.alert('Error', 'Failed to import customers data. Please try again.');
       return null;
     }
   }
 
   static async exportPriceBook(items: PriceBookItem[]): Promise<void> {
     try {
+      console.log('Exporting price book items:', items.length);
       const jsonData = JSON.stringify(items, null, 2);
       const fileName = `price_book_export_${new Date().toISOString().split('T')[0]}.json`;
       
@@ -130,7 +140,7 @@ export class ImportExportManager {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        Alert.alert('Success', 'Price book exported successfully!');
+        Alert.alert('Success', `${items.length} price book items exported successfully!`);
       } else {
         // Mobile export using file system and sharing
         const fileUri = FileSystem.documentDirectory + fileName;
@@ -141,18 +151,21 @@ export class ImportExportManager {
             mimeType: 'application/json',
             dialogTitle: 'Export Price Book Data',
           });
+          Alert.alert('Success', `${items.length} price book items exported successfully!`);
         } else {
-          Alert.alert('Success', `Price book exported to: ${fileUri}`);
+          Alert.alert('Success', `${items.length} price book items exported to: ${fileUri}`);
         }
       }
     } catch (error) {
       console.error('Export price book error:', error);
-      Alert.alert('Error', 'Failed to export price book data');
+      Alert.alert('Error', 'Failed to export price book data. Please try again.');
     }
   }
 
   static async importPriceBook(): Promise<PriceBookItem[] | null> {
     try {
+      console.log('Starting price book import...');
+      
       if (Platform.OS === 'web') {
         // Web import using file input
         return new Promise((resolve) => {
@@ -162,17 +175,20 @@ export class ImportExportManager {
           input.onchange = async (event: any) => {
             const file = event.target.files[0];
             if (file) {
+              console.log('File selected:', file.name);
               const text = await file.text();
               try {
                 const items = JSON.parse(text);
+                console.log('Parsed price book items:', items.length);
                 if (this.validatePriceBookData(items)) {
                   resolve(items);
                 } else {
-                  Alert.alert('Error', 'Invalid price book data format');
+                  Alert.alert('Error', 'Invalid price book data format. Please check your file.');
                   resolve(null);
                 }
               } catch (parseError) {
-                Alert.alert('Error', 'Invalid JSON file');
+                console.error('JSON parse error:', parseError);
+                Alert.alert('Error', 'Invalid JSON file. Please select a valid price book export file.');
                 resolve(null);
               }
             } else {
@@ -191,13 +207,15 @@ export class ImportExportManager {
         });
 
         if (!result.canceled && result.assets[0]) {
+          console.log('File selected:', result.assets[0].name);
           const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
           const items = JSON.parse(fileContent);
+          console.log('Parsed price book items:', items.length);
           
           if (this.validatePriceBookData(items)) {
             return items;
           } else {
-            Alert.alert('Error', 'Invalid price book data format');
+            Alert.alert('Error', 'Invalid price book data format. Please check your file.');
             return null;
           }
         }
@@ -205,7 +223,7 @@ export class ImportExportManager {
       }
     } catch (error) {
       console.error('Import price book error:', error);
-      Alert.alert('Error', 'Failed to import price book data');
+      Alert.alert('Error', 'Failed to import price book data. Please try again.');
       return null;
     }
   }
