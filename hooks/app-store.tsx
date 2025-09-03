@@ -25,6 +25,8 @@ interface AppState {
   deleteCustomer: (customerId: string) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoiceStatus: (invoiceId: string, status: Invoice['status']) => void;
+  importCustomers: (importedCustomers: Customer[]) => Promise<void>;
+  exportCustomers: () => Customer[];
   getTodaysJobs: () => Job[];
   getUpcomingJobs: () => Job[];
   getJobsByStatus: (status: Job['status']) => Job[];
@@ -217,6 +219,14 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setIsAuthenticated(false);
   }, []);
 
+  const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
+    mutateCustomers(importedCustomers);
+  }, [mutateCustomers]);
+
+  const exportCustomers = useCallback(() => {
+    return customers;
+  }, [customers]);
+
   const addCustomer = useCallback((customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => {
     const newCustomer: Customer = {
       ...customer,
@@ -304,6 +314,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     authenticatePin,
     logout,
+    importCustomers,
+    exportCustomers,
   }), [
     customers,
     equipment,
@@ -332,6 +344,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     authenticatePin,
     logout,
+    importCustomers,
+    exportCustomers,
   ]);
 });
 

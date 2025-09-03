@@ -14,15 +14,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Search, Phone, Mail, MapPin, Plus, User, Trash2 } from 'lucide-react-native';
+import { Search, Phone, Mail, MapPin, Plus, User, Trash2, Download, Upload } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Customer } from '@/types';
+import { ImportExportManager } from '@/utils/ImportExportManager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CustomersScreen() {
-  const { customers, isLoading, deleteCustomer } = useAppStore();
+  const { customers, isLoading, deleteCustomer, importCustomers, exportCustomers } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const filteredCustomers = useMemo(() => {
     if (!searchQuery) return customers;
@@ -65,6 +68,69 @@ export default function CustomersScreen() {
     );
   };
 
+  const handleExportCustomers = async () => {
+    try {
+      const customersToExport = exportCustomers();
+      await ImportExportManager.exportCustomers(customersToExport);
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Error', 'Failed to export customers');
+    }
+  };
+
+  const handleImportCustomers = async () => {
+    try {
+      setIsImporting(true);
+      const importedCustomers = await ImportExportManager.importCustomers();
+      
+      if (importedCustomers) {
+        Alert.alert(
+          'Import Customers',
+          `Found ${importedCustomers.length} customers. How would you like to import them?`,
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Replace All',
+              style: 'destructive',
+              onPress: async () => {
+                await importCustomers(importedCustomers);
+                Alert.alert('Success', 'Customers imported successfully!');
+                onRefresh();
+              },
+            },
+            {
+              text: 'Merge',
+              onPress: async () => {
+                const existingIds = new Set(customers.map(c => c.id));
+                const newCustomers = importedCustomers.filter(c => !existingIds.has(c.id));
+                const mergedCustomers = [...customers, ...newCustomers];
+                
+                await importCustomers(mergedCustomers);
+                Alert.alert('Success', `${newCustomers.length} new customers imported!`);
+                onRefresh();
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      Alert.alert('Error', 'Failed to import customers');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const showImportExportMenu = () => {
+    ImportExportManager.showImportExportOptions(
+      handleImportCustomers,
+      handleExportCustomers
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -88,6 +154,13 @@ export default function CustomersScreen() {
             testID="customer-search"
           />
         </View>
+        <TouchableOpacity
+          style={styles.importExportButton}
+          onPress={showImportExportMenu}
+          testID="import-export-button"
+        >
+          <Download size={20} color={Colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -272,18 +345,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    gap: 12,
   },
   searchBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.background,
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 44,
+  },
+  importExportButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: Colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchInput: {
     flex: 1,

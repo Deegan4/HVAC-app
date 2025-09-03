@@ -20,9 +20,12 @@ import {
   Package,
   Wrench,
   Clock,
+  Download,
+  Upload,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ImportExportManager } from '@/utils/ImportExportManager';
 
 interface PriceBookItem {
   id: string;
@@ -104,6 +107,7 @@ export default function PriceBookScreen() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'parts' | 'labor' | 'service'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<PriceBookItem | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [newItem, setNewItem] = useState<NewItemForm>({
     name: '',
     description: '',
@@ -242,6 +246,68 @@ export default function PriceBookScreen() {
     });
   };
 
+  const handleExportPriceBook = async () => {
+    try {
+      await ImportExportManager.exportPriceBook(items);
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Error', 'Failed to export price book');
+    }
+  };
+
+  const handleImportPriceBook = async () => {
+    try {
+      setIsImporting(true);
+      const importedItems = await ImportExportManager.importPriceBook();
+      
+      if (importedItems) {
+        Alert.alert(
+          'Import Price Book',
+          `Found ${importedItems.length} items. How would you like to import them?`,
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Replace All',
+              style: 'destructive',
+              onPress: async () => {
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(importedItems));
+                setItems(importedItems);
+                Alert.alert('Success', 'Price book imported successfully!');
+              },
+            },
+            {
+              text: 'Merge',
+              onPress: async () => {
+                const existingIds = new Set(items.map(item => item.id));
+                const newItems = importedItems.filter(item => !existingIds.has(item.id));
+                const mergedItems = [...items, ...newItems];
+                
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mergedItems));
+                setItems(mergedItems);
+                Alert.alert('Success', `${newItems.length} new items imported!`);
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      Alert.alert('Error', 'Failed to import price book');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const showImportExportMenu = () => {
+    ImportExportManager.showImportExportOptions(
+      handleImportPriceBook,
+      handleExportPriceBook
+    );
+  };
+
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -282,16 +348,24 @@ export default function PriceBookScreen() {
           headerStyle: { backgroundColor: Colors.surface },
           headerTintColor: Colors.text.primary,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => {
-                resetForm();
-                setEditingItem(null);
-                setShowAddModal(true);
-              }}
-              style={styles.headerButton}
-            >
-              <Plus size={24} color={Colors.primary} />
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={showImportExportMenu}
+                style={styles.headerButton}
+              >
+                <Download size={24} color={Colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  resetForm();
+                  setEditingItem(null);
+                  setShowAddModal(true);
+                }}
+                style={styles.headerButton}
+              >
+                <Plus size={24} color={Colors.primary} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -504,6 +578,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerButton: {
     padding: 8,
