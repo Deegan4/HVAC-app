@@ -8,20 +8,21 @@ import {
   TextInput,
   Alert,
   Modal,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import {
   Plus,
   Search,
-  Edit3,
   Trash2,
-  DollarSign,
   Package,
   Wrench,
   Clock,
   Download,
-  Upload,
+  Grid3X3,
+  List,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -101,13 +102,17 @@ const defaultItems: PriceBookItem[] = [
   },
 ];
 
+const { width } = Dimensions.get('window');
+const isTablet = width > 768;
+
 export default function PriceBookScreen() {
   const [items, setItems] = useState<PriceBookItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'parts' | 'labor' | 'service'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<PriceBookItem | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [sortBy] = useState<'name' | 'price' | 'category' | 'recent'>('name');
   const [newItem, setNewItem] = useState<NewItemForm>({
     name: '',
     description: '',
@@ -257,7 +262,6 @@ export default function PriceBookScreen() {
 
   const handleImportPriceBook = async () => {
     try {
-      setIsImporting(true);
       const importedItems = await ImportExportManager.importPriceBook();
       
       if (importedItems) {
@@ -296,8 +300,6 @@ export default function PriceBookScreen() {
     } catch (error) {
       console.error('Import error:', error);
       Alert.alert('Error', 'Failed to import price book');
-    } finally {
-      setIsImporting(false);
     }
   };
 
@@ -308,12 +310,27 @@ export default function PriceBookScreen() {
     );
   };
 
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredAndSortedItems = items
+    .filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'price':
+          return b.price - a.price;
+        case 'category':
+          return a.category.localeCompare(b.category);
+        case 'recent':
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        default:
+          return 0;
+      }
+    });
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -334,11 +351,81 @@ export default function PriceBookScreen() {
   };
 
   const categories = [
-    { key: 'all', label: 'All' },
-    { key: 'parts', label: 'Parts' },
-    { key: 'labor', label: 'Labor' },
-    { key: 'service', label: 'Service' },
+    { key: 'all', label: 'All', count: items.length },
+    { key: 'parts', label: 'Parts', count: items.filter(i => i.category === 'parts').length },
+    { key: 'labor', label: 'Labor', count: items.filter(i => i.category === 'labor').length },
+    { key: 'service', label: 'Service', count: items.filter(i => i.category === 'service').length },
   ];
+
+  const renderGridItem = ({ item }: { item: PriceBookItem }) => {
+    const CategoryIcon = getCategoryIcon(item.category);
+    const categoryColor = getCategoryColor(item.category);
+
+    return (
+      <TouchableOpacity style={styles.gridCard} onPress={() => startEdit(item)}>
+        <View style={styles.gridCardHeader}>
+          <View style={[styles.gridIconContainer, { backgroundColor: categoryColor + '20' }]}>
+            <CategoryIcon size={24} color={categoryColor} />
+          </View>
+          <View style={styles.gridActions}>
+            <TouchableOpacity
+              onPress={() => handleDeleteItem(item)}
+              style={styles.gridActionButton}
+            >
+              <Trash2 size={16} color={Colors.status.emergency} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={styles.gridItemName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.gridItemDescription} numberOfLines={2}>{item.description}</Text>
+        <View style={styles.gridPriceContainer}>
+          <Text style={styles.gridItemPrice}>${item.price.toFixed(2)}</Text>
+          <Text style={styles.gridItemUnit}>/{item.unit}</Text>
+        </View>
+        <View style={styles.gridCategoryBadge}>
+          <Text style={styles.gridCategoryText}>{item.category.toUpperCase()}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderListItem = ({ item }: { item: PriceBookItem }) => {
+    const CategoryIcon = getCategoryIcon(item.category);
+    const categoryColor = getCategoryColor(item.category);
+
+    return (
+      <TouchableOpacity style={styles.listCard} onPress={() => startEdit(item)}>
+        <View style={styles.listCardContent}>
+          <View style={[styles.listIconContainer, { backgroundColor: categoryColor + '20' }]}>
+            <CategoryIcon size={20} color={categoryColor} />
+          </View>
+          <View style={styles.listItemInfo}>
+            <View style={styles.listItemHeader}>
+              <Text style={styles.listItemName} numberOfLines={1}>{item.name}</Text>
+              <View style={styles.listPriceContainer}>
+                <Text style={styles.listItemPrice}>${item.price.toFixed(2)}</Text>
+                <Text style={styles.listItemUnit}>/{item.unit}</Text>
+              </View>
+            </View>
+            <Text style={styles.listItemDescription} numberOfLines={1}>{item.description}</Text>
+            <View style={styles.listItemFooter}>
+              <View style={styles.listCategoryBadge}>
+                <Text style={styles.listCategoryText}>{item.category}</Text>
+              </View>
+              <View style={styles.listActions}>
+                <TouchableOpacity
+                  onPress={() => handleDeleteItem(item)}
+                  style={styles.listActionButton}
+                >
+                  <Trash2 size={16} color={Colors.status.emergency} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -370,17 +457,46 @@ export default function PriceBookScreen() {
         }}
       />
 
-      {/* Search and Filter */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color={Colors.text.secondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search items..."
-            placeholderTextColor={Colors.text.secondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+      {/* Search and Controls */}
+      <View style={styles.controlsContainer}>
+        <View style={styles.searchRow}>
+          <View style={styles.searchInputContainer}>
+            <Search size={20} color={Colors.text.secondary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search items..."
+              placeholderTextColor={Colors.text.secondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <TouchableOpacity 
+            style={styles.viewToggle}
+            onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          >
+            {viewMode === 'grid' ? 
+              <List size={20} color={Colors.primary} /> : 
+              <Grid3X3 size={20} color={Colors.primary} />
+            }
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statsItem}>
+            <Text style={styles.statsNumber}>{filteredAndSortedItems.length}</Text>
+            <Text style={styles.statsLabel}>Items</Text>
+          </View>
+          <View style={styles.statsItem}>
+            <Text style={styles.statsNumber}>
+              ${filteredAndSortedItems.reduce((sum, item) => sum + item.price, 0).toFixed(0)}
+            </Text>
+            <Text style={styles.statsLabel}>Total Value</Text>
+          </View>
+          <View style={styles.statsItem}>
+            <Text style={styles.statsNumber}>{categories.filter(c => c.key !== 'all' && c.count > 0).length}</Text>
+            <Text style={styles.statsLabel}>Categories</Text>
+          </View>
         </View>
       </View>
 
@@ -403,69 +519,58 @@ export default function PriceBookScreen() {
             >
               {category.label}
             </Text>
+            <View style={[
+              styles.categoryCount,
+              selectedCategory === category.key && styles.categoryCountActive,
+            ]}>
+              <Text style={[
+                styles.categoryCountText,
+                selectedCategory === category.key && styles.categoryCountTextActive,
+              ]}>
+                {category.count}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Items List */}
-      <ScrollView style={styles.itemsList}>
-        {filteredItems.map((item) => {
-          const CategoryIcon = getCategoryIcon(item.category);
-          const categoryColor = getCategoryColor(item.category);
-
-          return (
-            <View key={item.id} style={styles.itemCard}>
-              <View style={styles.itemHeader}>
-                <View style={styles.itemIconContainer}>
-                  <CategoryIcon size={20} color={categoryColor} />
-                </View>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemDescription}>{item.description}</Text>
-                  <Text style={styles.itemCategory}>{item.category.toUpperCase()}</Text>
-                </View>
-                <View style={styles.itemActions}>
-                  <TouchableOpacity
-                    onPress={() => startEdit(item)}
-                    style={styles.actionButton}
-                  >
-                    <Edit3 size={18} color={Colors.primary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteItem(item)}
-                    style={styles.actionButton}
-                  >
-                    <Trash2 size={18} color={Colors.status.emergency} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.itemFooter}>
-                <View style={styles.priceContainer}>
-                  <DollarSign size={16} color={Colors.status.completed} />
-                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-                  <Text style={styles.itemUnit}>/ {item.unit}</Text>
-                </View>
-              </View>
-            </View>
-          );
-        })}
-
-        {filteredItems.length === 0 && (
-          <View style={styles.emptyState}>
-            <Package size={48} color={Colors.text.light} />
-            <Text style={styles.emptyStateText}>
-              {searchQuery || selectedCategory !== 'all'
-                ? 'No items match your search'
-                : 'No items in price book'}
-            </Text>
-            <Text style={styles.emptyStateSubtext}>
-              {searchQuery || selectedCategory !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Add your first item to get started'}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      {/* Items List/Grid */}
+      {filteredAndSortedItems.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Package size={64} color={Colors.text.light} />
+          <Text style={styles.emptyStateText}>
+            {searchQuery || selectedCategory !== 'all'
+              ? 'No items match your search'
+              : 'No items in price book'}
+          </Text>
+          <Text style={styles.emptyStateSubtext}>
+            {searchQuery || selectedCategory !== 'all'
+              ? 'Try adjusting your search or filters'
+              : 'Add your first item to get started'}
+          </Text>
+          <TouchableOpacity 
+            style={styles.emptyStateButton}
+            onPress={() => {
+              resetForm();
+              setEditingItem(null);
+              setShowAddModal(true);
+            }}
+          >
+            <Plus size={20} color={Colors.text.inverse} />
+            <Text style={styles.emptyStateButtonText}>Add First Item</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredAndSortedItems}
+          renderItem={viewMode === 'grid' ? renderGridItem : renderListItem}
+          keyExtractor={(item) => item.id}
+          numColumns={viewMode === 'grid' ? (isTablet ? 3 : 2) : 1}
+          key={viewMode + (isTablet ? 3 : 2)} // Force re-render when changing view mode
+          contentContainerStyle={styles.itemsList}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       {/* Add/Edit Modal */}
       <Modal
@@ -587,25 +692,63 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 8,
   },
-  searchContainer: {
-    padding: 16,
+  controlsContainer: {
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
   searchInputContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.background,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     color: Colors.text.primary,
+  },
+  viewToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 16,
+  },
+  statsItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statsNumber: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    marginTop: 2,
   },
   categoryContainer: {
     backgroundColor: Colors.surface,
@@ -613,110 +756,238 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
     backgroundColor: Colors.background,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 8,
   },
   categoryButtonActive: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   categoryButtonText: {
     fontSize: 14,
-    fontWeight: '500' as const,
+    fontWeight: '600' as const,
     color: Colors.text.secondary,
   },
   categoryButtonTextActive: {
     color: Colors.text.inverse,
   },
+  categoryCount: {
+    backgroundColor: Colors.text.light + '20',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    alignItems: 'center',
+  },
+  categoryCountActive: {
+    backgroundColor: Colors.text.inverse + '30',
+  },
+  categoryCountText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  categoryCountTextActive: {
+    color: Colors.text.inverse,
+  },
   itemsList: {
-    flex: 1,
     padding: 16,
   },
-  itemCard: {
+  // Grid View Styles
+  gridCard: {
+    flex: 1,
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    margin: 6,
     borderWidth: 1,
     borderColor: Colors.border,
+    minHeight: 180,
   },
-  itemHeader: {
+  gridCardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  itemIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.background,
+  gridIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gridActions: {
+    flexDirection: 'row',
+  },
+  gridActionButton: {
+    padding: 6,
+  },
+  gridItemName: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 6,
+    lineHeight: 20,
+  },
+  gridItemDescription: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+    marginBottom: 12,
+    lineHeight: 18,
+    flex: 1,
+  },
+  gridPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  gridItemPrice: {
+    fontSize: 20,
+    fontWeight: '800' as const,
+    color: Colors.status.completed,
+  },
+  gridItemUnit: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginLeft: 2,
+  },
+  gridCategoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  gridCategoryText: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  // List View Styles
+  listCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  listCardContent: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+  },
+  listIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  itemInfo: {
+  listItemInfo: {
     flex: 1,
   },
-  itemName: {
+  listItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  listItemName: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text.primary,
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 8,
   },
-  itemDescription: {
+  listPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  listItemPrice: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.status.completed,
+  },
+  listItemUnit: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    marginLeft: 2,
+  },
+  listItemDescription: {
     fontSize: 14,
     color: Colors.text.secondary,
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  itemCategory: {
-    fontSize: 12,
-    fontWeight: '500' as const,
-    color: Colors.text.light,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-  },
-  itemFooter: {
+  listItemFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  listCategoryBadge: {
+    backgroundColor: Colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  itemPrice: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: Colors.status.completed,
-  },
-  itemUnit: {
-    fontSize: 14,
+  listCategoryText: {
+    fontSize: 12,
+    fontWeight: '500' as const,
     color: Colors.text.secondary,
+    textTransform: 'capitalize',
+  },
+  listActions: {
+    flexDirection: 'row',
+  },
+  listActionButton: {
+    padding: 8,
   },
   emptyState: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    paddingHorizontal: 32,
   },
   emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: Colors.text.secondary,
-    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginTop: 24,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    color: Colors.text.light,
+    fontSize: 16,
+    color: Colors.text.secondary,
     textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+    gap: 8,
+  },
+  emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
   },
   modalContainer: {
     flex: 1,
