@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   TextInput,
   Alert,
   Dimensions,
-  Platform,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -28,6 +29,9 @@ import {
   TrendingUp,
   Activity,
   Timer,
+  RefreshCw,
+  WifiOff,
+  CloudOff,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -36,52 +40,7 @@ import EnhancedMapView from '@/components/EnhancedMapView';
 
 const { width, height } = Dimensions.get('window');
 
-interface MapViewProps {
-  technicians: Technician[];
-  selectedTechnician: string | null;
-  onTechnicianSelect: (techId: string) => void;
-}
 
-function MapView({ technicians, selectedTechnician, onTechnicianSelect }: MapViewProps) {
-  const activeTechnicians = technicians.filter(tech => 
-    tech.location && tech.availability !== 'offline'
-  );
-
-  return (
-    <View style={styles.mapContainer}>
-      <View style={styles.mapPlaceholder}>
-        <MapPin size={48} color={Colors.text.secondary} />
-        <Text style={styles.mapPlaceholderText}>Interactive Map View</Text>
-        <Text style={styles.mapSubtext}>
-          {activeTechnicians.length} technicians active
-        </Text>
-        
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.technicianMarkers}
-          contentContainerStyle={styles.markersContent}
-        >
-          {activeTechnicians.map((tech) => (
-            <TouchableOpacity
-              key={tech.id}
-              style={[
-                styles.technicianMarker,
-                selectedTechnician === tech.id && styles.selectedMarker,
-                { backgroundColor: getStatusColor(tech.status?.status || 'offline') }
-              ]}
-              onPress={() => onTechnicianSelect(tech.id)}
-            >
-              <Text style={styles.markerText}>
-                {tech.name.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    </View>
-  );
-}
 
 function getStatusColor(status: TechnicianStatus['status'] | 'offline'): string {
   switch (status) {
@@ -389,9 +348,17 @@ export default function TrackingScreen() {
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
   const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const [offlineData, setOfflineData] = useState<Technician[]>([]);
 
   const filteredTechnicians = useMemo(() => {
-    return technicians.filter(tech => {
+    const dataSource = isOffline && offlineData.length > 0 ? offlineData : technicians;
+    return dataSource.filter(tech => {
       // Search filter
       if (searchQuery && !tech.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -418,35 +385,112 @@ export default function TrackingScreen() {
 
       return true;
     });
-  }, [technicians, searchQuery, filter]);
+  }, [technicians, offlineData, isOffline, searchQuery, filter]);
 
-  // Real-time updates with WebSocket simulation
+  // Enhanced real-time updates with offline support and error handling
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate real-time location updates
-      console.log('Checking for location updates...');
-      
-      // In a real app, this would be a WebSocket connection
-      if (Platform.OS !== 'web') {
-        // Simulate battery-optimized updates
-        console.log('Battery-optimized location update');
-      }
-    }, 30000); // Update every 30 seconds
+    let locationInterval: ReturnType<typeof setInterval>;
+    let networkCheckInterval: ReturnType<typeof setInterval>;
+    let retryTimeout: ReturnType<typeof setTimeout>;
 
-    // Simulate push notifications for status changes
-    const notificationInterval = setInterval(() => {
-      const activeTechs = filteredTechnicians.filter(tech => tech.availability !== 'offline');
-      if (activeTechs.length > 0 && Math.random() > 0.8) {
-        const randomTech = activeTechs[Math.floor(Math.random() * activeTechs.length)];
-        console.log(`Push notification: ${randomTech.name} status changed`);
+    const updateLocationData = async () => {
+      try {
+        setError(null);
+        
+        // Simulate network request
+        if (Math.random() > 0.1) { // 90% success rate
+          console.log('Location data updated successfully');
+          setLastSyncTime(new Date());
+          setRetryCount(0);
+          
+          // Store data for offline use
+          setOfflineData([...technicians]);
+        } else {
+          throw new Error('Network request failed');
+        }
+      } catch (err) {
+        console.error('Failed to update location data:', err);
+        setError('Failed to sync location data');
+        setRetryCount(prev => prev + 1);
+        
+        // Exponential backoff retry
+        const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        retryTimeout = setTimeout(() => {
+          if (retryCount < 5) {
+            updateLocationData();
+          }
+        }, retryDelay);
       }
-    }, 60000); // Check every minute
+    };
+
+    // Network connectivity simulation
+    const checkNetworkStatus = () => {
+      const wasOffline = isOffline;
+      const nowOffline = Math.random() > 0.95; // 5% chance of going offline
+      
+      if (wasOffline !== nowOffline) {
+        setIsOffline(nowOffline);
+        
+        if (!nowOffline && wasOffline) {
+          // Reconnected - sync offline data
+          console.log('Network reconnected - syncing offline data');
+          updateLocationData();
+        } else if (nowOffline) {
+          console.log('Network disconnected - using offline data');
+          setError('No network connection');
+        }
+      }
+    };
+
+    if (!isOffline) {
+      locationInterval = setInterval(updateLocationData, 30000);
+    }
+    
+    networkCheckInterval = setInterval(checkNetworkStatus, 10000);
+
+    // Initial load
+    setIsLoading(true);
+    updateLocationData().finally(() => {
+      setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
+    });
 
     return () => {
-      clearInterval(interval);
-      clearInterval(notificationInterval);
+      if (locationInterval) clearInterval(locationInterval);
+      if (networkCheckInterval) clearInterval(networkCheckInterval);
+      if (retryTimeout) clearTimeout(retryTimeout);
     };
-  }, [filteredTechnicians]);
+  }, [technicians, isOffline, retryCount]);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setError(null);
+    
+    try {
+      // Simulate refresh delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (Math.random() > 0.2) { // 80% success rate
+        console.log('Data refreshed successfully');
+        setLastSyncTime(new Date());
+        setRetryCount(0);
+      } else {
+        throw new Error('Refresh failed');
+      }
+    } catch (err) {
+      console.error('Refresh failed:', err);
+      setError('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  // Retry mechanism
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setRetryCount(0);
+    onRefresh();
+  }, [onRefresh]);
 
   const handleEmergencyContact = (technician: Technician) => {
     Alert.alert(
@@ -458,6 +502,55 @@ export default function TrackingScreen() {
       ]
     );
   };
+
+
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <View style={styles.skeletonContainer}>
+      {[...Array(5)].map((_, index) => (
+        <View key={index} style={styles.skeletonCard}>
+          <View style={styles.skeletonHeader}>
+            <View style={styles.skeletonAvatar} />
+            <View style={styles.skeletonTextContainer}>
+              <View style={styles.skeletonTitle} />
+              <View style={styles.skeletonSubtitle} />
+            </View>
+          </View>
+          <View style={styles.skeletonContent}>
+            <View style={styles.skeletonLine} />
+            <View style={[styles.skeletonLine, { width: '70%' }]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
+  // Error state component
+  const ErrorState = () => (
+    <View style={styles.errorContainer}>
+      {isOffline ? (
+        <CloudOff size={48} color={Colors.error} />
+      ) : (
+        <AlertCircle size={48} color={Colors.error} />
+      )}
+      <Text style={styles.errorTitle}>
+        {isOffline ? 'No Internet Connection' : 'Something went wrong'}
+      </Text>
+      <Text style={styles.errorMessage}>
+        {error || (isOffline ? 'Using cached data from last sync' : 'Please try again')}
+      </Text>
+      {lastSyncTime && (
+        <Text style={styles.lastSyncText}>
+          Last synced: {lastSyncTime.toLocaleTimeString()}
+        </Text>
+      )}
+      <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+        <RefreshCw size={16} color={Colors.white} />
+        <Text style={styles.retryButtonText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   if (userRole !== 'owner') {
     return (
@@ -476,7 +569,18 @@ export default function TrackingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Technician Tracking</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Technician Tracking</Text>
+          {isOffline && (
+            <View style={styles.offlineIndicator}>
+              <WifiOff size={16} color={Colors.error} />
+              <Text style={styles.offlineText}>Offline</Text>
+            </View>
+          )}
+          {isLoading && (
+            <ActivityIndicator size="small" color={Colors.primary} style={styles.loadingIndicator} />
+          )}
+        </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[styles.viewToggle, viewMode === 'map' && styles.activeToggle]}
@@ -518,7 +622,19 @@ export default function TrackingScreen() {
         </TouchableOpacity>
       </View>
 
-      {viewMode === 'map' ? (
+      {error && !isRefreshing && (
+        <View style={styles.errorBanner}>
+          <AlertCircle size={16} color={Colors.error} />
+          <Text style={styles.errorBannerText}>{error}</Text>
+          <TouchableOpacity onPress={handleRetry} style={styles.errorRetryButton}>
+            <RefreshCw size={14} color={Colors.error} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isLoading && !isRefreshing ? (
+        <LoadingSkeleton />
+      ) : viewMode === 'map' ? (
         <EnhancedMapView
           technicians={filteredTechnicians}
           selectedTechnician={selectedTechnician}
@@ -529,7 +645,20 @@ export default function TrackingScreen() {
       ) : viewMode === 'analytics' ? (
         <AnalyticsView technicians={filteredTechnicians} />
       ) : (
-        <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.listContainer} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+              title="Pull to refresh"
+              titleColor={Colors.text.secondary}
+            />
+          }
+        >
           {filteredTechnicians.map((technician) => (
             <TechnicianCard
               key={technician.id}
@@ -542,14 +671,16 @@ export default function TrackingScreen() {
               }}
             />
           ))}
-          {filteredTechnicians.length === 0 && (
-            <View style={styles.emptyState}>
-              <MapPin size={48} color={Colors.text.secondary} />
-              <Text style={styles.emptyStateText}>No technicians found</Text>
-              <Text style={styles.emptyStateSubtext}>
-                Try adjusting your search or filters
-              </Text>
-            </View>
+          {filteredTechnicians.length === 0 && !isLoading && (
+            error ? <ErrorState /> : (
+              <View style={styles.emptyState}>
+                <MapPin size={48} color={Colors.text.secondary} />
+                <Text style={styles.emptyStateText}>No technicians found</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Try adjusting your search or filters
+                </Text>
+              </View>
+            )
           )}
         </ScrollView>
       )}
@@ -1019,5 +1150,138 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.secondary,
     lineHeight: 20,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  offlineIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.error,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
+  },
+  offlineText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.white,
+  },
+  loadingIndicator: {
+    marginLeft: 8,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.error + '20',
+    borderColor: Colors.error,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    gap: 8,
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.error,
+  },
+  errorRetryButton: {
+    padding: 4,
+  },
+  skeletonContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  skeletonCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  skeletonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  skeletonAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.border,
+  },
+  skeletonTextContainer: {
+    flex: 1,
+    gap: 6,
+  },
+  skeletonTitle: {
+    height: 16,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    width: '60%',
+  },
+  skeletonSubtitle: {
+    height: 12,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    width: '40%',
+  },
+  skeletonContent: {
+    gap: 8,
+  },
+  skeletonLine: {
+    height: 12,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    width: '100%',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginTop: 16,
+    textAlign: 'center' as const,
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: Colors.text.secondary,
+    marginTop: 8,
+    textAlign: 'center' as const,
+    lineHeight: 22,
+  },
+  lastSyncText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginTop: 8,
+    fontStyle: 'italic' as const,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.white,
   },
 });
