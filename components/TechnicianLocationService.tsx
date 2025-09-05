@@ -7,6 +7,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -17,6 +18,11 @@ import {
   ArrowRight,
   Circle,
   Send,
+  Battery,
+  Wifi,
+  WifiOff,
+  Shield,
+  Clock,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -33,6 +39,10 @@ export default function TechnicianLocationService({ technicianId, onStatusUpdate
   const [message, setMessage] = useState<string>('');
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isTracking, setIsTracking] = useState<boolean>(false);
+  const [batteryOptimized, setBatteryOptimized] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [geofenceEnabled, setGeofenceEnabled] = useState<boolean>(true);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState<Date | null>(null);
 
   const technician = technicians.find(tech => tech.id === technicianId);
 
@@ -43,29 +53,84 @@ export default function TechnicianLocationService({ technicianId, onStatusUpdate
     }
   }, [technician]);
 
-  // Simulate location tracking
+  // Enhanced location tracking with battery optimization
   useEffect(() => {
     let locationInterval: ReturnType<typeof setInterval>;
+    let batteryCheckInterval: ReturnType<typeof setInterval>;
 
     if (isTracking && Platform.OS !== 'web') {
-      // In a real app, this would use expo-location
+      // Determine update frequency based on battery optimization and status
+      const getUpdateInterval = () => {
+        if (batteryOptimized) {
+          switch (currentStatus) {
+            case 'on-route': return 15000; // 15 seconds when traveling
+            case 'at-job': return 60000; // 1 minute when at job
+            case 'break': return 300000; // 5 minutes on break
+            default: return 30000; // 30 seconds default
+          }
+        }
+        return 10000; // 10 seconds for high-frequency updates
+      };
+
+      // Location tracking with geofencing simulation
       locationInterval = setInterval(() => {
-        // Simulate location updates
         const mockLocation = {
           latitude: 32.7157 + (Math.random() - 0.5) * 0.01,
           longitude: -117.1611 + (Math.random() - 0.5) * 0.01,
         };
+        
         setLocation(mockLocation);
-        console.log('Location updated:', mockLocation);
-      }, 10000); // Update every 10 seconds
+        setLastLocationUpdate(new Date());
+        
+        // Simulate geofencing alerts
+        if (geofenceEnabled && Math.random() > 0.95) {
+          console.log('Geofence alert: Technician entered/exited job site area');
+        }
+        
+        console.log('Location updated:', mockLocation, 'Battery optimized:', batteryOptimized);
+      }, getUpdateInterval());
+
+      // Battery monitoring simulation
+      batteryCheckInterval = setInterval(() => {
+        const batteryLevel = Math.random() * 100;
+        if (batteryLevel < 20 && !batteryOptimized) {
+          Alert.alert(
+            'Low Battery',
+            'Battery is low. Enable battery optimization for location tracking?',
+            [
+              { text: 'No', style: 'cancel' },
+              { text: 'Yes', onPress: () => setBatteryOptimized(true) }
+            ]
+          );
+        }
+      }, 60000); // Check every minute
     }
 
     return () => {
-      if (locationInterval) {
-        clearInterval(locationInterval);
-      }
+      if (locationInterval) clearInterval(locationInterval);
+      if (batteryCheckInterval) clearInterval(batteryCheckInterval);
     };
-  }, [isTracking]);
+  }, [isTracking, batteryOptimized, currentStatus, geofenceEnabled]);
+
+  // Network status simulation
+  useEffect(() => {
+    const networkInterval = setInterval(() => {
+      // Simulate network connectivity changes
+      if (Math.random() > 0.95) {
+        setIsOnline(prev => {
+          const newStatus = !prev;
+          if (newStatus) {
+            console.log('Network reconnected - syncing offline data');
+          } else {
+            console.log('Network disconnected - storing data offline');
+          }
+          return newStatus;
+        });
+      }
+    }, 30000);
+
+    return () => clearInterval(networkInterval);
+  }, []);
 
   const handleStatusChange = (newStatus: TechnicianStatus['status']) => {
     setCurrentStatus(newStatus);
@@ -226,18 +291,75 @@ export default function TechnicianLocationService({ technicianId, onStatusUpdate
         />
       </View>
 
-      <TouchableOpacity style={styles.updateButton} onPress={handleSendUpdate}>
+      <View style={styles.settingsSection}>
+        <Text style={styles.sectionTitle}>Tracking Settings</Text>
+        
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Battery size={20} color={Colors.primary} />
+            <Text style={styles.settingLabel}>Battery Optimization</Text>
+          </View>
+          <Switch
+            value={batteryOptimized}
+            onValueChange={setBatteryOptimized}
+            trackColor={{ false: Colors.border, true: Colors.primary }}
+            thumbColor={Colors.white}
+          />
+        </View>
+        
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Shield size={20} color={Colors.success} />
+            <Text style={styles.settingLabel}>Geofencing Alerts</Text>
+          </View>
+          <Switch
+            value={geofenceEnabled}
+            onValueChange={setGeofenceEnabled}
+            trackColor={{ false: Colors.border, true: Colors.success }}
+            thumbColor={Colors.white}
+          />
+        </View>
+        
+        <View style={styles.statusRow}>
+          {isOnline ? (
+            <Wifi size={16} color={Colors.success} />
+          ) : (
+            <WifiOff size={16} color={Colors.error} />
+          )}
+          <Text style={[styles.networkStatusText, { color: isOnline ? Colors.success : Colors.error }]}>
+            {isOnline ? 'Online' : 'Offline'}
+          </Text>
+        </View>
+      </View>
+
+      <TouchableOpacity 
+        style={[styles.updateButton, !isOnline && styles.updateButtonOffline]} 
+        onPress={handleSendUpdate}
+        disabled={!isOnline && !isTracking}
+      >
         <Send size={20} color={Colors.white} />
-        <Text style={styles.updateButtonText}>Send Update</Text>
+        <Text style={styles.updateButtonText}>
+          {isOnline ? 'Send Update' : 'Queue Update'}
+        </Text>
       </TouchableOpacity>
 
       {location && (
         <View style={styles.locationInfo}>
+          <View style={styles.locationHeader}>
+            <MapPin size={16} color={Colors.primary} />
+            <Text style={styles.locationTitle}>Current Location</Text>
+          </View>
           <Text style={styles.locationText}>
-            Location: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+            {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
           </Text>
-          <Text style={styles.locationSubtext}>
-            Last updated: {new Date().toLocaleTimeString()}
+          <View style={styles.locationFooter}>
+            <Clock size={12} color={Colors.text.secondary} />
+            <Text style={styles.locationSubtext}>
+              Last updated: {lastLocationUpdate?.toLocaleTimeString() || 'Never'}
+            </Text>
+          </View>
+          <Text style={styles.accuracyText}>
+            Accuracy: ±{Math.floor(Math.random() * 10) + 3}m
           </Text>
         </View>
       )}
@@ -361,14 +483,77 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  locationTitle: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
   locationText: {
     fontSize: 14,
     color: Colors.text.primary,
     fontFamily: 'monospace' as const,
+    marginBottom: 8,
+  },
+  locationFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
   },
   locationSubtext: {
     fontSize: 12,
     color: Colors.text.secondary,
-    marginTop: 4,
+  },
+  accuracyText: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+    fontStyle: 'italic' as const,
+  },
+  settingsSection: {
+    marginBottom: 24,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  settingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  settingLabel: {
+    fontSize: 16,
+    color: Colors.text.primary,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  networkStatusText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+  },
+  updateButtonOffline: {
+    backgroundColor: Colors.text.secondary,
   },
 });

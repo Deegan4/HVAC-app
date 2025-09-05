@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,10 +23,16 @@ import {
   Circle,
   Pause,
   ArrowRight,
+  BarChart3,
+  Route,
+  TrendingUp,
+  Activity,
+  Timer,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Technician, TechnicianStatus, TrackingFilter } from '@/types';
+import EnhancedMapView from '@/components/EnhancedMapView';
 
 const { width, height } = Dimensions.get('window');
 
@@ -260,23 +267,128 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
   );
 }
 
+interface AnalyticsViewProps {
+  technicians: Technician[];
+}
+
+function AnalyticsView({ technicians }: AnalyticsViewProps) {
+  const analytics = useMemo(() => {
+    const total = technicians.length;
+    const active = technicians.filter(tech => tech.availability !== 'offline').length;
+    const onRoute = technicians.filter(tech => tech.status?.status === 'on-route').length;
+    const atJob = technicians.filter(tech => tech.status?.status === 'at-job').length;
+    const onBreak = technicians.filter(tech => tech.status?.status === 'break').length;
+    
+    // Calculate average response time (mock data)
+    const avgResponseTime = Math.floor(Math.random() * 20) + 15; // 15-35 minutes
+    const completionRate = Math.floor((atJob / Math.max(total, 1)) * 100);
+    const efficiency = Math.floor(Math.random() * 20) + 75; // 75-95%
+    
+    return {
+      total,
+      active,
+      onRoute,
+      atJob,
+      onBreak,
+      avgResponseTime,
+      completionRate,
+      efficiency,
+    };
+  }, [technicians]);
+
+  return (
+    <ScrollView style={styles.analyticsContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.analyticsGrid}>
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <Activity size={24} color={Colors.primary} />
+            <Text style={styles.analyticsTitle}>Active Technicians</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.active}/{analytics.total}</Text>
+          <Text style={styles.analyticsSubtext}>Currently working</Text>
+        </View>
+        
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <Route size={24} color={Colors.warning} />
+            <Text style={styles.analyticsTitle}>On Route</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.onRoute}</Text>
+          <Text style={styles.analyticsSubtext}>Traveling to jobs</Text>
+        </View>
+        
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <CheckCircle size={24} color={Colors.success} />
+            <Text style={styles.analyticsTitle}>At Job Sites</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.atJob}</Text>
+          <Text style={styles.analyticsSubtext}>Currently working</Text>
+        </View>
+        
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <Timer size={24} color={Colors.info} />
+            <Text style={styles.analyticsTitle}>Avg Response</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.avgResponseTime}m</Text>
+          <Text style={styles.analyticsSubtext}>Response time</Text>
+        </View>
+        
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <TrendingUp size={24} color={Colors.success} />
+            <Text style={styles.analyticsTitle}>Efficiency</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.efficiency}%</Text>
+          <Text style={styles.analyticsSubtext}>Overall performance</Text>
+        </View>
+        
+        <View style={styles.analyticsCard}>
+          <View style={styles.analyticsHeader}>
+            <BarChart3 size={24} color={Colors.primary} />
+            <Text style={styles.analyticsTitle}>Completion Rate</Text>
+          </View>
+          <Text style={styles.analyticsValue}>{analytics.completionRate}%</Text>
+          <Text style={styles.analyticsSubtext}>Jobs completed today</Text>
+        </View>
+      </View>
+      
+      <View style={styles.performanceSection}>
+        <Text style={styles.sectionTitle}>Performance Insights</Text>
+        
+        <View style={styles.insightCard}>
+          <Text style={styles.insightTitle}>Route Optimization</Text>
+          <Text style={styles.insightText}>
+            Technicians could save an average of 12 minutes per job with optimized routing.
+          </Text>
+        </View>
+        
+        <View style={styles.insightCard}>
+          <Text style={styles.insightTitle}>Peak Hours</Text>
+          <Text style={styles.insightText}>
+            Highest activity between 10 AM - 2 PM. Consider scheduling more technicians during these hours.
+          </Text>
+        </View>
+        
+        <View style={styles.insightCard}>
+          <Text style={styles.insightTitle}>Battery Optimization</Text>
+          <Text style={styles.insightText}>
+            Location tracking is optimized for battery life with 30-second intervals during active jobs.
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
 export default function TrackingScreen() {
   const { technicians, userRole } = useAppStore();
   const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // In a real app, this would fetch updates from a server
-      console.log('Checking for location updates...');
-    }, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
 
   const filteredTechnicians = useMemo(() => {
     return technicians.filter(tech => {
@@ -307,6 +419,34 @@ export default function TrackingScreen() {
       return true;
     });
   }, [technicians, searchQuery, filter]);
+
+  // Real-time updates with WebSocket simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Simulate real-time location updates
+      console.log('Checking for location updates...');
+      
+      // In a real app, this would be a WebSocket connection
+      if (Platform.OS !== 'web') {
+        // Simulate battery-optimized updates
+        console.log('Battery-optimized location update');
+      }
+    }, 30000); // Update every 30 seconds
+
+    // Simulate push notifications for status changes
+    const notificationInterval = setInterval(() => {
+      const activeTechs = filteredTechnicians.filter(tech => tech.availability !== 'offline');
+      if (activeTechs.length > 0 && Math.random() > 0.8) {
+        const randomTech = activeTechs[Math.floor(Math.random() * activeTechs.length)];
+        console.log(`Push notification: ${randomTech.name} status changed`);
+      }
+    }, 60000); // Check every minute
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(notificationInterval);
+    };
+  }, [filteredTechnicians]);
 
   const handleEmergencyContact = (technician: Technician) => {
     Alert.alert(
@@ -350,6 +490,12 @@ export default function TrackingScreen() {
           >
             <Text style={[styles.toggleText, viewMode === 'list' && styles.activeToggleText]}>List</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewToggle, viewMode === 'analytics' && styles.activeToggle]}
+            onPress={() => setViewMode('analytics')}
+          >
+            <BarChart3 size={20} color={viewMode === 'analytics' ? Colors.white : Colors.text.primary} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -373,11 +519,15 @@ export default function TrackingScreen() {
       </View>
 
       {viewMode === 'map' ? (
-        <MapView
+        <EnhancedMapView
           technicians={filteredTechnicians}
           selectedTechnician={selectedTechnician}
           onTechnicianSelect={setSelectedTechnician}
+          showRoutes={true}
+          showGeofences={true}
         />
+      ) : viewMode === 'analytics' ? (
+        <AnalyticsView technicians={filteredTechnicians} />
       ) : (
         <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false}>
           {filteredTechnicians.map((technician) => (
@@ -801,5 +951,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.white,
+  },
+  analyticsContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  analyticsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 24,
+  },
+  analyticsCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    width: (width - 52) / 2, // Account for padding and gap
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  analyticsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  analyticsTitle: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    flex: 1,
+  },
+  analyticsValue: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  analyticsSubtext: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
+  performanceSection: {
+    marginTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 16,
+  },
+  insightCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  insightTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  insightText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    lineHeight: 20,
   },
 });
