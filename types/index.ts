@@ -80,4 +80,36 @@ export interface Technician {
   specialties: string[];
   availability: 'available' | 'busy' | 'offline';
   currentJobId?: string;
+  location?: TechnicianLocation;
+  status?: TechnicianStatus;
+  lastUpdate?: string;
+}
+
+export interface TechnicianLocation {
+  latitude: number;
+  longitude: number;
+  address?: string;
+  accuracy?: number;
+  timestamp: string;
+}
+
+export interface TechnicianStatus {
+  status: 'on-route' | 'at-job' | 'break' | 'returning' | 'offline';
+  estimatedArrival?: string;
+  nextJobId?: string;
+  message?: string;
+}
+
+export interface LocationUpdate {
+  technicianId: string;
+  location: TechnicianLocation;
+  status: TechnicianStatus;
+  timestamp: string;
+}
+
+export interface TrackingFilter {
+  status?: TechnicianStatus['status'][];
+  availability?: Technician['availability'][];
+  searchQuery?: string;
+  showOnlyActive?: boolean;
 }

@@ -22,7 +22,8 @@ import {
   BarChart3,
   Wrench,
   Bug,
-  DollarSign
+  DollarSign,
+  MapPin
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -31,7 +32,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [profileData, setProfileData] = useState<any>(null);
@@ -88,6 +89,12 @@ export default function MoreScreen() {
       ]
     },
     {
+      title: 'Technician',
+      items: userRole === 'technician' ? [
+        { icon: MapPin, label: 'Location & Status', onPress: () => router.push('/technician-location') },
+      ] : []
+    },
+    {
       title: 'Account',
       items: [
         { icon: User, label: 'Profile', onPress: () => router.push('/profile') },
@@ -108,7 +115,7 @@ export default function MoreScreen() {
         { icon: Bug, label: 'Debug Tools', onPress: () => router.push('/debug') },
       ]
     }
-  ];
+  ].filter(section => section.items.length > 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>

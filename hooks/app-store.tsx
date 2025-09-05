@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -37,6 +37,10 @@ interface AppState {
   setUserRole: (role: UserRole) => void;
   authenticatePin: (pin: string) => boolean;
   logout: () => void;
+  updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
+  updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
+  getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
+  getActiveTechnicians: () => Technician[];
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -219,6 +223,24 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setIsAuthenticated(false);
   }, []);
 
+  const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
+    // In a real app, this would update the server and local state
+    console.log('Updating technician location:', technicianId, locationUpdate);
+  }, []);
+
+  const updateTechnicianStatus = useCallback((technicianId: string, status: TechnicianStatus) => {
+    // In a real app, this would update the server and local state
+    console.log('Updating technician status:', technicianId, status);
+  }, []);
+
+  const getTechniciansByStatus = useCallback((status: TechnicianStatus['status']) => {
+    return technicians.filter((tech: Technician) => tech.status?.status === status);
+  }, [technicians]);
+
+  const getActiveTechnicians = useCallback(() => {
+    return technicians.filter((tech: Technician) => tech.availability !== 'offline');
+  }, [technicians]);
+
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
   }, [mutateCustomers]);
@@ -316,6 +338,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     logout,
     importCustomers,
     exportCustomers,
+    updateTechnicianLocation,
+    updateTechnicianStatus,
+    getTechniciansByStatus,
+    getActiveTechnicians,
   }), [
     customers,
     equipment,
@@ -346,6 +372,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     logout,
     importCustomers,
     exportCustomers,
+    updateTechnicianLocation,
+    updateTechnicianStatus,
+    getTechniciansByStatus,
+    getActiveTechnicians,
   ]);
 });
 

@@ -6,6 +6,11 @@ export const Colors = {
   accent: '#FF6B35',
   background: '#F5F7FA',
   surface: '#FFFFFF',
+  white: '#FFFFFF',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
   text: {
     primary: '#1A1A1A',
     secondary: '#6B7280',

@@ -7,7 +7,97 @@ export const mockTechnicians: Technician[] = [
     email: 'alex@olivarefrigeration.com',
     phone: '(555) 123-4567',
     specialties: ['HVAC', 'Refrigeration', 'Commercial Systems'],
+    availability: 'busy',
+    currentJobId: 'job1',
+    location: {
+      latitude: 32.7157,
+      longitude: -117.1611,
+      address: '123 Main St, San Diego, CA',
+      accuracy: 10,
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'at-job',
+      message: 'Working on HVAC repair',
+      estimatedArrival: new Date(Date.now() + 45 * 60000).toISOString(), // 45 minutes from now
+    },
+    lastUpdate: new Date(Date.now() - 5 * 60000).toISOString(), // 5 minutes ago
+  },
+  {
+    id: 'tech2',
+    name: 'Sarah Chen',
+    email: 'sarah@olivarefrigeration.com',
+    phone: '(555) 234-5678',
+    specialties: ['Refrigeration', 'Ice Machines', 'Walk-in Coolers'],
     availability: 'available',
+    location: {
+      latitude: 32.8328,
+      longitude: -117.2713,
+      address: '456 Oak Ave, La Jolla, CA',
+      accuracy: 8,
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'on-route',
+      message: 'Heading to next appointment',
+      estimatedArrival: new Date(Date.now() + 20 * 60000).toISOString(), // 20 minutes from now
+      nextJobId: 'job2',
+    },
+    lastUpdate: new Date(Date.now() - 2 * 60000).toISOString(), // 2 minutes ago
+  },
+  {
+    id: 'tech3',
+    name: 'Mike Johnson',
+    email: 'mike@olivarefrigeration.com',
+    phone: '(555) 345-6789',
+    specialties: ['Commercial HVAC', 'Boilers', 'Chillers'],
+    availability: 'available',
+    location: {
+      latitude: 32.7767,
+      longitude: -117.0736,
+      address: '789 Harbor Dr, San Diego, CA',
+      accuracy: 12,
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'break',
+      message: 'Lunch break - back at 1:30 PM',
+    },
+    lastUpdate: new Date(Date.now() - 15 * 60000).toISOString(), // 15 minutes ago
+  },
+  {
+    id: 'tech4',
+    name: 'David Martinez',
+    email: 'david@olivarefrigeration.com',
+    phone: '(555) 456-7890',
+    specialties: ['Residential HVAC', 'Heat Pumps', 'Ductwork'],
+    availability: 'busy',
+    currentJobId: 'job3',
+    location: {
+      latitude: 32.6851,
+      longitude: -117.1839,
+      address: '321 Pine St, Chula Vista, CA',
+      accuracy: 15,
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'returning',
+      message: 'Returning to office',
+    },
+    lastUpdate: new Date(Date.now() - 8 * 60000).toISOString(), // 8 minutes ago
+  },
+  {
+    id: 'tech5',
+    name: 'Lisa Thompson',
+    email: 'lisa@olivarefrigeration.com',
+    phone: '(555) 567-8901',
+    specialties: ['Preventive Maintenance', 'Diagnostics', 'Energy Efficiency'],
+    availability: 'offline',
+    status: {
+      status: 'offline',
+      message: 'Off duty',
+    },
+    lastUpdate: new Date(Date.now() - 4 * 60 * 60000).toISOString(), // 4 hours ago
   },
 ];
 

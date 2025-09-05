@@ -1,9 +1,12 @@
 import { Tabs } from "expo-router";
-import { Calendar, Users, FileText, Grid3x3 } from "lucide-react-native";
+import { Calendar, Users, FileText, Grid3x3, MapPin } from "lucide-react-native";
 import React from "react";
 import { Colors } from "@/constants/colors";
+import { useAppStore } from "@/hooks/app-store";
 
 export default function TabLayout() {
+  const { userRole } = useAppStore();
+  
   return (
     <Tabs
       screenOptions={{
@@ -40,6 +43,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <FileText color={color} size={size} />,
         }}
       />
+      {userRole === 'owner' && (
+        <Tabs.Screen
+          name="tracking"
+          options={{
+            title: "Tracking",
+            tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
+          }}
+        />
+      )}
       <Tabs.Screen
         name="more"
         options={{
