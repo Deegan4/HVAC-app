@@ -1,223 +1,252 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  Image,
+  Linking,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin,
-  Wrench,
-  Calendar,
-  FileText,
-  DollarSign,
+  Smile,
   Edit,
-  Plus
+  Phone,
+  MessageCircle,
+  MapPin,
+  ChevronRight,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 
 export default function CustomerDetailsScreen() {
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
-  const { getCustomerById, getEquipmentByCustomer, jobs, getInvoicesByCustomer } = useAppStore();
+  const { getCustomerById, jobs, getInvoicesByCustomer } = useAppStore();
+  const [notificationsOn, setNotificationsOn] = useState(true);
   
   const customer = getCustomerById(customerId);
-  const equipment = getEquipmentByCustomer(customerId);
   const customerJobs = jobs.filter(job => job.customerId === customerId);
   const invoices = getInvoicesByCustomer(customerId);
 
   if (!customer) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Customer not found</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  const totalSpent = invoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((sum, inv) => sum + inv.paidAmount, 0);
+  const handleCall = () => {
+    const phoneUrl = `tel:${customer.phone}`;
+    Linking.openURL(phoneUrl).catch(() => {
+      Alert.alert('Error', 'Unable to make phone call');
+    });
+  };
+
+  const handleMessage = () => {
+    const smsUrl = `sms:${customer.phone}`;
+    Linking.openURL(smsUrl).catch(() => {
+      Alert.alert('Error', 'Unable to send message');
+    });
+  };
+
+  const handleOpenMap = () => {
+    const mapUrl = `https://maps.google.com/?q=${encodeURIComponent(customer.address)}`;
+    Linking.openURL(mapUrl).catch(() => {
+      Alert.alert('Error', 'Unable to open maps');
+    });
+  };
+
+  // Mock property data - in real app this would come from customer data
+  const propertyData = {
+    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=400&fit=crop',
+    price: '$792,574',
+    yearBuilt: '2003',
+    beds: 4,
+    baths: 2.0,
+    sqft: 2237,
+  };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <Stack.Screen 
         options={{
           title: customer.name,
-          headerRight: () => (
+          headerLeft: () => (
             <TouchableOpacity 
-              onPress={() => console.log('Edit customer:', customer.id)}
+              onPress={() => router.back()}
               style={styles.headerButton}
             >
-              <Edit size={20} color={Colors.primary} />
+              <Text style={styles.backButton}>Back</Text>
             </TouchableOpacity>
+          ),
+          headerTitle: () => (
+            <Text style={styles.headerTitle}>{customer.name}</Text>
+          ),
+          headerRight: () => (
+            <View style={styles.headerRightButtons}>
+              <TouchableOpacity style={styles.headerIconButton}>
+                <Smile size={24} color={Colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerIconButton}>
+                <Edit size={24} color={Colors.primary} />
+              </TouchableOpacity>
+            </View>
           ),
         }} 
       />
-      <ScrollView style={styles.scrollView}>
-        {/* Customer Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <User size={32} color={Colors.text.inverse} />
-          </View>
-          <Text style={styles.customerName}>{customer.name}</Text>
-          <Text style={styles.customerSince}>
-            Customer since {new Date(customer.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-
-        {/* Contact Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
-          <View style={styles.card}>
-            <TouchableOpacity style={styles.contactRow}>
-              <Phone size={16} color={Colors.text.secondary} />
-              <Text style={styles.contactLabel}>Phone:</Text>
-              <Text style={styles.contactValue}>{customer.phone}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contactRow}>
-              <Mail size={16} color={Colors.text.secondary} />
-              <Text style={styles.contactLabel}>Email:</Text>
-              <Text style={styles.contactValue}>{customer.email}</Text>
-            </TouchableOpacity>
-            <View style={styles.contactRow}>
-              <MapPin size={16} color={Colors.text.secondary} />
-              <Text style={styles.contactLabel}>Address:</Text>
-              <Text style={styles.contactValue}>{customer.address}</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Property Image Card */}
+        <View style={styles.propertyCard}>
+          <Image 
+            source={{ uri: propertyData.image }}
+            style={styles.propertyImage}
+          />
+          <View style={styles.propertyOverlay}>
+            <View style={styles.propertyInfo}>
+              <Text style={styles.propertyPrice}>{propertyData.price}</Text>
+              <Text style={styles.propertyBuilt}>Built in {propertyData.yearBuilt}</Text>
+            </View>
+            <View style={styles.propertyStats}>
+              <View style={styles.propertyStat}>
+                <Text style={styles.propertyStatValue}>{propertyData.beds}</Text>
+                <Text style={styles.propertyStatLabel}>Beds</Text>
+              </View>
+              <View style={styles.propertyStatDivider} />
+              <View style={styles.propertyStat}>
+                <Text style={styles.propertyStatValue}>{propertyData.baths}</Text>
+                <Text style={styles.propertyStatLabel}>Baths</Text>
+              </View>
+              <View style={styles.propertyStatDivider} />
+              <View style={styles.propertyStat}>
+                <Text style={styles.propertyStatValue}>{propertyData.sqft}</Text>
+                <Text style={styles.propertyStatLabel}>Sq. ft.</Text>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Statistics */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Wrench size={20} color={Colors.primary} />
-            <Text style={styles.statNumber}>{customerJobs.length}</Text>
-            <Text style={styles.statLabel}>Total Jobs</Text>
-          </View>
-          <View style={styles.statCard}>
-            <FileText size={20} color={Colors.secondary} />
-            <Text style={styles.statNumber}>{invoices.length}</Text>
-            <Text style={styles.statLabel}>Invoices</Text>
-          </View>
-          <View style={styles.statCard}>
-            <DollarSign size={20} color={Colors.accent} />
-            <Text style={styles.statNumber}>${totalSpent.toFixed(0)}</Text>
-            <Text style={styles.statLabel}>Total Spent</Text>
-          </View>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push({
+              pathname: '/new-job',
+              params: { customerId: customer.id }
+            })}
+          >
+            <Text style={styles.actionButtonText}>+ Job</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>+ Estimate</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Equipment */}
+        {/* Contact Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Equipment ({equipment.length})</Text>
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => console.log('Add equipment for customer:', customer.id)}
-            >
-              <Plus size={16} color={Colors.primary} />
-              <Text style={styles.addButtonText}>Add</Text>
-            </TouchableOpacity>
-          </View>
-          {equipment.length > 0 ? (
-            equipment.map(eq => (
-              <TouchableOpacity 
-                key={eq.id} 
-                style={styles.card}
-                onPress={() => console.log('View equipment:', eq.id)}
-              >
-                <View style={styles.equipmentHeader}>
-                  <Text style={styles.equipmentType}>{eq.type}</Text>
-                  {eq.warrantyExpiry && new Date(eq.warrantyExpiry) > new Date() && (
-                    <View style={styles.warrantyBadge}>
-                      <Text style={styles.warrantyText}>Under Warranty</Text>
-                    </View>
-                  )}
+          <Text style={styles.sectionTitle}>Contact</Text>
+          
+          <View style={styles.contactCard}>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Name</Text>
+              <View style={styles.contactValueRow}>
+                <Text style={styles.contactValue}>{customer.name}</Text>
+                <MessageCircle size={24} color={Colors.primary} />
+              </View>
+            </View>
+            
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Mobile</Text>
+              <View style={styles.contactValueRow}>
+                <Text style={styles.contactValue}>{customer.phone}</Text>
+                <View style={styles.contactActions}>
+                  <TouchableOpacity onPress={handleMessage}>
+                    <MessageCircle size={24} color={Colors.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleCall} style={styles.phoneButton}>
+                    <Phone size={24} color={Colors.primary} />
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.equipmentBrand}>{eq.brand} {eq.model}</Text>
-                <Text style={styles.equipmentSerial}>S/N: {eq.serialNumber}</Text>
-                {eq.lastServiceDate && (
-                  <Text style={styles.lastService}>
-                    Last serviced: {new Date(eq.lastServiceDate).toLocaleDateString()}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyEquipment}>
-              <Wrench size={32} color={Colors.text.light} />
-              <Text style={styles.emptyEquipmentText}>No equipment registered</Text>
-              <Text style={styles.emptyEquipmentSubtext}>Tap &quot;Add&quot; to register equipment</Text>
+              </View>
             </View>
-          )}
+            
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Notifications On</Text>
+              <View style={styles.switchContainer}>
+                <TouchableOpacity
+                  style={[styles.switch, notificationsOn && styles.switchOn]}
+                  onPress={() => setNotificationsOn(!notificationsOn)}
+                >
+                  <View style={[styles.switchThumb, notificationsOn && styles.switchThumbOn]} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </View>
 
-        {/* Recent Jobs */}
+        {/* Payment Method */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Jobs</Text>
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => router.push({
-                pathname: '/new-job',
-                params: { customerId: customer.id }
-              })}
-            >
-              <Plus size={16} color={Colors.primary} />
-              <Text style={styles.addButtonText}>New Job</Text>
+          <Text style={styles.sectionTitle}>Payment method</Text>
+          <View style={styles.paymentButtons}>
+            <TouchableOpacity style={styles.paymentButton}>
+              <Text style={styles.paymentButtonText}>Add credit c...</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.paymentButton}>
+              <Text style={styles.paymentButtonText}>Send request</Text>
             </TouchableOpacity>
           </View>
-          {customerJobs.length > 0 ? (
-            customerJobs.slice(0, 5).map(job => (
-              <TouchableOpacity 
-                key={job.id} 
-                style={styles.card}
-                onPress={() => router.push({
-                  pathname: '/job-details',
-                  params: { jobId: job.id }
-                })}
-              >
-                <View style={styles.jobHeader}>
-                  <Text style={styles.jobDate}>
-                    {new Date(job.scheduledDate).toLocaleDateString()}
-                  </Text>
-                  <View style={[styles.statusBadge, { backgroundColor: Colors.status[job.status] }]}>
-                    <Text style={styles.statusText}>{job.status.toUpperCase()}</Text>
-                  </View>
-                </View>
-                <Text style={styles.jobType}>{job.type.charAt(0).toUpperCase() + job.type.slice(1)}</Text>
-                <Text style={styles.jobDescription} numberOfLines={2}>
-                  {job.description}
-                </Text>
+        </View>
+
+        {/* Lead Source */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Lead source</Text>
+          <Text style={styles.leadSource}>Choice HW</Text>
+        </View>
+
+        {/* Addresses */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Addresses</Text>
+          
+          <View style={styles.addressCard}>
+            <View style={styles.addressHeader}>
+              <Text style={styles.addressLabel}>Billing</Text>
+              <TouchableOpacity onPress={handleOpenMap}>
+                <MapPin size={24} color={Colors.primary} />
               </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyJobs}>
-              <Calendar size={32} color={Colors.text.light} />
-              <Text style={styles.emptyJobsText}>No jobs scheduled</Text>
-              <Text style={styles.emptyJobsSubtext}>Tap &quot;New Job&quot; to schedule service</Text>
             </View>
-          )}
+            <Text style={styles.addressText}>{customer.address}</Text>
+          </View>
         </View>
 
         {/* Notes */}
-        {customer.notes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-            <View style={styles.card}>
-              <Text style={styles.notes}>{customer.notes}</Text>
-            </View>
+        <TouchableOpacity style={styles.listItem}>
+          <Text style={styles.listItemText}>Notes</Text>
+          <ChevronRight size={20} color={Colors.text.light} />
+        </TouchableOpacity>
+
+        {/* History */}
+        <TouchableOpacity style={styles.listItem}>
+          <View style={styles.listItemContent}>
+            <Text style={styles.listItemText}>History</Text>
+            <Text style={styles.listItemCount}>{customerJobs.length}</Text>
           </View>
-        )}
+          <ChevronRight size={20} color={Colors.text.light} />
+        </TouchableOpacity>
+
+        {/* Attachments */}
+        <TouchableOpacity style={styles.listItem}>
+          <View style={styles.listItemContent}>
+            <Text style={styles.listItemText}>Attachments</Text>
+            <Text style={styles.listItemCount}>1</Text>
+          </View>
+          <ChevronRight size={20} color={Colors.text.light} />
+        </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -238,238 +267,225 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text.secondary,
   },
-  header: {
-    backgroundColor: Colors.primary,
-    padding: 24,
-    alignItems: 'center',
+  headerButton: {
+    padding: 8,
   },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primaryDark,
-    justifyContent: 'center',
-    alignItems: 'center',
+  backButton: {
+    fontSize: 17,
+    color: Colors.primary,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  headerRightButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  headerIconButton: {
+    padding: 4,
+  },
+  propertyCard: {
+    position: 'relative',
+    height: 280,
     marginBottom: 16,
   },
-  customerName: {
-    fontSize: 24,
-    fontWeight: '600' as const,
-    color: Colors.text.inverse,
-    marginBottom: 8,
+  propertyImage: {
+    width: '100%',
+    height: '100%',
   },
-  customerSince: {
+  propertyOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 16,
+  },
+  propertyInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 12,
+  },
+  propertyPrice: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+  },
+  propertyBuilt: {
+    fontSize: 16,
+    color: Colors.text.secondary,
+  },
+  propertyStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  propertyStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  propertyStatValue: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  propertyStatLabel: {
     fontSize: 14,
-    color: Colors.text.inverse,
-    opacity: 0.9,
+    color: Colors.text.secondary,
+    marginTop: 2,
+  },
+  propertyStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.border,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 16,
+    marginBottom: 24,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: Colors.primary,
   },
   section: {
-    marginTop: 20,
+    marginBottom: 32,
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text.secondary,
-    textTransform: 'uppercase' as const,
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 16,
   },
-  card: {
+  contactCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+  contactItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.border,
   },
   contactLabel: {
     fontSize: 14,
     color: Colors.text.secondary,
-    marginLeft: 8,
-    width: 60,
+    marginBottom: 4,
   },
   contactValue: {
-    fontSize: 14,
+    fontSize: 17,
     color: Colors.text.primary,
-    flex: 1,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '700' as const,
-    color: Colors.text.primary,
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: Colors.text.secondary,
-    marginTop: 4,
-  },
-  equipmentHeader: {
+  contactValueRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  equipmentType: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.primary,
-    textTransform: 'uppercase' as const,
-  },
-  warrantyBadge: {
-    backgroundColor: Colors.secondary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  warrantyText: {
-    fontSize: 11,
-    color: Colors.text.inverse,
-    fontWeight: '600' as const,
-  },
-  equipmentBrand: {
-    fontSize: 16,
-    fontWeight: '500' as const,
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  equipmentSerial: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-    marginBottom: 4,
-  },
-  lastService: {
-    fontSize: 12,
-    color: Colors.text.light,
-    marginTop: 4,
-  },
-  jobHeader: {
+  contactActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    gap: 16,
   },
-  jobDate: {
-    fontSize: 13,
-    color: Colors.text.secondary,
+  phoneButton: {
+    marginLeft: 0,
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+  switchContainer: {
+    alignItems: 'flex-end',
   },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    color: Colors.text.inverse,
-  },
-  jobType: {
-    fontSize: 14,
-    fontWeight: '500' as const,
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  jobDescription: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-    lineHeight: 18,
-  },
-  notes: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    lineHeight: 20,
-    fontStyle: 'italic' as const,
-  },
-  headerButton: {
-    padding: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  switch: {
+    width: 51,
+    height: 31,
     borderRadius: 16,
-    gap: 4,
+    backgroundColor: '#E5E5EA',
+    padding: 2,
   },
-  addButtonText: {
-    fontSize: 12,
+  switchOn: {
+    backgroundColor: '#34C759',
+  },
+  switchThumb: {
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  switchThumbOn: {
+    transform: [{ translateX: 20 }],
+  },
+  paymentButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  paymentButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+  },
+  paymentButtonText: {
+    fontSize: 17,
     fontWeight: '600' as const,
     color: Colors.primary,
   },
-  emptyEquipment: {
+  leadSource: {
+    fontSize: 17,
+    color: Colors.text.primary,
+  },
+  addressCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 32,
+  },
+  addressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 8,
   },
-  emptyEquipmentText: {
-    fontSize: 16,
-    fontWeight: '500' as const,
-    color: Colors.text.secondary,
-    marginTop: 12,
-  },
-  emptyEquipmentSubtext: {
+  addressLabel: {
     fontSize: 14,
-    color: Colors.text.light,
-    marginTop: 4,
+    color: Colors.text.secondary,
   },
-  emptyJobs: {
+  addressText: {
+    fontSize: 17,
+    color: Colors.text.primary,
+    lineHeight: 22,
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 32,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.border,
+  },
+  listItemContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 8,
   },
-  emptyJobsText: {
-    fontSize: 16,
-    fontWeight: '500' as const,
+  listItemText: {
+    fontSize: 17,
+    color: Colors.text.primary,
+  },
+  listItemCount: {
+    fontSize: 17,
     color: Colors.text.secondary,
-    marginTop: 12,
-  },
-  emptyJobsSubtext: {
-    fontSize: 14,
-    color: Colors.text.light,
-    marginTop: 4,
   },
 });
