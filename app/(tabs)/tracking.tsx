@@ -11,29 +11,14 @@ import {
   RefreshControl,
   FlatList,
   Animated,
-  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   MapPin,
   Search,
   Filter,
   Clock,
-  Phone,
-  Navigation,
   AlertCircle,
   CheckCircle,
-  Circle,
-  Pause,
-  ArrowRight,
-  BarChart3,
-  Route,
-  TrendingUp,
-  Activity,
-  Timer,
-  RefreshCw,
-  WifiOff,
-  CloudOff,
   Users,
   Car,
   Wrench,
@@ -46,6 +31,13 @@ import {
   MessageCircle,
   Battery,
   Signal,
+  RefreshCw,
+  Activity,
+  TrendingUp,
+  BarChart3,
+  Circle,
+  Route,
+  Timer,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -438,19 +430,11 @@ export default function TrackingScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
-  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('list');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState<number>(0);
-  const [offlineData, setOfflineData] = useState<Technician[]>([]);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const filteredTechnicians = useMemo(() => {
-    const dataSource = isOffline && offlineData.length > 0 ? offlineData : technicians;
-    return dataSource.filter(tech => {
+    return technicians.filter(tech => {
       // Search filter
       if (searchQuery && !tech.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -477,112 +461,23 @@ export default function TrackingScreen() {
 
       return true;
     });
-  }, [technicians, offlineData, isOffline, searchQuery, filter]);
+  }, [technicians, searchQuery, filter]);
 
-  // Enhanced real-time updates with offline support and error handling
+  // Simulate real-time updates
   useEffect(() => {
-    let locationInterval: ReturnType<typeof setInterval>;
-    let networkCheckInterval: ReturnType<typeof setInterval>;
-    let retryTimeout: ReturnType<typeof setTimeout>;
+    const interval = setInterval(() => {
+      console.log('Updating technician locations...');
+    }, 30000);
 
-    const updateLocationData = async () => {
-      try {
-        setError(null);
-        
-        // Simulate network request
-        if (Math.random() > 0.1) { // 90% success rate
-          console.log('Location data updated successfully');
-          setLastSyncTime(new Date());
-          setRetryCount(0);
-          
-          // Store data for offline use
-          setOfflineData([...technicians]);
-        } else {
-          throw new Error('Network request failed');
-        }
-      } catch (err) {
-        console.error('Failed to update location data:', err);
-        setError('Failed to sync location data');
-        setRetryCount(prev => prev + 1);
-        
-        // Exponential backoff retry
-        const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-        retryTimeout = setTimeout(() => {
-          if (retryCount < 5) {
-            updateLocationData();
-          }
-        }, retryDelay);
-      }
-    };
-
-    // Network connectivity simulation
-    const checkNetworkStatus = () => {
-      const wasOffline = isOffline;
-      const nowOffline = Math.random() > 0.95; // 5% chance of going offline
-      
-      if (wasOffline !== nowOffline) {
-        setIsOffline(nowOffline);
-        
-        if (!nowOffline && wasOffline) {
-          // Reconnected - sync offline data
-          console.log('Network reconnected - syncing offline data');
-          updateLocationData();
-        } else if (nowOffline) {
-          console.log('Network disconnected - using offline data');
-          setError('No network connection');
-        }
-      }
-    };
-
-    if (!isOffline) {
-      locationInterval = setInterval(updateLocationData, 30000);
-    }
-    
-    networkCheckInterval = setInterval(checkNetworkStatus, 10000);
-
-    // Initial load
-    setIsLoading(true);
-    updateLocationData().finally(() => {
-      setTimeout(() => setIsLoading(false), 1000); // Simulate loading time
-    });
-
-    return () => {
-      if (locationInterval) clearInterval(locationInterval);
-      if (networkCheckInterval) clearInterval(networkCheckInterval);
-      if (retryTimeout) clearTimeout(retryTimeout);
-    };
-  }, [technicians, isOffline, retryCount]);
+    return () => clearInterval(interval);
+  }, []);
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    setError(null);
-    
-    try {
-      // Simulate refresh delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (Math.random() > 0.2) { // 80% success rate
-        console.log('Data refreshed successfully');
-        setLastSyncTime(new Date());
-        setRetryCount(0);
-      } else {
-        throw new Error('Refresh failed');
-      }
-    } catch (err) {
-      console.error('Refresh failed:', err);
-      setError('Failed to refresh data');
-    } finally {
-      setIsRefreshing(false);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsRefreshing(false);
   }, []);
-
-  // Retry mechanism
-  const handleRetry = useCallback(() => {
-    setError(null);
-    setRetryCount(0);
-    onRefresh();
-  }, [onRefresh]);
 
 
 
@@ -596,72 +491,20 @@ export default function TrackingScreen() {
     const onBreak = technicians.filter(t => t.status?.status === 'break').length;
     
     return [
-      { label: 'Active', value: active, icon: Users, color: Colors.success, trend: 12 },
+      { label: 'Active', value: active, icon: Users, color: Colors.success },
       { label: 'On Route', value: onRoute, icon: Car, color: Colors.warning },
       { label: 'At Job', value: atJob, icon: Wrench, color: Colors.primary },
       { label: 'Break', value: onBreak, icon: Coffee, color: Colors.info },
     ];
   }, [technicians]);
 
-  // Animate on load
-  React.useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
 
-  // Loading skeleton component
-  const LoadingSkeleton = () => (
-    <View style={styles.skeletonContainer}>
-      {[...Array(5)].map((_, index) => (
-        <View key={index} style={styles.skeletonCard}>
-          <View style={styles.skeletonHeader}>
-            <View style={styles.skeletonAvatar} />
-            <View style={styles.skeletonTextContainer}>
-              <View style={styles.skeletonTitle} />
-              <View style={styles.skeletonSubtitle} />
-            </View>
-          </View>
-          <View style={styles.skeletonContent}>
-            <View style={styles.skeletonLine} />
-            <View style={[styles.skeletonLine, { width: '70%' }]} />
-          </View>
-        </View>
-      ))}
-    </View>
-  );
 
-  // Error state component
-  const ErrorState = () => (
-    <View style={styles.errorContainer}>
-      {isOffline ? (
-        <CloudOff size={48} color={Colors.error} />
-      ) : (
-        <AlertCircle size={48} color={Colors.error} />
-      )}
-      <Text style={styles.errorTitle}>
-        {isOffline ? 'No Internet Connection' : 'Something went wrong'}
-      </Text>
-      <Text style={styles.errorMessage}>
-        {error || (isOffline ? 'Using cached data from last sync' : 'Please try again')}
-      </Text>
-      {lastSyncTime && (
-        <Text style={styles.lastSyncText}>
-          Last synced: {lastSyncTime.toLocaleTimeString()}
-        </Text>
-      )}
-      <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-        <RefreshCw size={16} color={Colors.white} />
-        <Text style={styles.retryButtonText}>Retry</Text>
-      </TouchableOpacity>
-    </View>
-  );
+
 
   if (userRole !== 'owner') {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.accessDenied}>
           <AlertCircle size={48} color={Colors.error} />
           <Text style={styles.accessDeniedText}>Access Denied</Text>
@@ -669,30 +512,18 @@ export default function TrackingScreen() {
             Technician tracking is only available for owners
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.headerTitle}>Live Tracking</Text>
-            <Text style={styles.headerSubtitle}>
-              {filteredTechnicians.length} technicians • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            </Text>
-          </View>
-          <View style={styles.headerButtons}>
-            {isOffline && (
-              <View style={styles.offlineBadge}>
-                <WifiOff size={14} color={Colors.white} />
-              </View>
-            )}
-            <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-              <RefreshCw size={20} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Live Tracking</Text>
+          <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
+            <RefreshCw size={20} color={Colors.primary} />
+          </TouchableOpacity>
         </View>
         
         <ScrollView 
@@ -705,65 +536,58 @@ export default function TrackingScreen() {
             const Icon = stat.icon;
             return (
               <View key={index} style={styles.statCard}>
-                <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
-                  <Icon size={16} color={stat.color} />
+                <Icon size={20} color={stat.color} />
+                <View style={styles.statInfo}>
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
                 </View>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
-                {stat.trend && (
-                  <View style={styles.statTrend}>
-                    <TrendingUp size={10} color={Colors.success} />
-                    <Text style={styles.statTrendText}>+{stat.trend}%</Text>
-                  </View>
-                )}
               </View>
             );
           })}
         </ScrollView>
-      </Animated.View>
+      </View>
       
-      <View style={styles.viewModeContainer}>
+      <View style={styles.controlsContainer}>
         <View style={styles.viewModeButtons}>
-          <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'list' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('list')}
-          >
-            <List size={18} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
-            <Text style={[styles.viewModeText, viewMode === 'list' && styles.viewModeTextActive]}>List</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.viewModeButton, viewMode === 'map' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('map')}
           >
-            <Map size={18} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
+            <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.primary} />
             <Text style={[styles.viewModeText, viewMode === 'map' && styles.viewModeTextActive]}>Map</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewModeButton, viewMode === 'list' && styles.viewModeButtonActive]}
+            onPress={() => setViewMode('list')}
+          >
+            <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.primary} />
+            <Text style={[styles.viewModeText, viewMode === 'list' && styles.viewModeTextActive]}>List</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.viewModeButton, viewMode === 'analytics' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('analytics')}
           >
-            <BarChart3 size={18} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
-            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Analytics</Text>
+            <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.primary} />
+            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Stats</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.searchSection}>
-        <View style={styles.searchInputContainer}>
-          <Search size={18} color={Colors.text.secondary} />
+        <View style={styles.searchBar}>
+          <Search size={16} color={Colors.text.secondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by name or location..."
+            placeholder="Search technicians..."
             placeholderTextColor={Colors.text.secondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={18} color={Colors.text.secondary} />
+              <X size={16} color={Colors.text.secondary} />
             </TouchableOpacity>
           )}
         </View>
+        
         <TouchableOpacity
           style={[
             styles.filterButton,
@@ -771,39 +595,22 @@ export default function TrackingScreen() {
           ]}
           onPress={() => setShowFilters(true)}
         >
-          <Filter size={18} color={
+          <Filter size={16} color={
             (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.primary
           } />
-          {(filter.status?.length || filter.availability?.length) ? (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>
-                {(filter.status?.length || 0) + (filter.availability?.length || 0)}
-              </Text>
-            </View>
-          ) : null}
         </TouchableOpacity>
       </View>
 
-      {error && !isRefreshing && (
-        <View style={styles.errorBanner}>
-          <AlertCircle size={16} color={Colors.error} />
-          <Text style={styles.errorBannerText}>{error}</Text>
-          <TouchableOpacity onPress={handleRetry} style={styles.errorRetryButton}>
-            <RefreshCw size={14} color={Colors.error} />
-          </TouchableOpacity>
+      {viewMode === 'map' ? (
+        <View style={styles.mapContainer}>
+          <EnhancedMapView
+            technicians={filteredTechnicians}
+            selectedTechnician={selectedTechnician}
+            onTechnicianSelect={setSelectedTechnician}
+            showRoutes={true}
+            showGeofences={false}
+          />
         </View>
-      )}
-
-      {isLoading && !isRefreshing ? (
-        <LoadingSkeleton />
-      ) : viewMode === 'map' ? (
-        <EnhancedMapView
-          technicians={filteredTechnicians}
-          selectedTechnician={selectedTechnician}
-          onTechnicianSelect={setSelectedTechnician}
-          showRoutes={true}
-          showGeofences={true}
-        />
       ) : viewMode === 'analytics' ? (
         <AnalyticsView technicians={filteredTechnicians} />
       ) : (
@@ -832,25 +639,13 @@ export default function TrackingScreen() {
             />
           }
           ListEmptyComponent={
-            !isLoading ? (
-              error ? <ErrorState /> : (
-                <View style={styles.emptyState}>
-                  <View style={styles.emptyIcon}>
-                    <Users size={48} color={Colors.text.secondary} />
-                  </View>
-                  <Text style={styles.emptyTitle}>No technicians found</Text>
-                  <Text style={styles.emptySubtitle}>
-                    {searchQuery ? 'Try adjusting your search' : 'All technicians are currently offline'}
-                  </Text>
-                  <TouchableOpacity style={styles.emptyButton} onPress={() => {
-                    setSearchQuery('');
-                    setFilter({});
-                  }}>
-                    <Text style={styles.emptyButtonText}>Clear Filters</Text>
-                  </TouchableOpacity>
-                </View>
-              )
-            ) : null
+            <View style={styles.emptyState}>
+              <Users size={48} color={Colors.text.secondary} />
+              <Text style={styles.emptyTitle}>No technicians found</Text>
+              <Text style={styles.emptySubtitle}>
+                {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
+              </Text>
+            </View>
           }
         />
       )}
@@ -863,222 +658,149 @@ export default function TrackingScreen() {
         onFilterChange={setFilter}
         onClose={() => setShowFilters(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.background,
   },
   header: {
     backgroundColor: Colors.white,
-    paddingBottom: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-      default: {},
-    }),
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
     paddingBottom: 12,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700' as const,
     color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  offlineBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.error,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   refreshButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary + '15',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
   statsContainer: {
-    maxHeight: 100,
+    marginTop: 8,
   },
   statsContent: {
     paddingHorizontal: 20,
-    gap: 12,
+    gap: 8,
   },
   statCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 12,
-    minWidth: 90,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
   },
-  statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
+  statInfo: {
     alignItems: 'center',
-    marginBottom: 8,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700' as const,
     color: Colors.text.primary,
-    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text.secondary,
   },
-  statTrend: {
+  controlsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    gap: 2,
-  },
-  statTrendText: {
-    fontSize: 10,
-    color: Colors.success,
-    fontWeight: '600' as const,
-  },
-  viewModeContainer: {
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    gap: 12,
   },
   viewModeButtons: {
+    flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    padding: 4,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    padding: 2,
   },
   viewModeButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
   },
   viewModeButtonActive: {
     backgroundColor: Colors.primary,
   },
   viewModeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600' as const,
-    color: Colors.text.secondary,
+    color: Colors.text.primary,
   },
   viewModeTextActive: {
     color: Colors.white,
   },
-  searchSection: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: Colors.white,
-    gap: 12,
-  },
-  searchInputContainer: {
+  searchBar: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 6,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text.primary,
   },
   filterButton: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative' as const,
   },
   filterButtonActive: {
     backgroundColor: Colors.primary,
   },
-  filterBadge: {
-    position: 'absolute' as const,
-    top: -4,
-    right: -4,
-    backgroundColor: Colors.error,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  filterBadgeText: {
-    fontSize: 10,
-    fontWeight: '700' as const,
-    color: Colors.white,
+  mapContainer: {
+    flex: 1,
   },
 
 
   listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   technicianCard: {
     backgroundColor: Colors.white,
-    borderRadius: 14,
+    borderRadius: 12,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
-      default: {},
-    }),
   },
   selectedCard: {
     borderWidth: 2,
@@ -1187,41 +909,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
+    paddingVertical: 60,
     paddingHorizontal: 40,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primary + '10',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    gap: 16,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700' as const,
+    fontSize: 18,
+    fontWeight: '600' as const,
     color: Colors.text.primary,
-    marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text.secondary,
     textAlign: 'center' as const,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  emptyButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  emptyButtonText: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    color: Colors.white,
   },
   accessDenied: {
     flex: 1,
@@ -1327,19 +1027,20 @@ const styles = StyleSheet.create({
   },
   analyticsContainer: {
     flex: 1,
-    paddingHorizontal: 20,
   },
   analyticsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingTop: 16,
     gap: 12,
     marginBottom: 24,
   },
   analyticsCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
     padding: 16,
-    width: (width - 52) / 2, // Account for padding and gap
+    width: (width - 44) / 2,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -1366,7 +1067,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   performanceSection: {
-    marginTop: 8,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -1375,7 +1076,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   insightCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -1394,115 +1095,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.error + '20',
-    borderColor: Colors.error,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    gap: 8,
-  },
-  errorBannerText: {
-    flex: 1,
-    fontSize: 14,
-    color: Colors.error,
-  },
-  errorRetryButton: {
-    padding: 4,
-  },
-  skeletonContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  skeletonCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  skeletonHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  skeletonAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.border,
-  },
-  skeletonTextContainer: {
-    flex: 1,
-    gap: 6,
-  },
-  skeletonTitle: {
-    height: 16,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    width: '60%',
-  },
-  skeletonSubtitle: {
-    height: 12,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    width: '40%',
-  },
-  skeletonContent: {
-    gap: 8,
-  },
-  skeletonLine: {
-    height: 12,
-    backgroundColor: Colors.border,
-    borderRadius: 4,
-    width: '100%',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: '700' as const,
-    color: Colors.text.primary,
-    marginTop: 16,
-    textAlign: 'center' as const,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: Colors.text.secondary,
-    marginTop: 8,
-    textAlign: 'center' as const,
-    lineHeight: 22,
-  },
-  lastSyncText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginTop: 8,
-    fontStyle: 'italic' as const,
-  },
-  retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginTop: 16,
-    gap: 8,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.white,
-  },
+
 });
