@@ -430,7 +430,7 @@ export default function TrackingScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
-  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('list');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const filteredTechnicians = useMemo(() => {
@@ -526,6 +526,12 @@ export default function TrackingScreen() {
           </TouchableOpacity>
         </View>
         
+        <View style={styles.headerSubtitle}>
+          <Text style={styles.headerSubtitleText}>
+            {technicians.length} technicians • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </Text>
+        </View>
+        
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -536,7 +542,12 @@ export default function TrackingScreen() {
             const Icon = stat.icon;
             return (
               <View key={index} style={styles.statCard}>
-                <Icon size={20} color={stat.color} />
+                <View style={[
+                  styles.statIconContainer,
+                  { backgroundColor: stat.color + '20' }
+                ]}>
+                  <Icon size={18} color={stat.color} />
+                </View>
                 <View style={styles.statInfo}>
                   <Text style={styles.statValue}>{stat.value}</Text>
                   <Text style={styles.statLabel}>{stat.label}</Text>
@@ -550,13 +561,6 @@ export default function TrackingScreen() {
       <View style={styles.controlsContainer}>
         <View style={styles.viewModeButtons}>
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'map' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('map')}
-          >
-            <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.primary} />
-            <Text style={[styles.viewModeText, viewMode === 'map' && styles.viewModeTextActive]}>Map</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[styles.viewModeButton, viewMode === 'list' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('list')}
           >
@@ -564,41 +568,50 @@ export default function TrackingScreen() {
             <Text style={[styles.viewModeText, viewMode === 'list' && styles.viewModeTextActive]}>List</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            style={[styles.viewModeButton, viewMode === 'map' && styles.viewModeButtonActive]}
+            onPress={() => setViewMode('map')}
+          >
+            <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.primary} />
+            <Text style={[styles.viewModeText, viewMode === 'map' && styles.viewModeTextActive]}>Map</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.viewModeButton, viewMode === 'analytics' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('analytics')}
           >
             <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.primary} />
-            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Stats</Text>
+            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Analytics</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.searchBar}>
-          <Search size={16} color={Colors.text.secondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search technicians..."
-            placeholderTextColor={Colors.text.secondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={16} color={Colors.text.secondary} />
-            </TouchableOpacity>
-          )}
+        <View style={styles.searchRow}>
+          <View style={styles.searchBar}>
+            <Search size={16} color={Colors.text.secondary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name or location..."
+              placeholderTextColor={Colors.text.secondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X size={16} color={Colors.text.secondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              (filter.status?.length || filter.availability?.length) ? styles.filterButtonActive : {}
+            ]}
+            onPress={() => setShowFilters(true)}
+          >
+            <Filter size={16} color={
+              (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.primary
+            } />
+          </TouchableOpacity>
         </View>
-        
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            (filter.status?.length || filter.availability?.length) ? styles.filterButtonActive : {}
-          ]}
-          onPress={() => setShowFilters(true)}
-        >
-          <Filter size={16} color={
-            (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.primary
-          } />
-        </TouchableOpacity>
       </View>
 
       {viewMode === 'map' ? (
@@ -682,9 +695,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700' as const,
     color: Colors.text.primary,
+  },
+  headerSubtitle: {
+    paddingHorizontal: 20,
+    marginTop: 4,
+  },
+  headerSubtitleText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
   },
   refreshButton: {
     width: 36,
@@ -700,6 +721,7 @@ const styles = StyleSheet.create({
   statsContent: {
     paddingHorizontal: 20,
     gap: 8,
+    flexDirection: 'row',
   },
   statCard: {
     flexDirection: 'row',
@@ -709,6 +731,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 8,
+    marginRight: 8,
+  },
+  statIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statInfo: {
     alignItems: 'center',
@@ -723,16 +753,13 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   controlsContainer: {
-    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    gap: 12,
   },
   viewModeButtons: {
-    flex: 1,
     flexDirection: 'row',
     backgroundColor: Colors.background,
     borderRadius: 8,
@@ -765,17 +792,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 8,
     gap: 6,
+    marginLeft: 8,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: Colors.text.primary,
   },
+  searchRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 8,
+  },
   filterButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: 8,
     backgroundColor: Colors.background,
     justifyContent: 'center',
