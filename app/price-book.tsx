@@ -1101,10 +1101,31 @@ export default function PriceBookScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Image URL (Optional)</Text>
+              <Text style={styles.formLabel}>Image Preview</Text>
+              {newItem.imageUrl ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image 
+                    source={{ uri: newItem.imageUrl }} 
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity 
+                    style={styles.removeImageButton}
+                    onPress={() => setNewItem({ ...newItem, imageUrl: '' })}
+                  >
+                    <Text style={styles.removeImageText}>Remove Image</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.noImageContainer}>
+                  <Package size={32} color={Colors.text.light} />
+                  <Text style={styles.noImageText}>No image selected</Text>
+                  <Text style={styles.noImageSubtext}>Images help identify parts quickly</Text>
+                </View>
+              )}
               <TextInput
                 style={styles.formInput}
-                placeholder="https://example.com/image.jpg"
+                placeholder="Paste image URL here"
                 placeholderTextColor={Colors.text.secondary}
                 value={newItem.imageUrl}
                 onChangeText={(text) => setNewItem({ ...newItem, imageUrl: text })}
@@ -1551,5 +1572,50 @@ const styles = StyleSheet.create({
   formRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+  },
+  imagePreviewContainer: {
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: Colors.background,
+    marginBottom: 8,
+  },
+  removeImageButton: {
+    backgroundColor: Colors.status.emergency + '15',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  removeImageText: {
+    color: Colors.status.emergency,
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
+  noImageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 32,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  noImageText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+    marginTop: 8,
+  },
+  noImageSubtext: {
+    fontSize: 14,
+    color: Colors.text.light,
+    marginTop: 4,
+    textAlign: 'center',
   },
 });
