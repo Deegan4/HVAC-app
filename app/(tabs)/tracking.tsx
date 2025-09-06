@@ -9,7 +9,9 @@ import {
   Alert,
   Dimensions,
   RefreshControl,
-  ActivityIndicator,
+  FlatList,
+  Animated,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -32,6 +34,18 @@ import {
   RefreshCw,
   WifiOff,
   CloudOff,
+  Users,
+  Car,
+  Wrench,
+  Coffee,
+  Home,
+  X,
+  ChevronRight,
+  Map,
+  List,
+  MessageCircle,
+  Battery,
+  Signal,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -39,6 +53,14 @@ import { Technician, TechnicianStatus, TrackingFilter } from '@/types';
 import EnhancedMapView from '@/components/EnhancedMapView';
 
 const { width, height } = Dimensions.get('window');
+
+interface QuickStat {
+  label: string;
+  value: string | number;
+  icon: any;
+  color: string;
+  trend?: number;
+}
 
 
 
@@ -55,12 +77,23 @@ function getStatusColor(status: TechnicianStatus['status'] | 'offline'): string 
 
 function getStatusIcon(status: TechnicianStatus['status'] | 'offline') {
   switch (status) {
-    case 'on-route': return Navigation;
-    case 'at-job': return CheckCircle;
-    case 'break': return Pause;
-    case 'returning': return ArrowRight;
+    case 'on-route': return Car;
+    case 'at-job': return Wrench;
+    case 'break': return Coffee;
+    case 'returning': return Home;
     case 'offline': return Circle;
     default: return Circle;
+  }
+}
+
+function getStatusLabel(status: TechnicianStatus['status'] | 'offline'): string {
+  switch (status) {
+    case 'on-route': return 'Driving';
+    case 'at-job': return 'Working';
+    case 'break': return 'On Break';
+    case 'returning': return 'Returning';
+    case 'offline': return 'Offline';
+    default: return 'Unknown';
   }
 }
 
@@ -73,6 +106,26 @@ interface TechnicianCardProps {
 function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps) {
   const StatusIcon = getStatusIcon(technician.status?.status || 'offline');
   const statusColor = getStatusColor(technician.status?.status || 'offline');
+  const statusLabel = getStatusLabel(technician.status?.status || 'offline');
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+  
+  React.useEffect(() => {
+    if (isSelected) {
+      Animated.spring(animatedValue, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7,
+      }).start();
+    } else {
+      Animated.spring(animatedValue, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7,
+      }).start();
+    }
+  }, [isSelected, animatedValue]);
   
   const formatLastUpdate = (timestamp?: string) => {
     if (!timestamp) return 'No recent update';
@@ -84,54 +137,92 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
     return `${hours}h ago`;
   };
 
+  const scale = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.98],
+  });
+
   return (
-    <TouchableOpacity
-      style={[
-        styles.technicianCard,
-        isSelected && styles.selectedCard
-      ]}
-      onPress={onPress}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.technicianInfo}>
-          <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
-          <View style={styles.technicianDetails}>
-            <Text style={styles.technicianName}>{technician.name}</Text>
-            <Text style={styles.technicianStatus}>
-              {technician.status?.status?.replace('-', ' ') || 'Offline'}
-            </Text>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        style={[
+          styles.technicianCard,
+          isSelected && styles.selectedCard
+        ]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardContent}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+            <StatusIcon size={24} color={statusColor} />
+          </View>
+          
+          <View style={styles.cardInfo}>
+            <View style={styles.cardMainInfo}>
+              <Text style={styles.technicianName}>{technician.name}</Text>
+              <View style={styles.statusRow}>
+                <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+                <Text style={[styles.statusText, { color: statusColor }]}>
+                  {statusLabel}
+                </Text>
+              </View>
+            </View>
+            
+            {technician.location?.address && (
+              <View style={styles.locationRow}>
+                <MapPin size={12} color={Colors.text.secondary} />
+                <Text style={styles.locationText} numberOfLines={1}>
+                  {technician.location.address}
+                </Text>
+              </View>
+            )}
+            
+            {technician.status?.estimatedArrival && (
+              <View style={styles.etaRow}>
+                <Clock size={12} color={Colors.primary} />
+                <Text style={styles.etaText}>
+                  ETA {new Date(technician.status.estimatedArrival).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.cardActions}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => {
+              Alert.alert(
+                'Contact ' + technician.name,
+                'How would you like to contact this technician?',
+                [
+                  { text: 'Call', onPress: () => console.log('Calling...') },
+                  { text: 'Message', onPress: () => console.log('Messaging...') },
+                  { text: 'Cancel', style: 'cancel' }
+                ]
+              );
+            }}>
+              <MessageCircle size={18} color={Colors.primary} />
+            </TouchableOpacity>
+            <ChevronRight size={20} color={Colors.text.secondary} />
           </View>
         </View>
-        <StatusIcon size={20} color={statusColor} />
-      </View>
-      
-      {technician.status?.message && (
-        <Text style={styles.statusMessage}>{technician.status.message}</Text>
-      )}
-      
-      {technician.status?.estimatedArrival && (
-        <View style={styles.arrivalInfo}>
-          <Clock size={14} color={Colors.text.secondary} />
-          <Text style={styles.arrivalText}>
-            ETA: {new Date(technician.status.estimatedArrival).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+        
+        <View style={styles.cardMeta}>
+          <View style={styles.metaItem}>
+            <Battery size={12} color={Colors.text.secondary} />
+            <Text style={styles.metaText}>85%</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Signal size={12} color={Colors.text.secondary} />
+            <Text style={styles.metaText}>Strong</Text>
+          </View>
+          <Text style={styles.lastUpdateText}>
+            {formatLastUpdate(technician.lastUpdate)}
           </Text>
         </View>
-      )}
-      
-      <View style={styles.cardFooter}>
-        <Text style={styles.lastUpdate}>
-          {formatLastUpdate(technician.lastUpdate)}
-        </Text>
-        {technician.location?.address && (
-          <Text style={styles.location} numberOfLines={1}>
-            {technician.location.address}
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -347,7 +438,7 @@ export default function TrackingScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
-  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('list');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isOffline, setIsOffline] = useState<boolean>(false);
@@ -355,6 +446,7 @@ export default function TrackingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
   const [offlineData, setOfflineData] = useState<Technician[]>([]);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const filteredTechnicians = useMemo(() => {
     const dataSource = isOffline && offlineData.length > 0 ? offlineData : technicians;
@@ -492,18 +584,33 @@ export default function TrackingScreen() {
     onRefresh();
   }, [onRefresh]);
 
-  const handleEmergencyContact = (technician: Technician) => {
-    Alert.alert(
-      'Contact Technician',
-      `Call ${technician.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Call', onPress: () => console.log(`Calling ${technician.phone}`) }
-      ]
-    );
-  };
 
 
+
+
+  // Quick stats calculation
+  const quickStats = useMemo((): QuickStat[] => {
+    const active = technicians.filter(t => t.availability !== 'offline').length;
+    const onRoute = technicians.filter(t => t.status?.status === 'on-route').length;
+    const atJob = technicians.filter(t => t.status?.status === 'at-job').length;
+    const onBreak = technicians.filter(t => t.status?.status === 'break').length;
+    
+    return [
+      { label: 'Active', value: active, icon: Users, color: Colors.success, trend: 12 },
+      { label: 'On Route', value: onRoute, icon: Car, color: Colors.warning },
+      { label: 'At Job', value: atJob, icon: Wrench, color: Colors.primary },
+      { label: 'Break', value: onBreak, icon: Coffee, color: Colors.info },
+    ];
+  }, [technicians]);
+
+  // Animate on load
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   // Loading skeleton component
   const LoadingSkeleton = () => (
@@ -568,57 +675,112 @@ export default function TrackingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Technician Tracking</Text>
-          {isOffline && (
-            <View style={styles.offlineIndicator}>
-              <WifiOff size={16} color={Colors.error} />
-              <Text style={styles.offlineText}>Offline</Text>
-            </View>
-          )}
-          {isLoading && (
-            <ActivityIndicator size="small" color={Colors.primary} style={styles.loadingIndicator} />
-          )}
+      <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>Live Tracking</Text>
+            <Text style={styles.headerSubtitle}>
+              {filteredTechnicians.length} technicians • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </Text>
+          </View>
+          <View style={styles.headerButtons}>
+            {isOffline && (
+              <View style={styles.offlineBadge}>
+                <WifiOff size={14} color={Colors.white} />
+              </View>
+            )}
+            <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
+              <RefreshCw size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.headerActions}>
+        
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.statsContainer}
+          contentContainerStyle={styles.statsContent}
+        >
+          {quickStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <View key={index} style={styles.statCard}>
+                <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                  <Icon size={16} color={stat.color} />
+                </View>
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+                {stat.trend && (
+                  <View style={styles.statTrend}>
+                    <TrendingUp size={10} color={Colors.success} />
+                    <Text style={styles.statTrendText}>+{stat.trend}%</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </Animated.View>
+      
+      <View style={styles.viewModeContainer}>
+        <View style={styles.viewModeButtons}>
           <TouchableOpacity
-            style={[styles.viewToggle, viewMode === 'map' && styles.activeToggle]}
-            onPress={() => setViewMode('map')}
-          >
-            <MapPin size={20} color={viewMode === 'map' ? Colors.white : Colors.text.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.viewToggle, viewMode === 'list' && styles.activeToggle]}
+            style={[styles.viewModeButton, viewMode === 'list' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('list')}
           >
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.activeToggleText]}>List</Text>
+            <List size={18} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
+            <Text style={[styles.viewModeText, viewMode === 'list' && styles.viewModeTextActive]}>List</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.viewToggle, viewMode === 'analytics' && styles.activeToggle]}
+            style={[styles.viewModeButton, viewMode === 'map' && styles.viewModeButtonActive]}
+            onPress={() => setViewMode('map')}
+          >
+            <Map size={18} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
+            <Text style={[styles.viewModeText, viewMode === 'map' && styles.viewModeTextActive]}>Map</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewModeButton, viewMode === 'analytics' && styles.viewModeButtonActive]}
             onPress={() => setViewMode('analytics')}
           >
-            <BarChart3 size={20} color={viewMode === 'analytics' ? Colors.white : Colors.text.primary} />
+            <BarChart3 size={18} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
+            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Analytics</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={Colors.text.secondary} />
+      <View style={styles.searchSection}>
+        <View style={styles.searchInputContainer}>
+          <Search size={18} color={Colors.text.secondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search technicians..."
+            placeholder="Search by name or location..."
             placeholderTextColor={Colors.text.secondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <X size={18} color={Colors.text.secondary} />
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity
-          style={styles.filterButton}
+          style={[
+            styles.filterButton,
+            (filter.status?.length || filter.availability?.length) ? styles.filterButtonActive : {}
+          ]}
           onPress={() => setShowFilters(true)}
         >
-          <Filter size={20} color={Colors.primary} />
+          <Filter size={18} color={
+            (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.primary
+          } />
+          {(filter.status?.length || filter.availability?.length) ? (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>
+                {(filter.status?.length || 0) + (filter.availability?.length || 0)}
+              </Text>
+            </View>
+          ) : null}
         </TouchableOpacity>
       </View>
 
@@ -645,8 +807,21 @@ export default function TrackingScreen() {
       ) : viewMode === 'analytics' ? (
         <AnalyticsView technicians={filteredTechnicians} />
       ) : (
-        <ScrollView 
-          style={styles.listContainer} 
+        <FlatList
+          data={filteredTechnicians}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TechnicianCard
+              technician={item}
+              isSelected={selectedTechnician === item.id}
+              onPress={() => {
+                setSelectedTechnician(
+                  selectedTechnician === item.id ? null : item.id
+                );
+              }}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -654,68 +829,33 @@ export default function TrackingScreen() {
               onRefresh={onRefresh}
               colors={[Colors.primary]}
               tintColor={Colors.primary}
-              title="Pull to refresh"
-              titleColor={Colors.text.secondary}
             />
           }
-        >
-          {filteredTechnicians.map((technician) => (
-            <TechnicianCard
-              key={technician.id}
-              technician={technician}
-              isSelected={selectedTechnician === technician.id}
-              onPress={() => {
-                setSelectedTechnician(
-                  selectedTechnician === technician.id ? null : technician.id
-                );
-              }}
-            />
-          ))}
-          {filteredTechnicians.length === 0 && !isLoading && (
-            error ? <ErrorState /> : (
-              <View style={styles.emptyState}>
-                <MapPin size={48} color={Colors.text.secondary} />
-                <Text style={styles.emptyStateText}>No technicians found</Text>
-                <Text style={styles.emptyStateSubtext}>
-                  Try adjusting your search or filters
-                </Text>
-              </View>
-            )
-          )}
-        </ScrollView>
-      )}
-
-      {selectedTechnician && (
-        <View style={styles.selectedTechnicianPanel}>
-          {(() => {
-            const tech = technicians.find(t => t.id === selectedTechnician);
-            if (!tech) return null;
-            
-            return (
-              <View style={styles.panelContent}>
-                <View style={styles.panelHeader}>
-                  <Text style={styles.panelTitle}>{tech.name}</Text>
-                  <TouchableOpacity
-                    style={styles.callButton}
-                    onPress={() => handleEmergencyContact(tech)}
-                  >
-                    <Phone size={16} color={Colors.white} />
+          ListEmptyComponent={
+            !isLoading ? (
+              error ? <ErrorState /> : (
+                <View style={styles.emptyState}>
+                  <View style={styles.emptyIcon}>
+                    <Users size={48} color={Colors.text.secondary} />
+                  </View>
+                  <Text style={styles.emptyTitle}>No technicians found</Text>
+                  <Text style={styles.emptySubtitle}>
+                    {searchQuery ? 'Try adjusting your search' : 'All technicians are currently offline'}
+                  </Text>
+                  <TouchableOpacity style={styles.emptyButton} onPress={() => {
+                    setSearchQuery('');
+                    setFilter({});
+                  }}>
+                    <Text style={styles.emptyButtonText}>Clear Filters</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.panelStatus}>
-                  {tech.status?.status?.replace('-', ' ') || 'Offline'}
-                </Text>
-                {tech.status?.message && (
-                  <Text style={styles.panelMessage}>{tech.status.message}</Text>
-                )}
-                {tech.location?.address && (
-                  <Text style={styles.panelLocation}>{tech.location.address}</Text>
-                )}
-              </View>
-            );
-          })()}
-        </View>
+              )
+            ) : null
+          }
+        />
       )}
+
+
 
       <FilterModal
         visible={showFilters}
@@ -730,256 +870,358 @@ export default function TrackingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F8F9FA',
   },
   header: {
+    backgroundColor: Colors.white,
+    paddingBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+      default: {},
+    }),
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 28,
     fontWeight: '700' as const,
     color: Colors.text.primary,
+    marginBottom: 4,
   },
-  headerActions: {
+  headerSubtitle: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  headerButtons: {
     flexDirection: 'row',
     gap: 8,
   },
-  viewToggle: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  offlineBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  refreshButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statsContainer: {
+    maxHeight: 100,
+  },
+  statsContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  statCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 12,
+    minWidth: 90,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  activeToggle: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-  },
-  activeToggleText: {
-    color: Colors.white,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text.primary,
-  },
-  filterButton: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mapContainer: {
-    flex: 1,
-  },
-  mapPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    margin: 20,
-    borderRadius: 16,
-    padding: 40,
-  },
-  mapPlaceholderText: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginTop: 16,
-  },
-  mapSubtext: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginTop: 8,
-  },
-  technicianMarkers: {
-    marginTop: 24,
-  },
-  markersContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  technicianMarker: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: Colors.white,
-  },
-  selectedMarker: {
-    borderColor: Colors.primary,
-    borderWidth: 4,
-  },
-  markerText: {
-    fontSize: 14,
-    fontWeight: '700' as const,
-    color: Colors.white,
-  },
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  technicianCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  selectedCard: {
-    borderColor: Colors.primary,
-    borderWidth: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  technicianInfo: {
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
+  statTrend: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginTop: 4,
+    gap: 2,
   },
-  statusIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
+  statTrendText: {
+    fontSize: 10,
+    color: Colors.success,
+    fontWeight: '600' as const,
   },
-  technicianDetails: {
+  viewModeContainer: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  viewModeButtons: {
+    flexDirection: 'row',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    padding: 4,
+  },
+  viewModeButton: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  viewModeButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  viewModeText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  viewModeTextActive: {
+    color: Colors.white,
+  },
+  searchSection: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: Colors.white,
+    gap: 12,
+  },
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text.primary,
+  },
+  filterButton: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative' as const,
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  filterBadge: {
+    position: 'absolute' as const,
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  filterBadgeText: {
+    fontSize: 10,
+    fontWeight: '700' as const,
+    color: Colors.white,
+  },
+
+
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 100,
+  },
+  technicianCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    marginBottom: 12,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      default: {},
+    }),
+  },
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  statusBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  cardMainInfo: {
+    gap: 2,
   },
   technicianName: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text.primary,
   },
-  technicianStatus: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textTransform: 'capitalize' as const,
-  },
-  statusMessage: {
-    fontSize: 14,
-    color: Colors.text.primary,
-    marginBottom: 8,
-    fontStyle: 'italic' as const,
-  },
-  arrivalInfo: {
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
   },
-  arrivalText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  cardFooter: {
+  statusText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+  },
+  locationRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
   },
-  lastUpdate: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-  },
-  location: {
+  locationText: {
     fontSize: 12,
     color: Colors.text.secondary,
     flex: 1,
-    textAlign: 'right' as const,
-    marginLeft: 8,
   },
-  selectedTechnicianPanel: {
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    padding: 20,
+  etaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
   },
-  panelContent: {
+  etaText: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: '500' as const,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  panelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  actionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  panelTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
+  cardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: '#F8F9FA',
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 12,
   },
-  callButton: {
-    backgroundColor: Colors.success,
-    borderRadius: 20,
-    padding: 8,
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  panelStatus: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textTransform: 'capitalize' as const,
-  },
-  panelMessage: {
-    fontSize: 14,
-    color: Colors.text.primary,
-    fontStyle: 'italic' as const,
-  },
-  panelLocation: {
-    fontSize: 14,
+  metaText: {
+    fontSize: 11,
     color: Colors.text.secondary,
   },
+  lastUpdateText: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+    marginLeft: 'auto' as any,
+  },
+
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    paddingHorizontal: 40,
   },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600' as const,
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
     color: Colors.text.primary,
-    marginTop: 16,
+    marginBottom: 8,
   },
-  emptyStateSubtext: {
-    fontSize: 14,
+  emptySubtitle: {
+    fontSize: 15,
     color: Colors.text.secondary,
-    marginTop: 8,
     textAlign: 'center' as const,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  emptyButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  emptyButtonText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.white,
   },
   accessDenied: {
     flex: 1,
@@ -1151,28 +1393,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 20,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  offlineIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.error,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    gap: 4,
-  },
-  offlineText: {
-    fontSize: 12,
-    fontWeight: '600' as const,
-    color: Colors.white,
-  },
-  loadingIndicator: {
-    marginLeft: 8,
-  },
+
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
