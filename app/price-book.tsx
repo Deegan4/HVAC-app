@@ -10,6 +10,7 @@ import {
   Modal,
   FlatList,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -35,6 +36,7 @@ interface PriceBookItem {
   category: 'parts' | 'labor' | 'service';
   price: number;
   unit: string;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +47,7 @@ interface NewItemForm {
   category: 'parts' | 'labor' | 'service';
   price: string;
   unit: string;
+  imageUrl: string;
 }
 
 const STORAGE_KEY = 'price_book_items';
@@ -58,6 +61,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 850.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -68,6 +72,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 1250.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -80,6 +85,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 28.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -90,6 +96,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 18.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -102,6 +109,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 35.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -112,6 +120,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 42.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -124,6 +133,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 145.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -134,6 +144,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 385.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -146,6 +157,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 185.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1545259741-2ea3ebf61fa0?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -156,6 +168,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 249.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1545259741-2ea3ebf61fa0?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -168,6 +181,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 125.00,
     unit: 'jug (25lb)',
+    imageUrl: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -178,6 +192,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 450.00,
     unit: 'jug (30lb)',
+    imageUrl: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -190,6 +205,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 8.50,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -200,6 +216,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 12.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -210,6 +227,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 65.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -222,6 +240,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 185.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -232,6 +251,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 145.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -244,6 +264,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 32.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -256,6 +277,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 78.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -268,6 +290,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 650.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -278,6 +301,7 @@ const defaultItems: PriceBookItem[] = [
     category: 'parts',
     price: 485.00,
     unit: 'each',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -524,6 +548,7 @@ export default function PriceBookScreen() {
     category: 'parts',
     price: '',
     unit: 'each',
+    imageUrl: '',
   });
 
   useEffect(() => {
@@ -574,6 +599,7 @@ export default function PriceBookScreen() {
       category: newItem.category,
       price,
       unit: newItem.unit,
+      imageUrl: newItem.imageUrl.trim() || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -605,6 +631,7 @@ export default function PriceBookScreen() {
             category: newItem.category,
             price,
             unit: newItem.unit,
+            imageUrl: newItem.imageUrl.trim() || undefined,
             updatedAt: new Date().toISOString(),
           }
         : item
@@ -642,6 +669,7 @@ export default function PriceBookScreen() {
       category: item.category,
       price: item.price.toString(),
       unit: item.unit,
+      imageUrl: item.imageUrl || '',
     });
     setShowAddModal(true);
   };
@@ -653,6 +681,7 @@ export default function PriceBookScreen() {
       category: 'parts',
       price: '',
       unit: 'each',
+      imageUrl: '',
     });
   };
 
@@ -768,27 +797,36 @@ export default function PriceBookScreen() {
 
     return (
       <TouchableOpacity style={styles.gridCard} onPress={() => startEdit(item)}>
-        <View style={styles.gridCardHeader}>
-          <View style={[styles.gridIconContainer, { backgroundColor: categoryColor + '20' }]}>
-            <CategoryIcon size={24} color={categoryColor} />
+        {item.imageUrl && (
+          <Image 
+            source={{ uri: item.imageUrl }} 
+            style={styles.gridItemImage}
+            resizeMode="cover"
+          />
+        )}
+        <View style={styles.gridCardContent}>
+          <View style={styles.gridCardHeader}>
+            <View style={[styles.gridIconContainer, { backgroundColor: categoryColor + '20' }]}>
+              <CategoryIcon size={20} color={categoryColor} />
+            </View>
+            <View style={styles.gridActions}>
+              <TouchableOpacity
+                onPress={() => handleDeleteItem(item)}
+                style={styles.gridActionButton}
+              >
+                <Trash2 size={14} color={Colors.status.emergency} />
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={styles.gridActions}>
-            <TouchableOpacity
-              onPress={() => handleDeleteItem(item)}
-              style={styles.gridActionButton}
-            >
-              <Trash2 size={16} color={Colors.status.emergency} />
-            </TouchableOpacity>
+          <Text style={styles.gridItemName} numberOfLines={2}>{item.name}</Text>
+          <Text style={styles.gridItemDescription} numberOfLines={2}>{item.description}</Text>
+          <View style={styles.gridPriceContainer}>
+            <Text style={styles.gridItemPrice}>${item.price.toFixed(2)}</Text>
+            <Text style={styles.gridItemUnit}>/{item.unit}</Text>
           </View>
-        </View>
-        <Text style={styles.gridItemName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.gridItemDescription} numberOfLines={2}>{item.description}</Text>
-        <View style={styles.gridPriceContainer}>
-          <Text style={styles.gridItemPrice}>${item.price.toFixed(2)}</Text>
-          <Text style={styles.gridItemUnit}>/{item.unit}</Text>
-        </View>
-        <View style={styles.gridCategoryBadge}>
-          <Text style={styles.gridCategoryText}>{item.category.toUpperCase()}</Text>
+          <View style={styles.gridCategoryBadge}>
+            <Text style={styles.gridCategoryText}>{item.category.toUpperCase()}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -801,9 +839,17 @@ export default function PriceBookScreen() {
     return (
       <TouchableOpacity style={styles.listCard} onPress={() => startEdit(item)}>
         <View style={styles.listCardContent}>
-          <View style={[styles.listIconContainer, { backgroundColor: categoryColor + '20' }]}>
-            <CategoryIcon size={20} color={categoryColor} />
-          </View>
+          {item.imageUrl ? (
+            <Image 
+              source={{ uri: item.imageUrl }} 
+              style={styles.listItemImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.listIconContainer, { backgroundColor: categoryColor + '20' }]}>
+              <CategoryIcon size={20} color={categoryColor} />
+            </View>
+          )}
           <View style={styles.listItemInfo}>
             <View style={styles.listItemHeader}>
               <Text style={styles.listItemName} numberOfLines={1}>{item.name}</Text>
@@ -1054,6 +1100,19 @@ export default function PriceBookScreen() {
               </View>
             </View>
 
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Image URL (Optional)</Text>
+              <TextInput
+                style={styles.formInput}
+                placeholder="https://example.com/image.jpg"
+                placeholderTextColor={Colors.text.secondary}
+                value={newItem.imageUrl}
+                onChangeText={(text) => setNewItem({ ...newItem, imageUrl: text })}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
             <View style={styles.formRow}>
               <View style={[styles.formGroup, { flex: 2 }]}>
                 <Text style={styles.formLabel}>Price *</Text>
@@ -1211,22 +1270,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 16,
     margin: 6,
     borderWidth: 1,
     borderColor: Colors.border,
-    minHeight: 180,
+    minHeight: 220,
+    overflow: 'hidden',
+  },
+  gridItemImage: {
+    width: '100%',
+    height: 120,
+    backgroundColor: Colors.background,
+  },
+  gridCardContent: {
+    padding: 12,
+    flex: 1,
   },
   gridCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   gridIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1237,31 +1305,31 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   gridItemName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700' as const,
     color: Colors.text.primary,
-    marginBottom: 6,
-    lineHeight: 20,
+    marginBottom: 4,
+    lineHeight: 18,
   },
   gridItemDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.text.secondary,
-    marginBottom: 12,
-    lineHeight: 18,
+    marginBottom: 8,
+    lineHeight: 16,
     flex: 1,
   },
   gridPriceContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   gridItemPrice: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '800' as const,
     color: Colors.status.completed,
   },
   gridItemUnit: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.text.secondary,
     marginLeft: 2,
   },
@@ -1297,6 +1365,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  listItemImage: {
+    width: 60,
+    height: 44,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: Colors.background,
   },
   listItemInfo: {
     flex: 1,
