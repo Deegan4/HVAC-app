@@ -430,7 +430,7 @@ export default function TrackingScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState<TrackingFilter>({});
-  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('list');
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'analytics'>('map');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const filteredTechnicians = useMemo(() => {
@@ -518,104 +518,98 @@ export default function TrackingScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Compact Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Live Tracking</Text>
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Live Tracking</Text>
+            <Text style={styles.headerSubtitle}>
+              {technicians.length} technicians active
+            </Text>
+          </View>
           <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
             <RefreshCw size={20} color={Colors.primary} />
           </TouchableOpacity>
         </View>
         
-        <View style={styles.headerSubtitle}>
-          <Text style={styles.headerSubtitleText}>
-            {technicians.length} technicians • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </Text>
-        </View>
-        
+        {/* Quick Stats Row */}
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          style={styles.statsContainer}
-          contentContainerStyle={styles.statsContent}
+          style={styles.quickStats}
+          contentContainerStyle={styles.quickStatsContent}
         >
           {quickStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <View key={index} style={styles.statCard}>
-                <View style={[
-                  styles.statIconContainer,
-                  { backgroundColor: stat.color + '20' }
-                ]}>
-                  <Icon size={18} color={stat.color} />
-                </View>
-                <View style={styles.statInfo}>
-                  <Text style={styles.statValue}>{stat.value}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
-                </View>
+              <View key={index} style={styles.quickStatCard}>
+                <Icon size={16} color={stat.color} />
+                <Text style={styles.quickStatValue}>{stat.value}</Text>
+                <Text style={styles.quickStatLabel}>{stat.label}</Text>
               </View>
             );
           })}
         </ScrollView>
       </View>
       
-      <View style={styles.controlsContainer}>
-        <View style={styles.viewModeButtons}>
+      {/* Unified Controls Bar */}
+      <View style={styles.controlsBar}>
+        {/* View Mode Toggle */}
+        <View style={styles.viewToggle}>
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'list' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('list')}
-          >
-            <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.primary} />
-            <Text style={[styles.viewModeText, viewMode === 'list' && styles.viewModeTextActive]}>List</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'map' && styles.viewModeButtonActive]}
+            style={[styles.toggleButton, viewMode === 'map' && styles.toggleButtonActive]}
             onPress={() => setViewMode('map')}
           >
-            <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.primary} />
-            <Text style={[styles.viewModeText, viewMode === 'map' && styles.viewModeTextActive]}>Map</Text>
+            <Map size={14} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'analytics' && styles.viewModeButtonActive]}
+            style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+            onPress={() => setViewMode('list')}
+          >
+            <List size={14} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleButton, viewMode === 'analytics' && styles.toggleButtonActive]}
             onPress={() => setViewMode('analytics')}
           >
-            <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.primary} />
-            <Text style={[styles.viewModeText, viewMode === 'analytics' && styles.viewModeTextActive]}>Analytics</Text>
+            <BarChart3 size={14} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <Search size={16} color={Colors.text.secondary} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name or location..."
-              placeholderTextColor={Colors.text.secondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X size={16} color={Colors.text.secondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-          
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              (filter.status?.length || filter.availability?.length) ? styles.filterButtonActive : {}
-            ]}
-            onPress={() => setShowFilters(true)}
-          >
-            <Filter size={16} color={
-              (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.primary
-            } />
-          </TouchableOpacity>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={16} color={Colors.text.secondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search technicians..."
+            placeholderTextColor={Colors.text.secondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <X size={16} color={Colors.text.secondary} />
+            </TouchableOpacity>
+          )}
         </View>
+        
+        {/* Filter Button */}
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            (filter.status?.length || filter.availability?.length) && styles.filterButtonActive
+          ]}
+          onPress={() => setShowFilters(true)}
+        >
+          <Filter size={16} color={
+            (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.text.secondary
+          } />
+        </TouchableOpacity>
       </View>
 
-      {viewMode === 'map' ? (
-        <View style={styles.mapContainer}>
+      {/* Content Area */}
+      <View style={styles.contentArea}>
+        {viewMode === 'map' ? (
           <EnhancedMapView
             technicians={filteredTechnicians}
             selectedTechnician={selectedTechnician}
@@ -623,47 +617,45 @@ export default function TrackingScreen() {
             showRoutes={true}
             showGeofences={false}
           />
-        </View>
-      ) : viewMode === 'analytics' ? (
-        <AnalyticsView technicians={filteredTechnicians} />
-      ) : (
-        <FlatList
-          data={filteredTechnicians}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TechnicianCard
-              technician={item}
-              isSelected={selectedTechnician === item.id}
-              onPress={() => {
-                setSelectedTechnician(
-                  selectedTechnician === item.id ? null : item.id
-                );
-              }}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={onRefresh}
-              colors={[Colors.primary]}
-              tintColor={Colors.primary}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Users size={48} color={Colors.text.secondary} />
-              <Text style={styles.emptyTitle}>No technicians found</Text>
-              <Text style={styles.emptySubtitle}>
-                {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
-              </Text>
-            </View>
-          }
-        />
-      )}
-
-
+        ) : viewMode === 'analytics' ? (
+          <AnalyticsView technicians={filteredTechnicians} />
+        ) : (
+          <FlatList
+            data={filteredTechnicians}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TechnicianCard
+                technician={item}
+                isSelected={selectedTechnician === item.id}
+                onPress={() => {
+                  setSelectedTechnician(
+                    selectedTechnician === item.id ? null : item.id
+                  );
+                }}
+              />
+            )}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={[Colors.primary]}
+                tintColor={Colors.primary}
+              />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Users size={48} color={Colors.text.secondary} />
+                <Text style={styles.emptyTitle}>No technicians found</Text>
+                <Text style={styles.emptySubtitle}>
+                  {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
+                </Text>
+              </View>
+            }
+          />
+        )}
+      </View>
 
       <FilterModal
         visible={showFilters}
@@ -680,135 +672,124 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  
+  // Header Styles
   header: {
     backgroundColor: Colors.white,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    paddingBottom: 12,
   },
-  headerContent: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  headerLeft: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700' as const,
     color: Colors.text.primary,
+    marginBottom: 4,
   },
   headerSubtitle: {
-    paddingHorizontal: 20,
-    marginTop: 4,
-  },
-  headerSubtitleText: {
     fontSize: 14,
     color: Colors.text.secondary,
   },
   refreshButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statsContainer: {
+  
+  // Quick Stats
+  quickStats: {
     marginTop: 8,
   },
-  statsContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-    flexDirection: 'row',
+  quickStatsContent: {
+    paddingRight: 20,
+    gap: 12,
   },
-  statCard: {
-    flexDirection: 'row',
+  quickStatCard: {
     alignItems: 'center',
     backgroundColor: Colors.background,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
-    marginRight: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minWidth: 70,
   },
-  statIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statInfo: {
-    alignItems: 'center',
-  },
-  statValue: {
+  quickStatValue: {
     fontSize: 18,
     fontWeight: '700' as const,
     color: Colors.text.primary,
+    marginTop: 6,
+    marginBottom: 2,
   },
-  statLabel: {
+  quickStatLabel: {
     fontSize: 11,
     color: Colors.text.secondary,
+    textAlign: 'center' as const,
   },
-  controlsContainer: {
-    paddingHorizontal: 16,
+  
+  // Controls Bar
+  controlsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    gap: 12,
   },
-  viewModeButtons: {
+  
+  // View Toggle
+  viewToggle: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 2,
   },
-  viewModeButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
+  toggleButton: {
+    width: 36,
+    height: 32,
     borderRadius: 6,
-    gap: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  viewModeButtonActive: {
+  toggleButtonActive: {
     backgroundColor: Colors.primary,
   },
-  viewModeText: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-  },
-  viewModeTextActive: {
-    color: Colors.white,
-  },
-  searchBar: {
+  
+  // Search Container
+  searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.background,
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 6,
-    marginLeft: 8,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: Colors.text.primary,
   },
-  searchRow: {
-    flexDirection: 'row',
-    marginTop: 12,
-    gap: 8,
-  },
+  
+  // Filter Button
   filterButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: 8,
     backgroundColor: Colors.background,
     justifyContent: 'center',
@@ -817,7 +798,9 @@ const styles = StyleSheet.create({
   filterButtonActive: {
     backgroundColor: Colors.primary,
   },
-  mapContainer: {
+  
+  // Content Area
+  contentArea: {
     flex: 1,
   },
 

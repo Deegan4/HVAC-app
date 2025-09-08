@@ -25,6 +25,7 @@ import {
   Coffee,
   Home,
   Users,
+  X,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { Technician, TechnicianStatus } from '@/types';
@@ -180,6 +181,17 @@ export default function EnhancedMapView({
     }
   };
 
+  const getStatusLabel = (status: TechnicianStatus['status'] | 'offline'): string => {
+    switch (status) {
+      case 'on-route': return 'Driving';
+      case 'at-job': return 'Working';
+      case 'break': return 'On Break';
+      case 'returning': return 'Returning';
+      case 'offline': return 'Offline';
+      default: return 'Unknown';
+    }
+  };
+
   const selectedTech = technicians.find(t => t.id === selectedTechnician);
 
   // Create a grid-based map visualization
@@ -207,39 +219,32 @@ export default function EnhancedMapView({
 
   return (
     <View style={styles.container}>
-      {/* Map Header */}
-      <View style={styles.mapHeader}>
-        <Text style={styles.mapTitle}>Enhanced Map View</Text>
-        <Text style={styles.mapSubtitle}>
-          {activeTechnicians.length} technicians • {routes.length} active routes
-        </Text>
-      </View>
-
-      {/* Map Controls */}
-      <View style={styles.mapControls}>
-        <TouchableOpacity
-          style={[styles.controlButton, showRoutes && styles.activeControl]}
-          onPress={handleRouteOptimization}
-        >
-          <Route size={16} color={showRoutes ? Colors.white : Colors.primary} />
-          <Text style={[styles.controlText, showRoutes && styles.activeControlText]}>
-            Routes
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.controlButton, showGeofences && styles.activeControl]}
-          onPress={checkGeofenceViolations}
-        >
-          <Zap size={16} color={showGeofences ? Colors.white : Colors.warning} />
-          <Text style={[styles.controlText, showGeofences && styles.activeControlText]}>
-            Geofences
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Map Visualization */}
+      {/* Map Container with Controls */}
       <View style={styles.mapContainer}>
+        {/* Map Controls Overlay */}
+        <View style={styles.mapControlsOverlay}>
+          <TouchableOpacity
+            style={[styles.controlButton, showRoutes && styles.activeControl]}
+            onPress={handleRouteOptimization}
+          >
+            <Route size={16} color={showRoutes ? Colors.white : Colors.primary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.controlButton, showGeofences && styles.activeControl]}
+            onPress={checkGeofenceViolations}
+          >
+            <Zap size={16} color={showGeofences ? Colors.white : Colors.warning} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Live Indicator */}
+        <View style={styles.liveIndicator}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>Live</Text>
+        </View>
+
+        {/* Map Grid */}
         <View style={styles.mapGrid}>
           {mapGrid.map((cell) => {
             const tech = technicianPositions.get(cell.id);
@@ -260,9 +265,10 @@ export default function EnhancedMapView({
                 {tech && StatusIcon && (
                   <View style={[
                     styles.techMarker,
-                    { backgroundColor: getStatusColor(tech.status?.status || 'offline') }
+                    { backgroundColor: getStatusColor(tech.status?.status || 'offline') },
+                    isSelected && styles.selectedMarker
                   ]}>
-                    <StatusIcon size={16} color={Colors.white} />
+                    <StatusIcon size={14} color={Colors.white} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -270,113 +276,94 @@ export default function EnhancedMapView({
           })}
         </View>
 
-        {/* Overlay Information */}
+        {/* Selected Technician Info */}
         {selectedTech && (
           <View style={styles.selectedInfo}>
             <View style={styles.selectedHeader}>
-              <Text style={styles.selectedName}>{selectedTech.name}</Text>
-              <TouchableOpacity onPress={() => onTechnicianSelect('')}>
-                <Circle size={20} color={Colors.text.secondary} />
+              <View style={styles.selectedTechInfo}>
+                <Text style={styles.selectedName}>{selectedTech.name}</Text>
+                <Text style={styles.selectedStatus}>
+                  {getStatusLabel(selectedTech.status?.status || 'offline')}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => onTechnicianSelect('')}
+              >
+                <X size={16} color={Colors.text.secondary} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.selectedStatus}>
-              Status: {selectedTech.status?.status || 'offline'}
-            </Text>
             {selectedTech.location?.address && (
-              <Text style={styles.selectedLocation}>
-                <MapPin size={12} color={Colors.text.secondary} /> {selectedTech.location.address}
-              </Text>
+              <View style={styles.selectedLocation}>
+                <MapPin size={12} color={Colors.text.secondary} />
+                <Text style={styles.locationText} numberOfLines={1}>
+                  {selectedTech.location.address}
+                </Text>
+              </View>
             )}
           </View>
         )}
-
-        {/* Live Indicator */}
-        <View style={styles.liveIndicator}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>Live tracking active</Text>
-        </View>
       </View>
 
-      {/* Active Technicians List */}
-      <View style={styles.techniciansList}>
-        <Text style={styles.listTitle}>Active Technicians</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.techCards}>
-            {activeTechnicians.map((tech) => {
-              const StatusIcon = getStatusIcon(tech.status?.status || 'offline');
-              return (
-                <TouchableOpacity
-                  key={tech.id}
-                  style={[
-                    styles.techCard,
-                    selectedTechnician === tech.id && styles.selectedTechCard,
-                  ]}
-                  onPress={() => onTechnicianSelect(tech.id)}
-                >
-                  <View style={[
-                    styles.techCardIcon,
-                    { backgroundColor: getStatusColor(tech.status?.status || 'offline') + '20' }
-                  ]}>
-                    <StatusIcon size={20} color={getStatusColor(tech.status?.status || 'offline')} />
-                  </View>
-                  <Text style={styles.techCardName} numberOfLines={1}>
-                    {tech.name.split(' ')[0]}
-                  </Text>
-                  <Text style={styles.techCardStatus}>
-                    {tech.status?.status || 'offline'}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Active Routes */}
-      {showRoutes && routes.length > 0 && (
-        <View style={styles.routesSection}>
-          <Text style={styles.routesTitle}>Active Routes</Text>
-          <View style={styles.routesList}>
-            {routes.slice(0, 2).map((route) => {
-              const tech = technicians.find(t => t.id === route.technicianId);
-              return (
-                <View key={route.technicianId} style={styles.routeCard}>
-                  <Navigation size={16} color={Colors.warning} />
-                  <View style={styles.routeDetails}>
-                    <Text style={styles.routeName}>{tech?.name}</Text>
-                    <Text style={styles.routeInfo}>
-                      {route.distance}km • {route.estimatedTime}min
+      {/* Bottom Panel */}
+      <View style={styles.bottomPanel}>
+        {/* Active Technicians */}
+        <View style={styles.techniciansList}>
+          <Text style={styles.listTitle}>Active Technicians ({activeTechnicians.length})</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.techScrollView}>
+            <View style={styles.techCards}>
+              {activeTechnicians.map((tech) => {
+                const StatusIcon = getStatusIcon(tech.status?.status || 'offline');
+                const isSelected = selectedTechnician === tech.id;
+                return (
+                  <TouchableOpacity
+                    key={tech.id}
+                    style={[
+                      styles.techCard,
+                      isSelected && styles.selectedTechCard,
+                    ]}
+                    onPress={() => onTechnicianSelect(tech.id)}
+                  >
+                    <View style={[
+                      styles.techCardIcon,
+                      { backgroundColor: getStatusColor(tech.status?.status || 'offline') + '20' }
+                    ]}>
+                      <StatusIcon size={16} color={getStatusColor(tech.status?.status || 'offline')} />
+                    </View>
+                    <Text style={styles.techCardName} numberOfLines={1}>
+                      {tech.name.split(' ')[0]}
                     </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      )}
-
-      {/* Status Legend */}
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Status Legend</Text>
-        <View style={styles.legendItems}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
-            <Text style={styles.legendText}>On Route</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: Colors.success }]} />
-            <Text style={styles.legendText}>At Job</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: Colors.info }]} />
-            <Text style={styles.legendText}>On Break</Text>
-          </View>
-          {showGeofences && (
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
-              <Text style={styles.legendText}>Restricted Area (75m)</Text>
+                    <View style={[
+                      styles.statusIndicator,
+                      { backgroundColor: getStatusColor(tech.status?.status || 'offline') }
+                    ]} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          )}
+          </ScrollView>
+        </View>
+
+        {/* Status Legend */}
+        <View style={styles.legend}>
+          <View style={styles.legendItems}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: Colors.warning }]} />
+              <Text style={styles.legendText}>On Route</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: Colors.success }]} />
+              <Text style={styles.legendText}>At Job</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: Colors.info }]} />
+              <Text style={styles.legendText}>Break</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
+              <Text style={styles.legendText}>Returning</Text>
+            </View>
+          </View>
         </View>
       </View>
     </View>
@@ -388,66 +375,86 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  mapHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  mapTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: Colors.text.primary,
-  },
-  mapSubtitle: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-    marginTop: 4,
-  },
-  mapControls: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 12,
-  },
-  controlButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  
+  // Map Container
+  mapContainer: {
+    flex: 1,
+    margin: 16,
     backgroundColor: Colors.white,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 6,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  
+  // Map Controls Overlay
+  mapControlsOverlay: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    flexDirection: 'row',
+    gap: 8,
+    zIndex: 10,
+  },
+  controlButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   activeControl: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  controlText: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
+  
+  // Live Indicator
+  liveIndicator: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.success,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 10,
   },
-  activeControlText: {
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.white,
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: '600' as const,
     color: Colors.white,
   },
-  mapContainer: {
-    flex: 1,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    position: 'relative',
-  },
+  
+  // Map Grid
   mapGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     aspectRatio: 1,
     width: '100%',
+    marginTop: 40,
   },
   gridCell: {
     width: '12.5%',
@@ -458,189 +465,170 @@ const styles = StyleSheet.create({
   },
   occupiedCell: {
     backgroundColor: Colors.background,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   selectedCell: {
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.primary + '15',
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   techMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
+  selectedMarker: {
+    transform: [{ scale: 1.2 }],
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+  
+  // Selected Info
   selectedInfo: {
     position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
+    bottom: 16,
+    left: 16,
+    right: 16,
     backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: Colors.primary,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 6,
   },
   selectedHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  selectedTechInfo: {
+    flex: 1,
   },
   selectedName: {
     fontSize: 16,
-    fontWeight: '600' as const,
+    fontWeight: '700' as const,
     color: Colors.text.primary,
+    marginBottom: 2,
   },
   selectedStatus: {
     fontSize: 13,
     color: Colors.text.secondary,
-    marginBottom: 2,
+  },
+  closeButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   selectedLocation: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-  },
-  liveIndicator: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.success,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  locationText: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    flex: 1,
+  },
+  
+  // Bottom Panel
+  bottomPanel: {
     backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
-  liveText: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-    color: Colors.white,
-  },
+  
+  // Technicians List
   techniciansList: {
-    paddingLeft: 16,
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   listTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  techScrollView: {
+    marginHorizontal: -16,
   },
   techCards: {
     flexDirection: 'row',
-    paddingRight: 16,
+    paddingHorizontal: 16,
     gap: 12,
   },
   techCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 8,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
-    minWidth: 80,
+    minWidth: 70,
+    position: 'relative',
   },
   selectedTechCard: {
+    backgroundColor: Colors.primary + '10',
     borderColor: Colors.primary,
     borderWidth: 2,
   },
   techCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   techCardName: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 2,
-  },
-  techCardStatus: {
-    fontSize: 11,
-    color: Colors.text.secondary,
-  },
-  routesSection: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  routesTitle: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 8,
-  },
-  routesList: {
-    gap: 8,
-  },
-  routeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 12,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 8,
-  },
-  routeDetails: {
-    flex: 1,
-  },
-  routeName: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 2,
-  },
-  routeInfo: {
     fontSize: 12,
-    color: Colors.text.secondary,
-  },
-  legend: {
-    backgroundColor: Colors.white,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  legendTitle: {
-    fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
-    marginBottom: 8,
+    textAlign: 'center' as const,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+  
+  // Legend
+  legend: {
+    paddingHorizontal: 16,
   },
   legendItems: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   legendDot: {
     width: 8,
@@ -648,7 +636,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text.secondary,
+    fontWeight: '500' as const,
   },
 });
