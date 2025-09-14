@@ -23,7 +23,8 @@ import {
   Wrench,
   Bug,
   DollarSign,
-  MapPin
+  MapPin,
+  Phone
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -105,6 +106,7 @@ export default function MoreScreen() {
     {
       title: 'Support',
       items: [
+        { icon: Phone, label: 'AI Answering Service', onPress: () => router.push('/ai-answering-service') },
         { icon: HelpCircle, label: 'Help Center', onPress: () => router.push('/help-center') },
         { icon: FileText, label: 'Terms & Conditions', onPress: () => router.push('/terms-conditions') },
       ]
