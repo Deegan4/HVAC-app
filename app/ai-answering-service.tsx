@@ -791,6 +791,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     flex: 1,
+    marginRight: 12,
   },
   featureIcon: {
     width: 44,
@@ -805,11 +806,13 @@ const styles = StyleSheet.create({
   },
   featureInfo: {
     flex: 1,
+    marginRight: 8,
   },
   featureTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexWrap: 'wrap',
   },
   featureTitle: {
     fontSize: 15,
