@@ -8,9 +8,10 @@ import {
   ActivityIndicator,
   RefreshControl,
   SectionList,
+  ScrollView,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { Search, Plus, ChevronRight, MapPin, Phone } from 'lucide-react-native';
+import { Search, Plus, ChevronRight, MapPin, Phone, Users, Upload, FileText } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Customer } from '@/types';
@@ -162,16 +163,75 @@ export default function CustomersScreen() {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
-              {searchQuery ? 'No customers found' : 'No customers yet'}
-            </Text>
-            {!searchQuery && (
+          searchQuery ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No customers found</Text>
               <Text style={styles.emptyStateSubtext}>
-                Tap the + button to add your first customer
+                Try adjusting your search terms
               </Text>
-            )}
-          </View>
+            </View>
+          ) : (
+            <ScrollView contentContainerStyle={styles.welcomeContainer}>
+              <View style={styles.welcomeIconContainer}>
+                <Users size={48} color={Colors.primary} />
+              </View>
+              <Text style={styles.welcomeTitle}>Build Your Customer Base</Text>
+              <Text style={styles.welcomeSubtitle}>
+                Add customers to start scheduling jobs and tracking service history
+              </Text>
+              
+              <View style={styles.actionCards}>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => router.push('/new-customer')}
+                >
+                  <View style={styles.actionIconContainer}>
+                    <Plus size={24} color={Colors.primary} />
+                  </View>
+                  <View style={styles.actionContent}>
+                    <Text style={styles.actionTitle}>Add Customer</Text>
+                    <Text style={styles.actionDescription}>
+                      Manually enter customer information
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => {
+                    // Import functionality would go here
+                    alert('Import feature coming soon!');
+                  }}
+                >
+                  <View style={styles.actionIconContainer}>
+                    <Upload size={24} color={Colors.primary} />
+                  </View>
+                  <View style={styles.actionContent}>
+                    <Text style={styles.actionTitle}>Import Customers</Text>
+                    <Text style={styles.actionDescription}>
+                      Upload from CSV or Excel file
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.infoSection}>
+                <Text style={styles.infoTitle}>What you can track:</Text>
+                <View style={styles.infoItem}>
+                  <FileText size={16} color={Colors.text.secondary} />
+                  <Text style={styles.infoText}>Complete service history</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <MapPin size={16} color={Colors.text.secondary} />
+                  <Text style={styles.infoText}>Equipment and locations</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Phone size={16} color={Colors.text.secondary} />
+                  <Text style={styles.infoText}>Contact preferences and notes</Text>
+                </View>
+              </View>
+            </ScrollView>
+          )
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -292,5 +352,94 @@ const styles = StyleSheet.create({
     color: Colors.text.light,
     marginTop: 8,
     textAlign: 'center' as const,
+  },
+  welcomeContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 32,
+  },
+  welcomeIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    textAlign: 'center' as const,
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: Colors.text.secondary,
+    textAlign: 'center' as const,
+    marginBottom: 32,
+    paddingHorizontal: 20,
+  },
+  actionCards: {
+    gap: 12,
+    marginBottom: 32,
+  },
+  actionCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  actionContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  actionDescription: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  infoSection: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 16,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 12,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginLeft: 12,
+    flex: 1,
   },
 });

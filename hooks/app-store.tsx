@@ -46,7 +46,7 @@ interface AppState {
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const queryClient = useQueryClient();
   const offlineStorage = OfflineStorageManager.getInstance();
-  const [currentTechnicianId] = useState<string | null>('tech1');
+  const [currentTechnicianId] = useState<string | null>(null);
   const [userRole, setUserRoleState] = useState<UserRole | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);

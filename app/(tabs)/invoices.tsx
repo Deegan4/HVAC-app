@@ -11,7 +11,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DollarSign, Calendar, User, CheckCircle, Clock, AlertCircle, FileText, Plus, Search, Edit3, Trash2, Share, CreditCard } from 'lucide-react-native';
+import { DollarSign, Calendar, User, CheckCircle, Clock, AlertCircle, FileText, Plus, Search, Edit3, Trash2, Share, CreditCard, Receipt, TrendingUp } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore, useRevenueStats } from '@/hooks/app-store';
 import { Invoice, InvoiceItem } from '@/types';
@@ -318,8 +318,74 @@ export default function InvoicesScreen() {
 
         {filteredInvoices.length === 0 && (
           <View style={styles.emptyState}>
-            <FileText size={48} color={Colors.text.light} />
-            <Text style={styles.emptyStateText}>No invoices found</Text>
+            {searchQuery || filter !== 'all' ? (
+              <>
+                <FileText size={48} color={Colors.text.light} />
+                <Text style={styles.emptyStateText}>No invoices found</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Try adjusting your search or filter
+                </Text>
+              </>
+            ) : (
+              <>
+                <View style={styles.welcomeIconContainer}>
+                  <Receipt size={48} color={Colors.primary} />
+                </View>
+                <Text style={styles.welcomeTitle}>Start Invoicing</Text>
+                <Text style={styles.welcomeSubtitle}>
+                  Create professional invoices and track payments
+                </Text>
+                
+                <TouchableOpacity
+                  style={styles.getStartedButton}
+                  onPress={handleCreateInvoice}
+                >
+                  <Plus size={20} color={Colors.text.inverse} />
+                  <Text style={styles.getStartedButtonText}>Create Your First Invoice</Text>
+                </TouchableOpacity>
+                
+                <View style={styles.featuresSection}>
+                  <Text style={styles.featuresTitle}>Invoice Features</Text>
+                  
+                  <View style={styles.featureItem}>
+                    <TrendingUp size={20} color={Colors.primary} />
+                    <View style={styles.featureContent}>
+                      <Text style={styles.featureTitle}>Track Revenue</Text>
+                      <Text style={styles.featureDescription}>
+                        Monitor monthly income and payment status
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.featureItem}>
+                    <CreditCard size={20} color={Colors.primary} />
+                    <View style={styles.featureContent}>
+                      <Text style={styles.featureTitle}>Payment Recording</Text>
+                      <Text style={styles.featureDescription}>
+                        Track partial payments and outstanding balances
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.featureItem}>
+                    <Share size={20} color={Colors.primary} />
+                    <View style={styles.featureContent}>
+                      <Text style={styles.featureTitle}>Easy Sharing</Text>
+                      <Text style={styles.featureDescription}>
+                        Send invoices directly to customers via email or text
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                
+                <View style={styles.tipCard}>
+                  <AlertCircle size={16} color={Colors.primary} />
+                  <Text style={styles.tipText}>
+                    Tip: Set up your company info first to automatically include it on invoices
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
         )}
       </ScrollView>
@@ -959,6 +1025,102 @@ const styles = StyleSheet.create({
     color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600' as const,
-    textAlign: 'center',
+    textAlign: 'center' as const,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.text.light,
+    marginTop: 8,
+  },
+  welcomeIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: Colors.text.secondary,
+    textAlign: 'center' as const,
+    paddingHorizontal: 32,
+    marginBottom: 32,
+  },
+  getStartedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    gap: 8,
+    marginBottom: 32,
+  },
+  getStartedButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
+  },
+  featuresSection: {
+    width: '100%',
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  featuresTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 16,
+    textAlign: 'center' as const,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  featureContent: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  featureDescription: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    lineHeight: 20,
+  },
+  tipCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    alignItems: 'flex-start',
+  },
+  tipText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginLeft: 12,
+    flex: 1,
+    lineHeight: 20,
   },
 });

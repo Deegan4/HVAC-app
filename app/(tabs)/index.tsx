@@ -19,12 +19,14 @@ import LoadingScreen from '@/components/LoadingScreen';
 import CalendarView from '@/components/CalendarView';
 
 export default function ScheduleScreen() {
-  const { jobs, isLoading, getUpcomingJobs } = useAppStore();
+  const { jobs, isLoading, getUpcomingJobs, customers } = useAppStore();
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  
+  const isFirstTimeUser = customers.length === 0 && jobs.length === 0;
 
   const upcomingJobs = useMemo(() => getUpcomingJobs(), [jobs]);
 
@@ -118,116 +120,228 @@ export default function ScheduleScreen() {
   };
 
   if (isLoading) {
-    return <LoadingScreen message="Loading your schedule..." size={56} />;
+    return <LoadingScreen message="Setting up your workspace..." size={56} />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* View Toggle */}
-      <View style={styles.viewToggle}>
-        <TouchableOpacity
-          style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
-          onPress={() => setViewMode('list')}
-        >
-          <List size={20} color={viewMode === 'list' ? Colors.text.inverse : Colors.text.secondary} />
-          <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>List</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
-          onPress={() => setViewMode('calendar')}
-        >
-          <Calendar size={20} color={viewMode === 'calendar' ? Colors.text.inverse : Colors.text.secondary} />
-          <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>Calendar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {viewMode === 'calendar' ? (
-        <CalendarView
-          jobs={jobs}
-          selectedDate={selectedDate}
-          onDateSelect={handleDateSelect}
-          onJobPress={handleJobPress}
-          onAddJob={handleAddJob}
-        />
-      ) : (
+      {isFirstTimeUser ? (
         <ScrollView
           style={styles.scrollView}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          contentContainerStyle={styles.welcomeContainer}
         >
-        {/* Stats Overview */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Today's Jobs</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: Colors.status.completed }]}>
-              {stats.completed}
-            </Text>
-            <Text style={styles.statLabel}>Completed</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: Colors.status.inProgress }]}>
-              {stats.inProgress}
-            </Text>
-            <Text style={styles.statLabel}>In Progress</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: Colors.status.emergency }]}>
-              {stats.emergency}
-            </Text>
-            <Text style={styles.statLabel}>Emergency</Text>
-          </View>
-        </View>
-
-        {/* Today's Jobs */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Schedule</Text>
-          <Text style={styles.sectionSubtitle}>
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </Text>
-        </View>
-
-        {todaysJobs.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Calendar size={48} color={Colors.text.light} />
-            <Text style={styles.emptyStateText}>No jobs scheduled for today</Text>
-          </View>
-        ) : (
-          <View style={styles.jobsList}>
-            {todaysJobs.map(renderJobCard)}
-          </View>
-        )}
-
-        {/* Upcoming Jobs */}
-        {upcomingJobs.length > 0 && (
-          <>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Jobs</Text>
+          <View style={styles.welcomeContent}>
+            <View style={styles.welcomeIconContainer}>
+              <Wrench size={48} color={Colors.primary} />
             </View>
-            <View style={styles.jobsList}>
-              {upcomingJobs.slice(0, 5).map(renderJobCard)}
+            <Text style={styles.welcomeTitle}>Welcome to Your Service Hub!</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Let's get your business set up and running
+            </Text>
+            
+            <View style={styles.quickStartSection}>
+              <Text style={styles.quickStartTitle}>Quick Start Guide</Text>
+              
+              <TouchableOpacity
+                style={styles.quickStartCard}
+                onPress={() => router.push('/new-customer')}
+              >
+                <View style={styles.quickStartIcon}>
+                  <Plus size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.quickStartContent}>
+                  <Text style={styles.quickStartCardTitle}>Add Your First Customer</Text>
+                  <Text style={styles.quickStartCardDescription}>
+                    Start building your customer database
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.quickStartCard}
+                onPress={() => router.push('/new-job')}
+              >
+                <View style={styles.quickStartIcon}>
+                  <Calendar size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.quickStartContent}>
+                  <Text style={styles.quickStartCardTitle}>Schedule Your First Job</Text>
+                  <Text style={styles.quickStartCardDescription}>
+                    Create and manage service appointments
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.quickStartCard}
+                onPress={() => router.push('/company-info')}
+              >
+                <View style={styles.quickStartIcon}>
+                  <Wrench size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.quickStartContent}>
+                  <Text style={styles.quickStartCardTitle}>Set Up Company Info</Text>
+                  <Text style={styles.quickStartCardDescription}>
+                    Add your business details and branding
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.quickStartCard}
+                onPress={() => router.push('/team-management')}
+              >
+                <View style={styles.quickStartIcon}>
+                  <CheckCircle size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.quickStartContent}>
+                  <Text style={styles.quickStartCardTitle}>Add Team Members</Text>
+                  <Text style={styles.quickStartCardDescription}>
+                    Invite technicians and staff to your workspace
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
-          </>
-        )}
+            
+            <View style={styles.tipsSection}>
+              <Text style={styles.tipsTitle}>Pro Tips</Text>
+              <View style={styles.tipCard}>
+                <AlertCircle size={16} color={Colors.primary} />
+                <Text style={styles.tipText}>
+                  Import your existing customer list from the Customers tab
+                </Text>
+              </View>
+              <View style={styles.tipCard}>
+                <MapPin size={16} color={Colors.primary} />
+                <Text style={styles.tipText}>
+                  Enable location tracking to optimize technician routes
+                </Text>
+              </View>
+              <View style={styles.tipCard}>
+                <Clock size={16} color={Colors.primary} />
+                <Text style={styles.tipText}>
+                  Set up your service hours in Company Settings
+                </Text>
+              </View>
+            </View>
+          </View>
         </ScrollView>
-      )}
+      ) : (
+        <>
+          {/* View Toggle */}
+          <View style={styles.viewToggle}>
+            <TouchableOpacity
+              style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+              onPress={() => setViewMode('list')}
+            >
+              <List size={20} color={viewMode === 'list' ? Colors.text.inverse : Colors.text.secondary} />
+              <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>List</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
+              onPress={() => setViewMode('calendar')}
+            >
+              <Calendar size={20} color={viewMode === 'calendar' ? Colors.text.inverse : Colors.text.secondary} />
+              <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>Calendar</Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* Floating Action Button - Only show in list view */}
-      {viewMode === 'list' && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => router.push('/new-job')}
-          testID="new-job-fab"
-        >
-          <Plus size={24} color={Colors.text.inverse} />
-        </TouchableOpacity>
+          {viewMode === 'calendar' ? (
+            <CalendarView
+              jobs={jobs}
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              onJobPress={handleJobPress}
+              onAddJob={handleAddJob}
+            />
+          ) : (
+            <ScrollView
+              style={styles.scrollView}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+            {/* Stats Overview */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statCard}>
+                <Text style={styles.statNumber}>{stats.total}</Text>
+                <Text style={styles.statLabel}>Today's Jobs</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[styles.statNumber, { color: Colors.status.completed }]}>
+                  {stats.completed}
+                </Text>
+                <Text style={styles.statLabel}>Completed</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[styles.statNumber, { color: Colors.status.inProgress }]}>
+                  {stats.inProgress}
+                </Text>
+                <Text style={styles.statLabel}>In Progress</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[styles.statNumber, { color: Colors.status.emergency }]}>
+                  {stats.emergency}
+                </Text>
+                <Text style={styles.statLabel}>Emergency</Text>
+              </View>
+            </View>
+
+            {/* Today's Jobs */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Today's Schedule</Text>
+              <Text style={styles.sectionSubtitle}>
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </Text>
+            </View>
+
+            {todaysJobs.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Calendar size={48} color={Colors.text.light} />
+                <Text style={styles.emptyStateText}>No jobs scheduled for today</Text>
+                <TouchableOpacity
+                  style={styles.emptyStateButton}
+                  onPress={() => router.push('/new-job')}
+                >
+                  <Plus size={20} color={Colors.text.inverse} />
+                  <Text style={styles.emptyStateButtonText}>Schedule a Job</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.jobsList}>
+                {todaysJobs.map(renderJobCard)}
+              </View>
+            )}
+
+            {/* Upcoming Jobs */}
+            {upcomingJobs.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Upcoming Jobs</Text>
+                </View>
+                <View style={styles.jobsList}>
+                  {upcomingJobs.slice(0, 5).map(renderJobCard)}
+                </View>
+              </>
+            )}
+            </ScrollView>
+          )}
+
+          {/* Floating Action Button - Only show in list view */}
+          {viewMode === 'list' && (
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => router.push('/new-job')}
+              testID="new-job-fab"
+            >
+              <Plus size={24} color={Colors.text.inverse} />
+            </TouchableOpacity>
+          )}
+        </>
       )}
     </SafeAreaView>
   );
@@ -438,6 +552,119 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   toggleTextActive: {
+    color: Colors.text.inverse,
+  },
+  welcomeContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
+  welcomeContent: {
+    flex: 1,
+  },
+  welcomeIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    textAlign: 'center' as const,
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: Colors.text.secondary,
+    textAlign: 'center' as const,
+    marginBottom: 32,
+  },
+  quickStartSection: {
+    marginBottom: 32,
+  },
+  quickStartTitle: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 16,
+  },
+  quickStartCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quickStartIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  quickStartContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  quickStartCardTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  quickStartCardDescription: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  tipsSection: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 16,
+  },
+  tipsTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 12,
+  },
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  tipText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginLeft: 12,
+    flex: 1,
+    lineHeight: 20,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    gap: 8,
+  },
+  emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
     color: Colors.text.inverse,
   },
 });
