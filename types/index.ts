@@ -4,17 +4,18 @@ export interface Customer {
   email: string;
   phone: string;
   address: string;
-  equipment: Equipment[];
-  serviceHistory: Job[];
+  equipment: string[]; // Equipment IDs
+  serviceHistory: string[]; // Job IDs
   notes?: string;
   createdAt: string;
-  preferredTech?: string;
+  preferredTechnician?: string;
+  tags?: string[];
 }
 
 export interface Equipment {
   id: string;
   customerId: string;
-  type: 'AC' | 'Furnace' | 'Refrigerator' | 'Freezer' | 'HVAC' | 'Other';
+  type: 'AC' | 'Furnace' | 'Refrigerator' | 'Freezer' | 'HVAC' | 'Water Heater' | 'Other';
   brand: string;
   model: string;
   serialNumber: string;
@@ -38,7 +39,8 @@ export interface Job {
   technicianId?: string;
   technicianName?: string;
   equipmentId?: string;
-  duration: number; // in minutes
+  duration?: number; // in minutes
+  estimatedDuration?: number; // in hours
   notes?: string;
   photos?: string[];
   signature?: string;
@@ -69,7 +71,7 @@ export interface InvoiceItem {
   quantity: number;
   unitPrice: number;
   total: number;
-  type: 'labor' | 'part' | 'service';
+  type?: 'labor' | 'part' | 'service';
 }
 
 export interface Technician {
@@ -77,7 +79,9 @@ export interface Technician {
   name: string;
   email: string;
   phone: string;
-  specialties: string[];
+  specialties?: string[];
+  skills?: string[];
+  certifications?: string[];
   availability: 'available' | 'busy' | 'offline';
   currentJobId?: string;
   location?: TechnicianLocation;
@@ -95,6 +99,7 @@ export interface TechnicianLocation {
 
 export interface TechnicianStatus {
   status: 'on-route' | 'at-job' | 'break' | 'returning' | 'offline';
+  currentJobId?: string;
   estimatedArrival?: string;
   nextJobId?: string;
   message?: string;

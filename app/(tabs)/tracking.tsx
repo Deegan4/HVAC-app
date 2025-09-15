@@ -650,12 +650,17 @@ const styles = StyleSheet.create({
   
   // Header Styles
   header: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerContent: {
     flexDirection: 'row',
@@ -701,12 +706,10 @@ const styles = StyleSheet.create({
   
   // Controls Section
   controlsSection: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: 16,
+    gap: 12,
   },
   
   // View Mode Container
@@ -782,8 +785,9 @@ const styles = StyleSheet.create({
 
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 100,
+    gap: 8,
   },
   technicianCard: {
     backgroundColor: Colors.white,

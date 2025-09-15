@@ -1,15 +1,279 @@
 import { Customer, Equipment, Job, Invoice, Technician } from '@/types';
 
-// Empty initial technicians - will be populated when company sets up their team
-export const mockTechnicians: Technician[] = [];
+// Sample technicians for demonstration
+export const mockTechnicians: Technician[] = [
+  {
+    id: 'tech1',
+    name: 'Mike Johnson',
+    phone: '(555) 234-5678',
+    email: 'mike.johnson@service.com',
+    availability: 'available',
+    skills: ['HVAC', 'Plumbing', 'Electrical'],
+    certifications: ['EPA Universal', 'NATE Certified'],
+    location: {
+      latitude: 37.7749,
+      longitude: -122.4194,
+      address: '1234 Market St, San Francisco, CA',
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'on-route',
+      currentJobId: 'job1',
+      estimatedArrival: new Date(Date.now() + 30 * 60000).toISOString(),
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: 'tech2',
+    name: 'Sarah Williams',
+    phone: '(555) 345-6789',
+    email: 'sarah.williams@service.com',
+    availability: 'available',
+    skills: ['HVAC', 'Refrigeration'],
+    certifications: ['EPA Universal', 'HVAC Excellence'],
+    location: {
+      latitude: 37.7849,
+      longitude: -122.4094,
+      address: '5678 Mission St, San Francisco, CA',
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'at-job',
+      currentJobId: 'job2',
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: 'tech3',
+    name: 'David Chen',
+    phone: '(555) 456-7890',
+    email: 'david.chen@service.com',
+    availability: 'busy',
+    skills: ['Electrical', 'Smart Home', 'Security Systems'],
+    certifications: ['Master Electrician', 'Low Voltage License'],
+    location: {
+      latitude: 37.7649,
+      longitude: -122.4294,
+      address: '910 Valencia St, San Francisco, CA',
+      timestamp: new Date().toISOString(),
+    },
+    status: {
+      status: 'break',
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+];
 
-// Empty initial customers - will be populated as company adds their clients
-export const mockCustomers: Customer[] = [];
+// Sample customers for demonstration
+export const mockCustomers: Customer[] = [
+  {
+    id: 'cust1',
+    name: 'Johnson Residence',
+    email: 'robert.johnson@email.com',
+    phone: '(555) 123-4567',
+    address: '742 Evergreen Terrace, Springfield, CA 94102',
+    notes: 'Preferred contact: morning calls. Has two HVAC units.',
+    createdAt: '2024-01-15',
+    equipment: ['eq1', 'eq2'],
+    serviceHistory: ['job1', 'job3'],
+    preferredTechnician: 'tech1',
+    tags: ['Residential', 'VIP', 'Maintenance Plan'],
+  },
+  {
+    id: 'cust2',
+    name: 'ABC Corporation',
+    email: 'facilities@abccorp.com',
+    phone: '(555) 987-6543',
+    address: '100 Business Park Dr, San Francisco, CA 94111',
+    notes: 'Commercial client. 24/7 emergency service contract.',
+    createdAt: '2023-11-20',
+    equipment: ['eq3', 'eq4', 'eq5'],
+    serviceHistory: ['job2', 'job4'],
+    tags: ['Commercial', 'Contract', 'Priority'],
+  },
+  {
+    id: 'cust3',
+    name: 'Green Valley Apartments',
+    email: 'manager@greenvalley.com',
+    phone: '(555) 246-8135',
+    address: '500 Oak Street, San Francisco, CA 94117',
+    notes: 'Property management company. Multiple units.',
+    createdAt: '2024-02-01',
+    equipment: ['eq6'],
+    serviceHistory: [],
+    tags: ['Multi-Unit', 'Property Management'],
+  },
+];
 
-// Empty initial equipment - will be populated as customers and their equipment are added
-export const mockEquipment: Equipment[] = [];
+// Sample equipment for demonstration
+export const mockEquipment: Equipment[] = [
+  {
+    id: 'eq1',
+    customerId: 'cust1',
+    type: 'HVAC',
+    brand: 'Carrier',
+    model: 'Infinity 26',
+    serialNumber: 'CAR-2023-1234',
+    installDate: '2023-06-15',
+    warrantyExpiry: '2033-06-15',
+    lastServiceDate: '2024-11-01',
+    notes: 'High-efficiency unit. Annual maintenance required.',
+  },
+  {
+    id: 'eq2',
+    customerId: 'cust1',
+    type: 'Water Heater',
+    brand: 'Rheem',
+    model: 'Performance Plus 50',
+    serialNumber: 'RH-2022-5678',
+    installDate: '2022-03-20',
+    warrantyExpiry: '2028-03-20',
+    lastServiceDate: '2024-03-20',
+    notes: '50-gallon capacity. Electric.',
+  },
+  {
+    id: 'eq3',
+    customerId: 'cust2',
+    type: 'HVAC',
+    brand: 'Trane',
+    model: 'XL20i',
+    serialNumber: 'TR-2021-9012',
+    installDate: '2021-09-10',
+    warrantyExpiry: '2031-09-10',
+    lastServiceDate: '2024-09-10',
+    notes: 'Commercial rooftop unit. Quarterly maintenance.',
+  },
+];
 
-export const mockJobs: Job[] = [];
+// Sample jobs for demonstration
+export const mockJobs: Job[] = [
+  {
+    id: 'job1',
+    customerId: 'cust1',
+    customerName: 'Johnson Residence',
+    address: '742 Evergreen Terrace, Springfield, CA 94102',
+    type: 'maintenance',
+    status: 'scheduled',
+    priority: 'normal',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    scheduledTime: '10:00 AM',
+    estimatedDuration: 2,
+    description: 'Annual HVAC maintenance and filter replacement',
+    technicianId: 'tech1',
+    technicianName: 'Mike Johnson',
+    notes: 'Customer prefers morning appointments',
+    equipmentId: 'eq1',
+  },
+  {
+    id: 'job2',
+    customerId: 'cust2',
+    customerName: 'ABC Corporation',
+    address: '100 Business Park Dr, San Francisco, CA 94111',
+    type: 'repair',
+    status: 'inProgress',
+    priority: 'high',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    scheduledTime: '2:00 PM',
+    estimatedDuration: 3,
+    description: 'Commercial HVAC unit not cooling properly',
+    technicianId: 'tech2',
+    technicianName: 'Sarah Williams',
+    notes: 'Urgent - affecting office productivity',
+    equipmentId: 'eq3',
+  },
+  {
+    id: 'job3',
+    customerId: 'cust1',
+    customerName: 'Johnson Residence',
+    address: '742 Evergreen Terrace, Springfield, CA 94102',
+    type: 'installation',
+    status: 'completed',
+    priority: 'normal',
+    scheduledDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    scheduledTime: '9:00 AM',
+    estimatedDuration: 4,
+    description: 'Smart thermostat installation',
+    technicianId: 'tech1',
+    technicianName: 'Mike Johnson',
+    completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: 'Nest Learning Thermostat installed successfully',
+  },
+];
 
-// Empty initial invoices - will be created as jobs are completed
-export const mockInvoices: Invoice[] = [];
+// Sample invoices for demonstration
+export const mockInvoices: Invoice[] = [
+  {
+    id: 'INV-2024-001',
+    customerId: 'cust1',
+    customerName: 'Johnson Residence',
+    jobId: 'job3',
+    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'sent',
+    items: [
+      {
+        id: 'item1',
+        description: 'Smart Thermostat Installation',
+        quantity: 1,
+        unitPrice: 250,
+        total: 250,
+        type: 'labor',
+      },
+      {
+        id: 'item2',
+        description: 'Nest Learning Thermostat',
+        quantity: 1,
+        unitPrice: 249,
+        total: 249,
+        type: 'part',
+      },
+      {
+        id: 'item3',
+        description: 'Additional Wiring',
+        quantity: 1,
+        unitPrice: 75,
+        total: 75,
+        type: 'part',
+      },
+    ],
+    subtotal: 574,
+    tax: 50.17,
+    total: 624.17,
+    paidAmount: 0,
+    paymentMethod: undefined,
+    notes: 'Payment due within 30 days. Thank you for your business!',
+  },
+  {
+    id: 'INV-2024-002',
+    customerId: 'cust2',
+    customerName: 'ABC Corporation',
+    jobId: 'job2',
+    date: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'draft',
+    items: [
+      {
+        id: 'item4',
+        description: 'Emergency HVAC Repair',
+        quantity: 3,
+        unitPrice: 150,
+        total: 450,
+        type: 'labor',
+      },
+      {
+        id: 'item5',
+        description: 'Replacement Compressor',
+        quantity: 1,
+        unitPrice: 1200,
+        total: 1200,
+        type: 'part',
+      },
+    ],
+    subtotal: 1650,
+    tax: 144.38,
+    total: 1794.38,
+    paidAmount: 0,
+    paymentMethod: undefined,
+    notes: 'NET 15 terms apply.',
+  },
+];
