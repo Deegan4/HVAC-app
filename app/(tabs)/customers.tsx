@@ -173,62 +173,56 @@ export default function CustomersScreen() {
           ) : (
             <ScrollView contentContainerStyle={styles.welcomeContainer}>
               <View style={styles.welcomeIconContainer}>
-                <Users size={48} color={Colors.primary} />
+                <Users size={64} color={Colors.primary} />
               </View>
-              <Text style={styles.welcomeTitle}>Build Your Customer Base</Text>
+              <Text style={styles.welcomeTitle}>Welcome to Your Service Business</Text>
               <Text style={styles.welcomeSubtitle}>
-                Add customers to start scheduling jobs and tracking service history
+                Start by adding your first customer to begin scheduling jobs and tracking service history
               </Text>
               
-              <View style={styles.actionCards}>
-                <TouchableOpacity
-                  style={styles.actionCard}
-                  onPress={() => router.push('/new-customer')}
-                >
-                  <View style={styles.actionIconContainer}>
-                    <Plus size={24} color={Colors.primary} />
-                  </View>
-                  <View style={styles.actionContent}>
-                    <Text style={styles.actionTitle}>Add Customer</Text>
-                    <Text style={styles.actionDescription}>
-                      Manually enter customer information
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={styles.actionCard}
-                  onPress={() => {
-                    // Import functionality would go here
-                    alert('Import feature coming soon!');
-                  }}
-                >
-                  <View style={styles.actionIconContainer}>
-                    <Upload size={24} color={Colors.primary} />
-                  </View>
-                  <View style={styles.actionContent}>
-                    <Text style={styles.actionTitle}>Import Customers</Text>
-                    <Text style={styles.actionDescription}>
-                      Upload from CSV or Excel file
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.primaryActionCard}
+                onPress={() => router.push('/new-customer')}
+              >
+                <View style={styles.primaryActionIcon}>
+                  <Plus size={28} color={Colors.white} />
+                </View>
+                <View style={styles.primaryActionContent}>
+                  <Text style={styles.primaryActionTitle}>Add Your First Customer</Text>
+                  <Text style={styles.primaryActionDescription}>
+                    Get started by adding customer details
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              
+              <View style={styles.featureGrid}>
+                <View style={styles.featureCard}>
+                  <FileText size={24} color={Colors.primary} />
+                  <Text style={styles.featureTitle}>Service History</Text>
+                  <Text style={styles.featureDescription}>Track all jobs and maintenance</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <MapPin size={24} color={Colors.primary} />
+                  <Text style={styles.featureTitle}>Equipment Tracking</Text>
+                  <Text style={styles.featureDescription}>Manage customer equipment</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <Phone size={24} color={Colors.primary} />
+                  <Text style={styles.featureTitle}>Contact Management</Text>
+                  <Text style={styles.featureDescription}>Store preferences and notes</Text>
+                </View>
+                <View style={styles.featureCard}>
+                  <Upload size={24} color={Colors.primary} />
+                  <Text style={styles.featureTitle}>Import Data</Text>
+                  <Text style={styles.featureDescription}>Bulk import from CSV files</Text>
+                </View>
               </View>
               
-              <View style={styles.infoSection}>
-                <Text style={styles.infoTitle}>What you can track:</Text>
-                <View style={styles.infoItem}>
-                  <FileText size={16} color={Colors.text.secondary} />
-                  <Text style={styles.infoText}>Complete service history</Text>
-                </View>
-                <View style={styles.infoItem}>
-                  <MapPin size={16} color={Colors.text.secondary} />
-                  <Text style={styles.infoText}>Equipment and locations</Text>
-                </View>
-                <View style={styles.infoItem}>
-                  <Phone size={16} color={Colors.text.secondary} />
-                  <Text style={styles.infoText}>Contact preferences and notes</Text>
-                </View>
+              <View style={styles.tipSection}>
+                <Text style={styles.tipTitle}>💡 Pro Tip</Text>
+                <Text style={styles.tipText}>
+                  Add detailed notes about each customer's preferences, equipment locations, and service history to provide better service and build stronger relationships.
+                </Text>
               </View>
             </ScrollView>
           )
@@ -359,87 +353,119 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   welcomeIconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
+    fontSize: 28,
+    fontWeight: '800' as const,
     color: Colors.text.primary,
     textAlign: 'center' as const,
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 34,
   },
   welcomeSubtitle: {
-    fontSize: 16,
+    fontSize: 17,
     color: Colors.text.secondary,
     textAlign: 'center' as const,
-    marginBottom: 32,
-    paddingHorizontal: 20,
+    marginBottom: 40,
+    paddingHorizontal: 16,
+    lineHeight: 24,
   },
-  actionCards: {
-    gap: 12,
-    marginBottom: 32,
-  },
-  actionCard: {
+  primaryActionCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  actionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primaryLight,
+  primaryActionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
-  actionContent: {
+  primaryActionContent: {
     flex: 1,
     justifyContent: 'center',
   },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
+  primaryActionTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.white,
     marginBottom: 4,
   },
-  actionDescription: {
-    fontSize: 14,
-    color: Colors.text.secondary,
+  primaryActionDescription: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
-  infoSection: {
-    backgroundColor: Colors.primaryLight,
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 32,
+  },
+  featureCard: {
+    width: '48%',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
+    alignItems: 'center',
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  infoTitle: {
-    fontSize: 16,
+  featureTitle: {
+    fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'center' as const,
   },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  featureDescription: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    textAlign: 'center' as const,
+    lineHeight: 16,
+  },
+  tipSection: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
     marginBottom: 8,
   },
-  infoText: {
+  tipText: {
     fontSize: 14,
     color: Colors.text.secondary,
-    marginLeft: 12,
-    flex: 1,
+    lineHeight: 20,
   },
 });

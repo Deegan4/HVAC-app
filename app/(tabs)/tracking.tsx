@@ -38,7 +38,9 @@ import {
   Circle,
   Route,
   Timer,
+  Plus,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Technician, TechnicianStatus, TrackingFilter } from '@/types';
@@ -497,147 +499,198 @@ export default function TrackingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Clean Header */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>Team Tracking</Text>
-            <View style={styles.headerStats}>
-              <View style={styles.statItem}>
-                <View style={[styles.statDot, { backgroundColor: Colors.success }]} />
-                <Text style={styles.statText}>
-                  {technicians.filter(t => t.availability !== 'offline').length} Active
-                </Text>
+            {technicians.length > 0 && (
+              <View style={styles.headerStats}>
+                <View style={styles.statItem}>
+                  <View style={[styles.statDot, { backgroundColor: Colors.success }]} />
+                  <Text style={styles.statText}>
+                    {technicians.filter(t => t.availability !== 'offline').length} Active
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <View style={[styles.statDot, { backgroundColor: Colors.warning }]} />
+                  <Text style={styles.statText}>
+                    {technicians.filter(t => t.status?.status === 'on-route').length} En Route
+                  </Text>
+                </View>
               </View>
-              <View style={styles.statItem}>
-                <View style={[styles.statDot, { backgroundColor: Colors.warning }]} />
-                <Text style={styles.statText}>
-                  {technicians.filter(t => t.status?.status === 'on-route').length} En Route
-                </Text>
-              </View>
-            </View>
+            )}
           </View>
-          <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-            <RefreshCw size={18} color={Colors.primary} />
-          </TouchableOpacity>
+          {technicians.length > 0 && (
+            <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
+              <RefreshCw size={18} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       
-      {/* Simplified Controls */}
-      <View style={styles.controlsSection}>
-        {/* View Toggle */}
-        <View style={styles.viewModeContainer}>
-          <TouchableOpacity
-            style={[styles.viewButton, viewMode === 'list' && styles.viewButtonActive]}
-            onPress={() => setViewMode('list')}
-          >
-            <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
-            <Text style={[styles.viewButtonText, viewMode === 'list' && styles.viewButtonTextActive]}>List</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.viewButton, viewMode === 'map' && styles.viewButtonActive]}
-            onPress={() => setViewMode('map')}
-          >
-            <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
-            <Text style={[styles.viewButtonText, viewMode === 'map' && styles.viewButtonTextActive]}>Map</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.viewButton, viewMode === 'analytics' && styles.viewButtonActive]}
-            onPress={() => setViewMode('analytics')}
-          >
-            <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
-            <Text style={[styles.viewButtonText, viewMode === 'analytics' && styles.viewButtonTextActive]}>Stats</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* Search and Filter */}
-        <View style={styles.searchFilterRow}>
-          <View style={styles.searchContainer}>
-            <Search size={16} color={Colors.text.secondary} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search technicians..."
-              placeholderTextColor={Colors.text.secondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X size={16} color={Colors.text.secondary} />
-              </TouchableOpacity>
-            )}
+      {technicians.length === 0 ? (
+        <ScrollView contentContainerStyle={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Users size={64} color={Colors.primary} />
           </View>
+          <Text style={styles.emptyTitle}>No Technicians Added Yet</Text>
+          <Text style={styles.emptySubtitle}>
+            Add technicians to your team to start tracking their locations and job progress in real-time
+          </Text>
           
           <TouchableOpacity
-            style={[
-              styles.filterButton,
-              (filter.status?.length || filter.availability?.length) && styles.filterButtonActive
-            ]}
-            onPress={() => setShowFilters(true)}
+            style={styles.addTechnicianButton}
+            onPress={() => router.push('/team-management')}
           >
-            <Filter size={16} color={
-              (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.text.secondary
-            } />
+            <View style={styles.addTechnicianIcon}>
+              <Plus size={24} color={Colors.white} />
+            </View>
+            <View style={styles.addTechnicianContent}>
+              <Text style={styles.addTechnicianTitle}>Add Your First Technician</Text>
+              <Text style={styles.addTechnicianDescription}>
+                Set up your team to enable tracking
+              </Text>
+            </View>
           </TouchableOpacity>
-        </View>
-      </View>
+          
+          <View style={styles.trackingFeatures}>
+            <Text style={styles.featuresTitle}>What you can track:</Text>
+            <View style={styles.featureItem}>
+              <MapPin size={20} color={Colors.primary} />
+              <Text style={styles.featureText}>Real-time location updates</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Route size={20} color={Colors.primary} />
+              <Text style={styles.featureText}>Job progress and status</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Clock size={20} color={Colors.primary} />
+              <Text style={styles.featureText}>Estimated arrival times</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <BarChart3 size={20} color={Colors.primary} />
+              <Text style={styles.featureText}>Performance analytics</Text>
+            </View>
+          </View>
+        </ScrollView>
+      ) : (
+        <>
+          {/* Controls */}
+          <View style={styles.controlsSection}>
+            <View style={styles.viewModeContainer}>
+              <TouchableOpacity
+                style={[styles.viewButton, viewMode === 'list' && styles.viewButtonActive]}
+                onPress={() => setViewMode('list')}
+              >
+                <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
+                <Text style={[styles.viewButtonText, viewMode === 'list' && styles.viewButtonTextActive]}>List</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.viewButton, viewMode === 'map' && styles.viewButtonActive]}
+                onPress={() => setViewMode('map')}
+              >
+                <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
+                <Text style={[styles.viewButtonText, viewMode === 'map' && styles.viewButtonTextActive]}>Map</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.viewButton, viewMode === 'analytics' && styles.viewButtonActive]}
+                onPress={() => setViewMode('analytics')}
+              >
+                <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
+                <Text style={[styles.viewButtonText, viewMode === 'analytics' && styles.viewButtonTextActive]}>Stats</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.searchFilterRow}>
+              <View style={styles.searchContainer}>
+                <Search size={16} color={Colors.text.secondary} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search technicians..."
+                  placeholderTextColor={Colors.text.secondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <X size={16} color={Colors.text.secondary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              <TouchableOpacity
+                style={[
+                  styles.filterButton,
+                  (filter.status?.length || filter.availability?.length) && styles.filterButtonActive
+                ]}
+                onPress={() => setShowFilters(true)}
+              >
+                <Filter size={16} color={
+                  (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.text.secondary
+                } />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-      {/* Content Area */}
-      <View style={styles.contentArea}>
-        {viewMode === 'map' ? (
-          <EnhancedMapView
-            technicians={filteredTechnicians}
-            selectedTechnician={selectedTechnician}
-            onTechnicianSelect={setSelectedTechnician}
-            showRoutes={true}
-            showGeofences={false}
-          />
-        ) : viewMode === 'analytics' ? (
-          <AnalyticsView technicians={filteredTechnicians} />
-        ) : (
-          <FlatList
-            data={filteredTechnicians}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TechnicianCard
-                technician={item}
-                isSelected={selectedTechnician === item.id}
-                onPress={() => {
-                  setSelectedTechnician(
-                    selectedTechnician === item.id ? null : item.id
-                  );
-                }}
+          {/* Content Area */}
+          <View style={styles.contentArea}>
+            {viewMode === 'map' ? (
+              <EnhancedMapView
+                technicians={filteredTechnicians}
+                selectedTechnician={selectedTechnician}
+                onTechnicianSelect={setSelectedTechnician}
+                showRoutes={true}
+                showGeofences={false}
+              />
+            ) : viewMode === 'analytics' ? (
+              <AnalyticsView technicians={filteredTechnicians} />
+            ) : (
+              <FlatList
+                data={filteredTechnicians}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TechnicianCard
+                    technician={item}
+                    isSelected={selectedTechnician === item.id}
+                    onPress={() => {
+                      setSelectedTechnician(
+                        selectedTechnician === item.id ? null : item.id
+                      );
+                    }}
+                  />
+                )}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={onRefresh}
+                    colors={[Colors.primary]}
+                    tintColor={Colors.primary}
+                  />
+                }
+                ListEmptyComponent={
+                  <View style={styles.emptyState}>
+                    <Users size={48} color={Colors.text.secondary} />
+                    <Text style={styles.emptyTitle}>No technicians found</Text>
+                    <Text style={styles.emptySubtitle}>
+                      {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
+                    </Text>
+                  </View>
+                }
               />
             )}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={onRefresh}
-                colors={[Colors.primary]}
-                tintColor={Colors.primary}
-              />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Users size={48} color={Colors.text.secondary} />
-                <Text style={styles.emptyTitle}>No technicians found</Text>
-                <Text style={styles.emptySubtitle}>
-                  {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
-                </Text>
-              </View>
-            }
-          />
-        )}
-      </View>
+          </View>
 
-      <FilterModal
-        visible={showFilters}
-        filter={filter}
-        onFilterChange={setFilter}
-        onClose={() => setShowFilters(false)}
-      />
+          <FilterModal
+            visible={showFilters}
+            filter={filter}
+            onFilterChange={setFilter}
+            onClose={() => setShowFilters(false)}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -900,6 +953,102 @@ const styles = StyleSheet.create({
     marginLeft: 'auto' as any,
   },
 
+  emptyContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    justifyContent: 'center',
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 32,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emptyTitle: {
+    fontSize: 28,
+    fontWeight: '800' as const,
+    color: Colors.text.primary,
+    textAlign: 'center' as const,
+    marginBottom: 12,
+    lineHeight: 34,
+  },
+  emptySubtitle: {
+    fontSize: 17,
+    color: Colors.text.secondary,
+    textAlign: 'center' as const,
+    marginBottom: 40,
+    paddingHorizontal: 16,
+    lineHeight: 24,
+  },
+  addTechnicianButton: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  addTechnicianIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  addTechnicianContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  addTechnicianTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.white,
+    marginBottom: 4,
+  },
+  addTechnicianDescription: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  trackingFeatures: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+    marginBottom: 16,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  featureText: {
+    fontSize: 15,
+    color: Colors.text.secondary,
+    flex: 1,
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -907,16 +1056,6 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 40,
     gap: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center' as const,
   },
   accessDenied: {
     flex: 1,

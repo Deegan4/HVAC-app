@@ -225,7 +225,12 @@ export default function TeamManagementScreen() {
                         </View>
                       </View>
                       <Text style={styles.techSpecialties}>
-                        {tech.specialties?.join(', ') || tech.skills?.join(', ') || 'No specialties listed'}
+                        {(tech.specialties && tech.specialties.length > 0) 
+                          ? tech.specialties.join(', ') 
+                          : (tech.skills && tech.skills.length > 0) 
+                            ? tech.skills.join(', ') 
+                            : 'No specialties listed'
+                        }
                       </Text>
                     </View>
                     <View style={styles.techActions}>
@@ -263,7 +268,12 @@ export default function TeamManagementScreen() {
                       <View style={styles.detailRow}>
                         <Wrench size={16} color={Colors.text.secondary} />
                         <Text style={styles.detailText}>
-                          Specialties: {tech.specialties?.join(', ') || tech.skills?.join(', ') || 'No specialties listed'}
+                          Specialties: {(tech.specialties && tech.specialties.length > 0) 
+                            ? tech.specialties.join(', ') 
+                            : (tech.skills && tech.skills.length > 0) 
+                              ? tech.skills.join(', ') 
+                              : 'No specialties listed'
+                          }
                         </Text>
                       </View>
                       {tech.currentJobId && (
@@ -434,7 +444,12 @@ export default function TeamManagementScreen() {
                   <Text style={styles.inputLabel}>Specialties</Text>
                   <TextInput
                     style={styles.textInput}
-                    value={editingTech.specialties?.join(', ') || editingTech.skills?.join(', ') || ''}
+                    value={(editingTech.specialties && editingTech.specialties.length > 0) 
+                      ? editingTech.specialties.join(', ') 
+                      : (editingTech.skills && editingTech.skills.length > 0) 
+                        ? editingTech.skills.join(', ') 
+                        : ''
+                    }
                     onChangeText={(text) => setEditingTech(prev => prev ? { 
                       ...prev, 
                       specialties: text.split(',').map(s => s.trim()).filter(s => s)
