@@ -32,6 +32,9 @@ import { Technician } from '@/types';
 
 export default function TeamManagementScreen() {
   const { technicians, addTechnician, updateTechnician, deleteTechnician } = useAppStore();
+  
+  console.log('TeamManagementScreen render - technicians count:', technicians.length);
+  console.log('TeamManagementScreen render - technicians:', technicians);
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -64,7 +67,12 @@ export default function TeamManagementScreen() {
         currentJobId: undefined,
       };
 
+      console.log('Adding technician:', technicianData);
+      console.log('Current technicians count before add:', technicians.length);
+      
       addTechnician(technicianData);
+      
+      console.log('Technician added, current count should be:', technicians.length + 1);
       
       setNewTech({ name: '', email: '', phone: '', specialties: '', availability: 'available' });
       setShowAddModal(false);

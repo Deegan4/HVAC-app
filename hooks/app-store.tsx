@@ -89,11 +89,19 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: technicians = mockTechnicians } = useQuery({
-    queryKey: ['technicians'],
+  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
+  const [techniciansLoading, setTechniciansLoading] = useState(true);
+  
+  // Load technicians on mount
+  useQuery({
+    queryKey: ['technicians-init'],
     queryFn: async () => {
+      setTechniciansLoading(true);
       const stored = await AsyncStorage.getItem('technicians');
-      return stored ? JSON.parse(stored) : mockTechnicians;
+      const data = stored ? JSON.parse(stored) : mockTechnicians;
+      setTechnicians(data);
+      setTechniciansLoading(false);
+      return data;
     },
   });
 
@@ -156,16 +164,16 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
   const { mutate: mutateInvoices } = invoicesMutation;
 
-  const techniciansMutation = useMutation({
-    mutationFn: async (newTechnicians: Technician[]) => {
+  const saveTechnicians = useCallback(async (newTechnicians: Technician[]) => {
+    console.log('saveTechnicians called with:', newTechnicians);
+    try {
       await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
-      return newTechnicians;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['technicians'] });
-    },
-  });
-  const { mutate: mutateTechnicians } = techniciansMutation;
+      setTechnicians(newTechnicians);
+      console.log('Technicians saved and state updated');
+    } catch (error) {
+      console.error('Error saving technicians:', error);
+    }
+  }, []);
 
   // Helper functions
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
@@ -246,24 +254,33 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, [technicians]);
 
   const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
+    console.log('addTechnician called with:', technician);
+    console.log('Current technicians before add:', technicians);
+    
     const newTechnician: Technician = {
       ...technician,
       id: `tech${Date.now()}`,
     };
-    mutateTechnicians([...technicians, newTechnician]);
-  }, [technicians, mutateTechnicians]);
+    
+    console.log('New technician created:', newTechnician);
+    
+    const updatedTechnicians = [...technicians, newTechnician];
+    console.log('Updated technicians array:', updatedTechnicians);
+    
+    saveTechnicians(updatedTechnicians);
+  }, [technicians, saveTechnicians]);
 
   const updateTechnician = useCallback((technicianId: string, updates: Partial<Technician>) => {
     const updatedTechnicians = technicians.map((tech: Technician) =>
       tech.id === technicianId ? { ...tech, ...updates } : tech
     );
-    mutateTechnicians(updatedTechnicians);
-  }, [technicians, mutateTechnicians]);
+    saveTechnicians(updatedTechnicians);
+  }, [technicians, saveTechnicians]);
 
   const deleteTechnician = useCallback((technicianId: string) => {
     const updatedTechnicians = technicians.filter((tech: Technician) => tech.id !== technicianId);
-    mutateTechnicians(updatedTechnicians);
-  }, [technicians, mutateTechnicians]);
+    saveTechnicians(updatedTechnicians);
+  }, [technicians, saveTechnicians]);
 
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
@@ -330,7 +347,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return invoices.filter((invoice: Invoice) => invoice.customerId === customerId);
   }, [invoices]);
 
-  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading;
+  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading;
 
   return useMemo(() => ({
     customers,
