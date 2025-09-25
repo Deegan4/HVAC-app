@@ -43,15 +43,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <FileText color={color} size={size} />,
         }}
       />
-      {userRole === 'owner' && (
-        <Tabs.Screen
-          name="tracking"
-          options={{
-            title: "Tracking",
-            tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="tracking"
+        options={{
+          title: "Tracking",
+          tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
+          href: userRole === 'owner' ? '/tracking' : null,
+        }}
+      />
       <Tabs.Screen
         name="more"
         options={{
