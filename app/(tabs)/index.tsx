@@ -134,7 +134,7 @@ export default function ScheduleScreen() {
             <View style={styles.welcomeIconContainer}>
               <Wrench size={48} color={Colors.primary} />
             </View>
-            <Text style={styles.welcomeTitle}>Welcome to Your Service Hub!</Text>
+            <Text style={styles.welcomeTitle}>Welcome Owner</Text>
             <Text style={styles.welcomeSubtitle}>
               Let's get your business set up and running
             </Text>
