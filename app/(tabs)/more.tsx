@@ -34,23 +34,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
   const { technicians, currentTechnicianId, logout, userRole } = useAppStore();
-  const currentTech = technicians.find(t => t.id === currentTechnicianId);
+  
+  // For technician role, use the most recent technician if currentTechnicianId is not set
+  // For owner role, show owner info
+  const currentTech = currentTechnicianId 
+    ? technicians.find(t => t.id === currentTechnicianId)
+    : (userRole === 'technician' && technicians.length > 0) 
+      ? technicians[technicians.length - 1] // Most recently added technician
+      : null;
+      
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [profileData, setProfileData] = useState<any>(null);
 
   // Load profile data to get the updated name
   const loadProfileData = useCallback(async () => {
     try {
-      if (currentTechnicianId) {
-        const savedProfile = await AsyncStorage.getItem(`profile_${currentTechnicianId}`);
-        if (savedProfile) {
-          setProfileData(JSON.parse(savedProfile));
-        }
+      const profileId = currentTech?.id || 'owner';
+      const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
+      if (savedProfile) {
+        setProfileData(JSON.parse(savedProfile));
       }
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
-  }, [currentTechnicianId]);
+  }, [currentTech?.id]);
 
   // Load profile data on mount
   useEffect(() => {
@@ -63,6 +70,11 @@ export default function MoreScreen() {
       loadProfileData();
     }, [loadProfileData])
   );
+
+  // Also reload when technicians array changes (when new technician is added)
+  useEffect(() => {
+    loadProfileData();
+  }, [technicians.length, loadProfileData]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -128,9 +140,15 @@ export default function MoreScreen() {
             <User size={32} color={Colors.text.inverse} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{profileData?.name || currentTech?.name || 'John Doe'}</Text>
-            <Text style={styles.profileRole}>Service Technician</Text>
-            <Text style={styles.profileEmail}>{profileData?.email || currentTech?.email || 'john@olivarefrigeration.com'}</Text>
+            <Text style={styles.profileName}>
+              {profileData?.name || currentTech?.name || (userRole === 'owner' ? 'Owner' : 'Technician')}
+            </Text>
+            <Text style={styles.profileRole}>
+              {userRole === 'owner' ? 'Owner/Manager' : 'Service Technician'}
+            </Text>
+            <Text style={styles.profileEmail}>
+              {profileData?.email || currentTech?.email || 'user@olivarefrigeration.com'}
+            </Text>
           </View>
         </View>
 
