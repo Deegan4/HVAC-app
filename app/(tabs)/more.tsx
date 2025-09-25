@@ -118,7 +118,7 @@ export default function MoreScreen() {
     {
       title: 'Support',
       items: [
-        { icon: Phone, label: 'AI Answering Service', onPress: () => router.push('/ai-answering-service') },
+        ...(userRole === 'owner' ? [{ icon: Phone, label: 'AI Answering Service', onPress: () => router.push('/ai-answering-service') }] : []),
         { icon: HelpCircle, label: 'Help Center', onPress: () => router.push('/help-center') },
         { icon: FileText, label: 'Terms & Conditions', onPress: () => router.push('/terms-conditions') },
       ]
