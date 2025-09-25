@@ -19,7 +19,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import CalendarView from '@/components/CalendarView';
 
 export default function ScheduleScreen() {
-  const { jobs, isLoading, getUpcomingJobs, customers } = useAppStore();
+  const { jobs, isLoading, getUpcomingJobs, customers, userRole } = useAppStore();
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
   const [refreshing, setRefreshing] = useState(false);
@@ -134,7 +134,9 @@ export default function ScheduleScreen() {
             <View style={styles.welcomeIconContainer}>
               <Wrench size={48} color={Colors.primary} />
             </View>
-            <Text style={styles.welcomeTitle}>Welcome Owner</Text>
+            <Text style={styles.welcomeTitle}>
+              Welcome {userRole === 'owner' ? 'Owner' : 'Technician'}
+            </Text>
             <Text style={styles.welcomeSubtitle}>
               Let's get your business set up and running
             </Text>
