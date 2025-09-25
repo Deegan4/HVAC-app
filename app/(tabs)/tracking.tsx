@@ -1046,7 +1046,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 15,
-    color: Colors.text.secondary,
+    color: Colors.text.inverse,
     flex: 1,
   },
   emptyState: {

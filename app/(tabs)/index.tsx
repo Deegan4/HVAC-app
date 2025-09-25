@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: Colors.text.secondary,
+    color: Colors.text.inverse,
     marginLeft: 12,
     flex: 1,
     lineHeight: 20,

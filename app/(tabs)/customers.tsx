@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: Colors.text.secondary,
+    color: Colors.text.inverse,
     lineHeight: 20,
   },
 });
