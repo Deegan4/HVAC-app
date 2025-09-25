@@ -23,6 +23,9 @@ interface AppState {
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
   deleteCustomer: (customerId: string) => void;
+  addTechnician: (technician: Omit<Technician, 'id'>) => void;
+  updateTechnician: (technicianId: string, updates: Partial<Technician>) => void;
+  deleteTechnician: (technicianId: string) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoiceStatus: (invoiceId: string, status: Invoice['status']) => void;
   importCustomers: (importedCustomers: Customer[]) => Promise<void>;
@@ -153,7 +156,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
   const { mutate: mutateInvoices } = invoicesMutation;
 
-  useMutation({
+  const techniciansMutation = useMutation({
     mutationFn: async (newTechnicians: Technician[]) => {
       await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
       return newTechnicians;
@@ -162,6 +165,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       queryClient.invalidateQueries({ queryKey: ['technicians'] });
     },
   });
+  const { mutate: mutateTechnicians } = techniciansMutation;
 
   // Helper functions
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
@@ -240,6 +244,26 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const getActiveTechnicians = useCallback(() => {
     return technicians.filter((tech: Technician) => tech.availability !== 'offline');
   }, [technicians]);
+
+  const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
+    const newTechnician: Technician = {
+      ...technician,
+      id: `tech${Date.now()}`,
+    };
+    mutateTechnicians([...technicians, newTechnician]);
+  }, [technicians, mutateTechnicians]);
+
+  const updateTechnician = useCallback((technicianId: string, updates: Partial<Technician>) => {
+    const updatedTechnicians = technicians.map((tech: Technician) =>
+      tech.id === technicianId ? { ...tech, ...updates } : tech
+    );
+    mutateTechnicians(updatedTechnicians);
+  }, [technicians, mutateTechnicians]);
+
+  const deleteTechnician = useCallback((technicianId: string) => {
+    const updatedTechnicians = technicians.filter((tech: Technician) => tech.id !== technicianId);
+    mutateTechnicians(updatedTechnicians);
+  }, [technicians, mutateTechnicians]);
 
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
@@ -342,6 +366,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateTechnicianStatus,
     getTechniciansByStatus,
     getActiveTechnicians,
+    addTechnician,
+    updateTechnician,
+    deleteTechnician,
   }), [
     customers,
     equipment,
@@ -376,6 +403,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateTechnicianStatus,
     getTechniciansByStatus,
     getActiveTechnicians,
+    addTechnician,
+    updateTechnician,
+    deleteTechnician,
   ]);
 });
 

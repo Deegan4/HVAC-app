@@ -28,11 +28,10 @@ import {
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Technician } from '@/types';
 
 export default function TeamManagementScreen() {
-  const { technicians } = useAppStore();
+  const { technicians, addTechnician, updateTechnician, deleteTechnician } = useAppStore();
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -56,8 +55,7 @@ export default function TeamManagementScreen() {
     }
 
     try {
-      const technicianData: Technician = {
-        id: `tech${Date.now()}`,
+      const technicianData = {
         name: newTech.name.trim(),
         email: newTech.email.trim(),
         phone: newTech.phone.trim(),
@@ -66,8 +64,7 @@ export default function TeamManagementScreen() {
         currentJobId: undefined,
       };
 
-      const updatedTechnicians = [...technicians, technicianData];
-      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+      addTechnician(technicianData);
       
       setNewTech({ name: '', email: '', phone: '', specialties: '', availability: 'available' });
       setShowAddModal(false);
@@ -87,10 +84,7 @@ export default function TeamManagementScreen() {
     if (!editingTech) return;
 
     try {
-      const updatedTechnicians = technicians.map(tech => 
-        tech.id === editingTech.id ? editingTech : tech
-      );
-      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+      updateTechnician(editingTech.id, editingTech);
       
       setEditingTech(null);
       setShowEditModal(false);
@@ -113,8 +107,7 @@ export default function TeamManagementScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const updatedTechnicians = technicians.filter(t => t.id !== techId);
-              await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+              deleteTechnician(techId);
               Alert.alert('Success', 'Technician removed successfully!');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove technician.');
@@ -127,13 +120,9 @@ export default function TeamManagementScreen() {
 
   const handleToggleAvailability = async (techId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'available' ? 'offline' : 'available';
-    const tech = technicians.find(t => t.id === techId);
     
     try {
-      const updatedTechnicians = technicians.map(t => 
-        t.id === techId ? { ...t, availability: newStatus } : t
-      );
-      await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
+      updateTechnician(techId, { availability: newStatus });
     } catch (error) {
       Alert.alert('Error', 'Failed to update availability.');
       console.log('Error updating availability:', error);
