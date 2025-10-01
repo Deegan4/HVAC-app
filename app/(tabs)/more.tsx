@@ -110,7 +110,7 @@ export default function MoreScreen() {
     {
       title: 'Account',
       items: [
-        { icon: User, label: 'Profile', onPress: () => router.push('/profile') },
+        { icon: User, label: userRole === 'owner' ? 'Owner Profile' : 'Profile', onPress: () => router.push('/profile') },
         { icon: Bell, label: 'Notifications', hasSwitch: true },
         { icon: Shield, label: 'Privacy & Security', onPress: () => router.push('/privacy-security') },
       ]
