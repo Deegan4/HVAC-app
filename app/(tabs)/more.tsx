@@ -49,15 +49,21 @@ export default function MoreScreen() {
   // Load profile data to get the updated name
   const loadProfileData = useCallback(async () => {
     try {
-      const profileId = currentTech?.id || 'owner';
+      const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
+      console.log('Loading profile data for more tab, profileId:', profileId);
       const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
       if (savedProfile) {
-        setProfileData(JSON.parse(savedProfile));
+        const parsed = JSON.parse(savedProfile);
+        console.log('Loaded profile data:', parsed);
+        setProfileData(parsed);
+      } else {
+        console.log('No saved profile found');
+        setProfileData(null);
       }
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
-  }, [currentTech?.id]);
+  }, [currentTech?.id, userRole]);
 
   // Load profile data on mount
   useEffect(() => {
