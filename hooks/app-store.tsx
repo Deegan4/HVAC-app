@@ -19,6 +19,7 @@ interface AppState {
   isAuthenticated: boolean;
   hasPin: boolean;
   hasRole: boolean;
+  profileUpdateTrigger: number;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
@@ -44,6 +45,7 @@ interface AppState {
   updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
   getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
   getActiveTechnicians: () => Technician[];
+  triggerProfileUpdate: () => void;
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -55,6 +57,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const [hasPin, setHasPin] = useState<boolean>(false);
   const [hasRole, setHasRole] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
+  const [profileUpdateTrigger, setProfileUpdateTrigger] = useState<number>(0);
 
   // Load data from AsyncStorage or use mock data
   const { data: customers = mockCustomers, isLoading: customersLoading } = useQuery({
@@ -236,6 +239,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setIsAuthenticated(false);
   }, []);
 
+  const triggerProfileUpdate = useCallback(() => {
+    setProfileUpdateTrigger(prev => prev + 1);
+    console.log('Profile update triggered');
+  }, []);
+
   const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
     // In a real app, this would update the server and local state
     console.log('Updating technician location:', technicianId, locationUpdate);
@@ -362,6 +370,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
+    profileUpdateTrigger,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -387,6 +396,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addTechnician,
     updateTechnician,
     deleteTechnician,
+    triggerProfileUpdate,
   }), [
     customers,
     equipment,
@@ -399,6 +409,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
+    profileUpdateTrigger,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -424,6 +435,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addTechnician,
     updateTechnician,
     deleteTechnician,
+    triggerProfileUpdate,
   ]);
 });
 

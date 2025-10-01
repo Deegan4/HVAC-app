@@ -33,7 +33,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout, userRole } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger } = useAppStore();
   
   // For technician role, use the most recent technician if currentTechnicianId is not set
   // For owner role, show owner info
@@ -81,6 +81,14 @@ export default function MoreScreen() {
   useEffect(() => {
     loadProfileData();
   }, [technicians.length, loadProfileData]);
+
+  // Reload when profile update is triggered
+  useEffect(() => {
+    if (profileUpdateTrigger > 0) {
+      console.log('Profile update detected, reloading profile data');
+      loadProfileData();
+    }
+  }, [profileUpdateTrigger, loadProfileData]);
 
   const handleLogout = () => {
     Alert.alert(

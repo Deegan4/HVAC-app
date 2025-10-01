@@ -6,9 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -26,6 +28,22 @@ const { width } = Dimensions.get('window');
 
 export default function ReportsAnalyticsScreen() {
   const { jobs, invoices, customers } = useAppStore();
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const checkRole = async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      setUserRole(role);
+      if (role === 'technician') {
+        Alert.alert(
+          'Access Denied',
+          'This feature is only available to owners and managers.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
+    };
+    checkRole();
+  }, []);
   const jobStats = useJobStats();
   const revenueStats = useRevenueStats();
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');

@@ -54,7 +54,7 @@ const ProfileField = React.memo<ProfileFieldProps>(({ isEditing, label, value, o
 ProfileField.displayName = 'ProfileField';
 
 export default function ProfileScreen() {
-  const { technicians, currentTechnicianId, jobs, invoices, userRole } = useAppStore();
+  const { technicians, currentTechnicianId, jobs, invoices, userRole, triggerProfileUpdate } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -137,6 +137,7 @@ export default function ProfileScreen() {
       console.log('Saving profile:', profile, 'with ID:', profileId);
       await AsyncStorage.setItem(`profile_${profileId}`, JSON.stringify(profile));
       setOriginalProfile(profile);
+      triggerProfileUpdate();
       Alert.alert('Success', 'Profile updated successfully!');
       setIsEditing(false);
       console.log('Profile saved successfully');

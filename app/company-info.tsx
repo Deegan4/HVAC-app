@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { Building, Mail, Phone, MapPin, Save, Edit3, Globe, FileText, AlertCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,6 +34,23 @@ interface ValidationErrors {
 const REQUIRED_FIELDS = ['name', 'email', 'phone', 'address', 'license'];
 
 export default function CompanyInfoScreen() {
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const checkRole = async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      setUserRole(role);
+      if (role === 'technician') {
+        Alert.alert(
+          'Access Denied',
+          'This feature is only available to owners and managers.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
+    };
+    checkRole();
+  }, []);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     name: 'Oliva Refrigeration',

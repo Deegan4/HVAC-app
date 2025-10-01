@@ -11,7 +11,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { 
   Users, 
   UserPlus, 
@@ -31,7 +31,17 @@ import { useAppStore } from '@/hooks/app-store';
 import { Technician } from '@/types';
 
 export default function TeamManagementScreen() {
-  const { technicians, addTechnician, updateTechnician, deleteTechnician } = useAppStore();
+  const { technicians, addTechnician, updateTechnician, deleteTechnician, userRole } = useAppStore();
+  
+  React.useEffect(() => {
+    if (userRole === 'technician') {
+      Alert.alert(
+        'Access Denied',
+        'This feature is only available to owners and managers.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    }
+  }, [userRole]);
   
   console.log('TeamManagementScreen render - technicians count:', technicians.length);
   console.log('TeamManagementScreen render - technicians:', technicians);
