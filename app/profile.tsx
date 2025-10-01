@@ -54,7 +54,7 @@ const ProfileField = React.memo<ProfileFieldProps>(({ isEditing, label, value, o
 ProfileField.displayName = 'ProfileField';
 
 export default function ProfileScreen() {
-  const { technicians, currentTechnicianId, jobs, invoices } = useAppStore();
+  const { technicians, currentTechnicianId, jobs, invoices, userRole } = useAppStore();
   const currentTech = technicians.find(t => t.id === currentTechnicianId);
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -75,9 +75,10 @@ export default function ProfileScreen() {
   // Load profile data and photo on component mount
   const loadProfileData = useCallback(async () => {
     try {
-      console.log('Loading profile data for technician:', currentTechnicianId);
-      const savedProfile = await AsyncStorage.getItem(`profile_${currentTechnicianId}`);
-      const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${currentTechnicianId}`);
+      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+      console.log('Loading profile data for:', profileId);
+      const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
+      const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${profileId}`);
       
       if (savedProfile) {
         const parsedProfile = JSON.parse(savedProfile);
@@ -97,7 +98,7 @@ export default function ProfileScreen() {
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
-  }, [currentTechnicianId, defaultProfile]);
+  }, [currentTechnicianId, defaultProfile, userRole]);
 
   useEffect(() => {
     loadProfileData();
@@ -119,7 +120,7 @@ export default function ProfileScreen() {
       Math.round((completedJobs.filter(job => {
         const scheduled = new Date(`${job.scheduledDate}T${job.scheduledTime}`);
         const completed = job.completedAt ? new Date(job.completedAt) : new Date();
-        return completed <= new Date(scheduled.getTime() + job.duration * 60000);
+        return completed <= new Date(scheduled.getTime() + (job.duration || 60) * 60000);
       }).length / completedJobs.length) * 100) : 100,
     totalRevenue: techInvoices.reduce((sum, inv) => sum + inv.total, 0)
   };
@@ -132,8 +133,9 @@ export default function ProfileScreen() {
 
   const handleSave = async () => {
     try {
-      console.log('Saving profile:', profile);
-      await AsyncStorage.setItem(`profile_${currentTechnicianId}`, JSON.stringify(profile));
+      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+      console.log('Saving profile:', profile, 'with ID:', profileId);
+      await AsyncStorage.setItem(`profile_${profileId}`, JSON.stringify(profile));
       setOriginalProfile(profile);
       Alert.alert('Success', 'Profile updated successfully!');
       setIsEditing(false);
@@ -180,8 +182,9 @@ export default function ProfileScreen() {
 
       if (!result.canceled && result.assets[0]) {
         const photoUri = result.assets[0].uri;
+        const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
         setProfilePhoto(photoUri);
-        await AsyncStorage.setItem(`profilePhoto_${currentTechnicianId}`, photoUri);
+        await AsyncStorage.setItem(`profilePhoto_${profileId}`, photoUri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to take photo. Please try again.');
@@ -206,8 +209,9 @@ export default function ProfileScreen() {
 
       if (!result.canceled && result.assets[0]) {
         const photoUri = result.assets[0].uri;
+        const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
         setProfilePhoto(photoUri);
-        await AsyncStorage.setItem(`profilePhoto_${currentTechnicianId}`, photoUri);
+        await AsyncStorage.setItem(`profilePhoto_${profileId}`, photoUri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to select photo. Please try again.');
@@ -217,8 +221,9 @@ export default function ProfileScreen() {
 
   const removePhoto = async () => {
     try {
+      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
       setProfilePhoto(null);
-      await AsyncStorage.removeItem(`profilePhoto_${currentTechnicianId}`);
+      await AsyncStorage.removeItem(`profilePhoto_${profileId}`);
     } catch (error) {
       console.log('Error removing photo:', error);
     }
