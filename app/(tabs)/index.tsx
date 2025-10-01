@@ -208,19 +208,19 @@ export default function ScheduleScreen() {
             <View style={styles.tipsSection}>
               <Text style={styles.tipsTitle}>Pro Tips</Text>
               <View style={styles.tipCard}>
-                <AlertCircle size={16} color={Colors.primary} />
+                <AlertCircle size={16} color={Colors.text.inverse} />
                 <Text style={styles.tipText}>
                   Import your existing customer list from the Customers tab
                 </Text>
               </View>
               <View style={styles.tipCard}>
-                <MapPin size={16} color={Colors.primary} />
+                <MapPin size={16} color={Colors.text.inverse} />
                 <Text style={styles.tipText}>
                   Enable location tracking to optimize technician routes
                 </Text>
               </View>
               <View style={styles.tipCard}>
-                <Clock size={16} color={Colors.primary} />
+                <Clock size={16} color={Colors.text.inverse} />
                 <Text style={styles.tipText}>
                   Set up your service hours in Company Settings
                 </Text>
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   tipsTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
+    color: Colors.text.inverse,
     marginBottom: 12,
   },
   tipCard: {

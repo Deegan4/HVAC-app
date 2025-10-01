@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
@@ -89,21 +89,20 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
-  const [techniciansLoading, setTechniciansLoading] = useState(true);
-  
-  // Load technicians on mount
-  useQuery({
-    queryKey: ['technicians-init'],
+  const { data: technicians = mockTechnicians, isLoading: techniciansLoading } = useQuery({
+    queryKey: ['technicians'],
     queryFn: async () => {
-      setTechniciansLoading(true);
       const stored = await AsyncStorage.getItem('technicians');
-      const data = stored ? JSON.parse(stored) : mockTechnicians;
-      setTechnicians(data);
-      setTechniciansLoading(false);
-      return data;
+      return stored ? JSON.parse(stored) : mockTechnicians;
     },
   });
+  
+  const [localTechnicians, setLocalTechnicians] = useState<Technician[]>(technicians);
+  
+  // Update local state when query data changes
+  React.useEffect(() => {
+    setLocalTechnicians(technicians);
+  }, [technicians]);
 
   // Check for existing PIN and role on app start
   useQuery({
@@ -164,16 +163,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
   const { mutate: mutateInvoices } = invoicesMutation;
 
-  const saveTechnicians = useCallback(async (newTechnicians: Technician[]) => {
-    console.log('saveTechnicians called with:', newTechnicians);
-    try {
+  const techniciansMutation = useMutation({
+    mutationFn: async (newTechnicians: Technician[]) => {
       await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
-      setTechnicians(newTechnicians);
+      return newTechnicians;
+    },
+    onSuccess: (newTechnicians) => {
+      queryClient.invalidateQueries({ queryKey: ['technicians'] });
+      setLocalTechnicians(newTechnicians);
       console.log('Technicians saved and state updated');
-    } catch (error) {
-      console.error('Error saving technicians:', error);
-    }
-  }, []);
+    },
+  });
+  const { mutate: saveTechnicians } = techniciansMutation;
 
   // Helper functions
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
@@ -246,16 +247,16 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, []);
 
   const getTechniciansByStatus = useCallback((status: TechnicianStatus['status']) => {
-    return technicians.filter((tech: Technician) => tech.status?.status === status);
-  }, [technicians]);
+    return localTechnicians.filter((tech: Technician) => tech.status?.status === status);
+  }, [localTechnicians]);
 
   const getActiveTechnicians = useCallback(() => {
-    return technicians.filter((tech: Technician) => tech.availability !== 'offline');
-  }, [technicians]);
+    return localTechnicians.filter((tech: Technician) => tech.availability !== 'offline');
+  }, [localTechnicians]);
 
   const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
     console.log('addTechnician called with:', technician);
-    console.log('Current technicians before add:', technicians);
+    console.log('Current technicians before add:', localTechnicians);
     
     const newTechnician: Technician = {
       ...technician,
@@ -264,23 +265,23 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     
     console.log('New technician created:', newTechnician);
     
-    const updatedTechnicians = [...technicians, newTechnician];
+    const updatedTechnicians = [...localTechnicians, newTechnician];
     console.log('Updated technicians array:', updatedTechnicians);
     
     saveTechnicians(updatedTechnicians);
-  }, [technicians, saveTechnicians]);
+  }, [localTechnicians, saveTechnicians]);
 
   const updateTechnician = useCallback((technicianId: string, updates: Partial<Technician>) => {
-    const updatedTechnicians = technicians.map((tech: Technician) =>
+    const updatedTechnicians = localTechnicians.map((tech: Technician) =>
       tech.id === technicianId ? { ...tech, ...updates } : tech
     );
     saveTechnicians(updatedTechnicians);
-  }, [technicians, saveTechnicians]);
+  }, [localTechnicians, saveTechnicians]);
 
   const deleteTechnician = useCallback((technicianId: string) => {
-    const updatedTechnicians = technicians.filter((tech: Technician) => tech.id !== technicianId);
+    const updatedTechnicians = localTechnicians.filter((tech: Technician) => tech.id !== technicianId);
     saveTechnicians(updatedTechnicians);
-  }, [technicians, saveTechnicians]);
+  }, [localTechnicians, saveTechnicians]);
 
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
@@ -354,7 +355,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     equipment,
     jobs,
     invoices,
-    technicians,
+    technicians: localTechnicians,
     currentTechnicianId,
     userRole,
     isLoading,
@@ -391,7 +392,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     equipment,
     jobs,
     invoices,
-    technicians,
+    localTechnicians,
     currentTechnicianId,
     userRole,
     isLoading,

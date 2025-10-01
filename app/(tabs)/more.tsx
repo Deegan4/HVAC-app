@@ -141,7 +141,7 @@ export default function MoreScreen() {
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>
-              {profileData?.name || currentTech?.name || (userRole === 'owner' ? 'Owner' : 'Technician')}
+              {profileData?.name || currentTech?.name || (userRole === 'owner' ? 'Owner' : '')}
             </Text>
             <Text style={styles.profileRole}>
               {userRole === 'owner' ? 'Owner/Manager' : 'Service Technician'}
