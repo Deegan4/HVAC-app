@@ -26,7 +26,7 @@ export default function HelpCenterScreen() {
   const handleContactSupport = (method: 'phone' | 'email' | 'chat') => {
     switch (method) {
       case 'phone':
-        Linking.openURL('tel:+15551234567');
+        Linking.openURL('tel:+12398392112');
         break;
       case 'email':
         Linking.openURL('mailto:support@olivarefrigeration.com');
@@ -135,7 +135,7 @@ export default function HelpCenterScreen() {
             <ContactOption
               icon={Phone}
               title="Call Support"
-              subtitle="(555) 123-4567 • Available 24/7"
+              subtitle="(239) 839-2112 • Available 24/7"
               onPress={() => handleContactSupport('phone')}
             />
             <ContactOption
@@ -243,6 +243,10 @@ export default function HelpCenterScreen() {
             <View style={styles.appInfoRow}>
               <Text style={styles.appInfoLabel}>Last Updated</Text>
               <Text style={styles.appInfoValue}>January 15, 2024</Text>
+            </View>
+            <View style={styles.appInfoRow}>
+              <Text style={styles.appInfoLabel}>Developed By</Text>
+              <Text style={styles.appInfoValue}>Kollin Croyle</Text>
             </View>
           </View>
         </View>
