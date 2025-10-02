@@ -8,7 +8,6 @@ import {
   Dimensions,
   ScrollView,
   Animated,
-  Image,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
 import SnowingBackground from './SnowingBackground';
@@ -239,11 +238,10 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {/* Icon or Logo */}
             {currentIndex === 0 ? (
               <View style={styles.logoContainer}>
-                <Image
-                  source={{ uri: 'https://i.imgur.com/YourLogoHere.png' }}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
+                <View style={styles.logoCircle}>
+                  <Text style={styles.logoText}>OLIVA</Text>
+                  <Text style={styles.logoSubtext}>REFRIGERATION</Text>
+                </View>
               </View>
             ) : (
               <View style={[styles.iconContainer, { backgroundColor: currentSlide.color }]}>
@@ -361,9 +359,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoImage: {
-    width: '80%',
-    height: '100%',
+  logoCircle: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    letterSpacing: 2,
+  },
+  logoSubtext: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+    letterSpacing: 3,
+    marginTop: 4,
   },
   title: {
     fontSize: 28,
