@@ -23,6 +23,7 @@ interface AppState {
   isAuthenticated: boolean;
   hasPin: boolean;
   hasRole: boolean;
+  hasCompletedOnboarding: boolean;
   profileUpdateTrigger: number;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
@@ -45,6 +46,7 @@ interface AppState {
   setUserRole: (role: UserRole) => void;
   authenticatePin: (pin: string) => boolean;
   logout: () => void;
+  completeOnboarding: () => void;
   updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
   updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
   getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
@@ -67,6 +69,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);
   const [hasRole, setHasRole] = useState<boolean>(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
   const [profileUpdateTrigger, setProfileUpdateTrigger] = useState<number>(0);
 
@@ -158,6 +161,17 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         setHasRole(true);
       }
       return role;
+    },
+  });
+
+  useQuery({
+    queryKey: ['onboarding'],
+    queryFn: async () => {
+      const completed = await AsyncStorage.getItem('hasCompletedOnboarding');
+      if (completed === 'true') {
+        setHasCompletedOnboarding(true);
+      }
+      return completed;
     },
   });
 
@@ -294,6 +308,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const triggerProfileUpdate = useCallback(() => {
     setProfileUpdateTrigger(prev => prev + 1);
     console.log('Profile update triggered');
+  }, []);
+
+  const completeOnboarding = useCallback(async () => {
+    await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+    setHasCompletedOnboarding(true);
   }, []);
 
   const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
@@ -494,6 +513,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
+    hasCompletedOnboarding,
     profileUpdateTrigger,
     addJob,
     updateJobStatus,
@@ -511,6 +531,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     authenticatePin,
     logout,
+    completeOnboarding,
     importCustomers,
     exportCustomers,
     updateTechnicianLocation,
@@ -544,6 +565,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
+    hasCompletedOnboarding,
     profileUpdateTrigger,
     addJob,
     updateJobStatus,
@@ -561,6 +583,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     authenticatePin,
     logout,
+    completeOnboarding,
     importCustomers,
     exportCustomers,
     updateTechnicianLocation,

@@ -8,6 +8,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
+import OnboardingScreen from "@/components/OnboardingScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,7 +50,7 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, userRole, setPin, setUserRole, authenticatePin } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, hasCompletedOnboarding, userRole, setPin, setUserRole, authenticatePin, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
   // First check if user has selected a role
@@ -60,6 +61,15 @@ function AuthenticatedApp() {
           setSelectedRole(role);
           setUserRole(role);
         }}
+      />
+    );
+  }
+  
+  // Show onboarding after role selection but before PIN setup
+  if (!hasCompletedOnboarding) {
+    return (
+      <OnboardingScreen 
+        onComplete={completeOnboarding}
       />
     );
   }
