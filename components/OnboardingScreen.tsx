@@ -8,6 +8,7 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  Image,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
 import SnowingBackground from './SnowingBackground';
@@ -235,10 +236,20 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
           {/* Main Content */}
           <Animated.View style={[styles.slideContent, { opacity: fadeAnim }]}>
-            {/* Icon */}
-            <View style={[styles.iconContainer, { backgroundColor: currentSlide.color }]}>
-              <IconComponent size={64} color="#ffffff" />
-            </View>
+            {/* Icon or Logo */}
+            {currentIndex === 0 ? (
+              <View style={styles.logoContainer}>
+                <Image
+                  source={{ uri: 'https://i.imgur.com/YourLogoHere.png' }}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : (
+              <View style={[styles.iconContainer, { backgroundColor: currentSlide.color }]}>
+                <IconComponent size={64} color="#ffffff" />
+              </View>
+            )}
 
             {/* Title */}
             <Text style={styles.title}>{currentSlide.title}</Text>
@@ -342,6 +353,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  logoContainer: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoImage: {
+    width: '80%',
+    height: '100%',
   },
   title: {
     fontSize: 28,
