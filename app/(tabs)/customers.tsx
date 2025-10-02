@@ -248,7 +248,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
