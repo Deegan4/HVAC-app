@@ -22,7 +22,18 @@
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone",
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID."
       },
-      "usesIcloudStorage": true
+      "usesIcloudStorage": true,
+      "entitlements": {
+        "com": {
+          "apple": {
+            "developer": {
+              "networking": {
+                "wifi-info": true
+              }
+            }
+          }
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {

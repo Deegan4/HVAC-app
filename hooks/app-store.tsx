@@ -187,6 +187,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const invoicesMutation = useMutation({
     mutationFn: async (newInvoices: Invoice[]) => {
       await AsyncStorage.setItem('invoices', JSON.stringify(newInvoices));
+      await offlineStorage.saveOfflineData({ invoices: newInvoices });
       return newInvoices;
     },
     onSuccess: () => {
@@ -366,20 +367,35 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateCustomers(updatedCustomers);
   }, [customers, mutateCustomers]);
 
-  const addInvoice = useCallback((invoice: Omit<Invoice, 'id'>) => {
+  const addInvoice = useCallback(async (invoice: Omit<Invoice, 'id'>) => {
     const newInvoice: Invoice = {
       ...invoice,
       id: `inv${Date.now()}`,
     };
     mutateInvoices([...invoices, newInvoice]);
-  }, [invoices, mutateInvoices]);
+    
+    try {
+      await offlineStorage.updateInvoiceOffline(newInvoice, true);
+    } catch (error) {
+      console.error('Error saving invoice offline:', error);
+    }
+  }, [invoices, mutateInvoices, offlineStorage]);
 
-  const updateInvoiceStatus = useCallback((invoiceId: string, status: Invoice['status']) => {
+  const updateInvoiceStatus = useCallback(async (invoiceId: string, status: Invoice['status']) => {
     const updatedInvoices = invoices.map((invoice: Invoice) =>
       invoice.id === invoiceId ? { ...invoice, status } : invoice
     );
     mutateInvoices(updatedInvoices);
-  }, [invoices, mutateInvoices]);
+    
+    const updatedInvoice = updatedInvoices.find((inv: Invoice) => inv.id === invoiceId);
+    if (updatedInvoice) {
+      try {
+        await offlineStorage.updateInvoiceOffline(updatedInvoice, false);
+      } catch (error) {
+        console.error('Error updating invoice offline:', error);
+      }
+    }
+  }, [invoices, mutateInvoices, offlineStorage]);
 
   const getTodaysJobs = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
