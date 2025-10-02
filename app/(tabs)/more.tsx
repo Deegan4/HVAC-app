@@ -24,7 +24,8 @@ import {
   Bug,
   DollarSign,
   MapPin,
-  Phone
+  Phone,
+  MessageCircle
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -33,7 +34,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount } = useAppStore();
+  const unreadCount = getUnreadCount();
   
   // For technician role, use the most recent technician if currentTechnicianId is not set
   // For owner role, show owner info
@@ -105,6 +107,12 @@ export default function MoreScreen() {
   };
 
   const menuSections = [
+    {
+      title: 'Communication',
+      items: [
+        { icon: MessageCircle, label: 'Team Messages', onPress: () => router.push('/messaging'), badge: unreadCount },
+      ]
+    },
     {
       title: 'Business',
       items: [
@@ -179,13 +187,18 @@ export default function MoreScreen() {
                     itemIndex === section.items.length - 1 && styles.lastMenuItem
                   ]}
                   onPress={item.onPress}
-                  disabled={item.hasSwitch}
+                  disabled={'hasSwitch' in item && item.hasSwitch}
                 >
                   <View style={styles.menuItemLeft}>
                     <item.icon size={20} color={Colors.text.secondary} />
                     <Text style={styles.menuItemLabel}>{item.label}</Text>
+                    {'badge' in item && item.badge && item.badge > 0 && (
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{item.badge}</Text>
+                      </View>
+                    )}
                   </View>
-                  {item.hasSwitch ? (
+                  {'hasSwitch' in item && item.hasSwitch ? (
                     <Switch
                       value={notificationsEnabled}
                       onValueChange={setNotificationsEnabled}
@@ -321,5 +334,20 @@ const styles = StyleSheet.create({
     color: Colors.text.light,
     marginTop: 24,
     marginBottom: 40,
+  },
+  badge: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    marginLeft: 8,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
   },
 });

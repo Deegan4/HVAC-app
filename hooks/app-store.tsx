@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -13,7 +13,11 @@ interface AppState {
   jobs: Job[];
   invoices: Invoice[];
   technicians: Technician[];
+  messages: Message[];
+  jobComments: JobComment[];
   currentTechnicianId: string | null;
+  currentUserId: string;
+  currentUserName: string;
   userRole: UserRole | null;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -46,6 +50,13 @@ interface AppState {
   getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
   getActiveTechnicians: () => Technician[];
   triggerProfileUpdate: () => void;
+  sendMessage: (message: Omit<Message, 'id' | 'timestamp' | 'read'>) => void;
+  markMessageAsRead: (messageId: string) => void;
+  getConversationMessages: (participantId: string) => Message[];
+  getUnreadCount: () => number;
+  addJobComment: (comment: Omit<JobComment, 'id' | 'timestamp'>) => void;
+  getJobComments: (jobId: string) => JobComment[];
+  deleteJobComment: (commentId: string) => void;
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -99,8 +110,26 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       return stored ? JSON.parse(stored) : mockTechnicians;
     },
   });
+
+  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+    queryKey: ['messages'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem('messages');
+      return stored ? JSON.parse(stored) : [];
+    },
+  });
+
+  const { data: jobComments = [], isLoading: jobCommentsLoading } = useQuery({
+    queryKey: ['jobComments'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem('jobComments');
+      return stored ? JSON.parse(stored) : [];
+    },
+  });
   
   const [localTechnicians, setLocalTechnicians] = useState<Technician[]>(technicians);
+  const [currentUserId] = useState<string>('owner-1');
+  const [currentUserName, setCurrentUserName] = useState<string>('Owner');
   
   // Update local state when query data changes
   React.useEffect(() => {
@@ -178,6 +207,28 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
   const { mutate: saveTechnicians } = techniciansMutation;
+
+  const messagesMutation = useMutation({
+    mutationFn: async (newMessages: Message[]) => {
+      await AsyncStorage.setItem('messages', JSON.stringify(newMessages));
+      return newMessages;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+    },
+  });
+  const { mutate: mutateMessages } = messagesMutation;
+
+  const jobCommentsMutation = useMutation({
+    mutationFn: async (newComments: JobComment[]) => {
+      await AsyncStorage.setItem('jobComments', JSON.stringify(newComments));
+      return newComments;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobComments'] });
+    },
+  });
+  const { mutate: mutateJobComments } = jobCommentsMutation;
 
   // Helper functions
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
@@ -356,7 +407,60 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return invoices.filter((invoice: Invoice) => invoice.customerId === customerId);
   }, [invoices]);
 
-  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading;
+  const sendMessage = useCallback((message: Omit<Message, 'id' | 'timestamp' | 'read'>) => {
+    const newMessage: Message = {
+      ...message,
+      id: `msg${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    mutateMessages([...messages, newMessage]);
+  }, [messages, mutateMessages]);
+
+  const markMessageAsRead = useCallback((messageId: string) => {
+    const updatedMessages = messages.map((msg: Message) =>
+      msg.id === messageId ? { ...msg, read: true } : msg
+    );
+    mutateMessages(updatedMessages);
+  }, [messages, mutateMessages]);
+
+  const getConversationMessages = useCallback((participantId: string) => {
+    return messages
+      .filter((msg: Message) => 
+        msg.senderId === participantId || msg.recipientId === participantId
+      )
+      .sort((a: Message, b: Message) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+  }, [messages]);
+
+  const getUnreadCount = useCallback(() => {
+    return messages.filter((msg: Message) => !msg.read && msg.recipientId === currentUserId).length;
+  }, [messages, currentUserId]);
+
+  const addJobComment = useCallback((comment: Omit<JobComment, 'id' | 'timestamp'>) => {
+    const newComment: JobComment = {
+      ...comment,
+      id: `comment${Date.now()}`,
+      timestamp: new Date().toISOString(),
+    };
+    mutateJobComments([...jobComments, newComment]);
+  }, [jobComments, mutateJobComments]);
+
+  const getJobComments = useCallback((jobId: string) => {
+    return jobComments
+      .filter((comment: JobComment) => comment.jobId === jobId)
+      .sort((a: JobComment, b: JobComment) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+  }, [jobComments]);
+
+  const deleteJobComment = useCallback((commentId: string) => {
+    const updatedComments = jobComments.filter((comment: JobComment) => comment.id !== commentId);
+    mutateJobComments(updatedComments);
+  }, [jobComments, mutateJobComments]);
+
+  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading || messagesLoading || jobCommentsLoading;
 
   return useMemo(() => ({
     customers,
@@ -364,7 +468,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     jobs,
     invoices,
     technicians: localTechnicians,
+    messages,
+    jobComments,
     currentTechnicianId,
+    currentUserId,
+    currentUserName,
     userRole,
     isLoading,
     isAuthenticated,
@@ -397,13 +505,24 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateTechnician,
     deleteTechnician,
     triggerProfileUpdate,
+    sendMessage,
+    markMessageAsRead,
+    getConversationMessages,
+    getUnreadCount,
+    addJobComment,
+    getJobComments,
+    deleteJobComment,
   }), [
     customers,
     equipment,
     jobs,
     invoices,
     localTechnicians,
+    messages,
+    jobComments,
     currentTechnicianId,
+    currentUserId,
+    currentUserName,
     userRole,
     isLoading,
     isAuthenticated,
@@ -436,6 +555,13 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateTechnician,
     deleteTechnician,
     triggerProfileUpdate,
+    sendMessage,
+    markMessageAsRead,
+    getConversationMessages,
+    getUnreadCount,
+    addJobComment,
+    getJobComments,
+    deleteJobComment,
   ]);
 });
 

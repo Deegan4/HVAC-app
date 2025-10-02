@@ -8,9 +8,10 @@ import {
   Alert,
   Modal,
   Image,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { 
   Clock, 
   MapPin, 
@@ -25,7 +26,9 @@ import {
 
   Camera,
   PenTool,
-  Image as ImageIcon
+  Image as ImageIcon,
+  MessageSquare,
+  Trash2
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -36,12 +39,25 @@ import OfflineStorageManager from '@/utils/OfflineStorageManager';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
-  const { jobs, updateJobStatus, getCustomerById } = useAppStore();
+  const { 
+    jobs, 
+    updateJobStatus, 
+    getCustomerById, 
+    addJobComment, 
+    getJobComments, 
+    deleteJobComment,
+    currentUserId,
+    currentUserName,
+    userRole,
+  } = useAppStore();
   const [showCamera, setShowCamera] = useState(false);
   const [showSignature, setShowSignature] = useState(false);
   const [jobPhoto, setJobPhoto] = useState<string | null>(null);
   const [jobSignature, setJobSignature] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState('');
   const offlineStorage = OfflineStorageManager.getInstance();
+  
+  const jobComments = getJobComments(jobId || '');
   
   const job = jobs.find(j => j.id === jobId);
   const customer = job ? getCustomerById(job.customerId) : undefined;
@@ -68,9 +84,39 @@ export default function JobDetailsScreen() {
 
 
 
+  const handleAddComment = () => {
+    if (!commentText.trim() || !jobId) return;
+    
+    addJobComment({
+      jobId,
+      authorId: currentUserId,
+      authorName: currentUserName,
+      authorRole: userRole || 'owner',
+      content: commentText.trim(),
+    });
+    
+    setCommentText('');
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    Alert.alert(
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => deleteJobComment(commentId)
+        }
+      ]
+    );
+  };
+
   if (!job) {
     return (
       <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ title: 'Job Details' }} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Job not found</Text>
         </View>
@@ -154,6 +200,7 @@ export default function JobDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen options={{ title: 'Job Details' }} />
       <ScrollView style={styles.scrollView}>
         {/* Job Header */}
         <View style={styles.header}>
@@ -307,6 +354,72 @@ export default function JobDetailsScreen() {
             </View>
           </View>
         )}
+
+        {/* Job Comments Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Team Notes & Comments</Text>
+          <View style={styles.card}>
+            {jobComments.length === 0 ? (
+              <View style={styles.noComments}>
+                <MessageSquare size={32} color={Colors.text.light} />
+                <Text style={styles.noCommentsText}>No comments yet</Text>
+              </View>
+            ) : (
+              <View style={styles.commentsContainer}>
+                {jobComments.map((comment) => (
+                  <View key={comment.id} style={styles.commentItem}>
+                    <View style={styles.commentHeader}>
+                      <View style={styles.commentAuthorInfo}>
+                        <View style={styles.commentAvatar}>
+                          <User size={14} color={Colors.text.inverse} />
+                        </View>
+                        <View>
+                          <Text style={styles.commentAuthor}>{comment.authorName}</Text>
+                          <Text style={styles.commentTime}>
+                            {new Date(comment.timestamp).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                      {comment.authorId === currentUserId && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteComment(comment.id)}
+                          style={styles.deleteCommentButton}
+                        >
+                          <Trash2 size={16} color={Colors.status.cancelled} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <Text style={styles.commentContent}>{comment.content}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            <View style={styles.addCommentContainer}>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Add a note or comment..."
+                placeholderTextColor={Colors.text.light}
+                value={commentText}
+                onChangeText={setCommentText}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[styles.addCommentButton, !commentText.trim() && styles.addCommentButtonDisabled]}
+                onPress={handleAddComment}
+                disabled={!commentText.trim()}
+              >
+                <Text style={styles.addCommentButtonText}>Post</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
 
         {/* Action Buttons */}
         {job.status !== 'completed' && job.status !== 'cancelled' && (
@@ -610,5 +723,97 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     resizeMode: 'cover' as const,
+  },
+  commentsContainer: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  commentItem: {
+    backgroundColor: Colors.background,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  commentAuthorInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  commentAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  commentTime: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+  },
+  commentContent: {
+    fontSize: 14,
+    color: Colors.text.primary,
+    lineHeight: 20,
+  },
+  deleteCommentButton: {
+    padding: 4,
+  },
+  noComments: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  noCommentsText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginTop: 8,
+  },
+  addCommentContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  commentInput: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: Colors.text.primary,
+    maxHeight: 80,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addCommentButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  addCommentButtonDisabled: {
+    opacity: 0.5,
+  },
+  addCommentButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
   },
 });

@@ -118,3 +118,48 @@ export interface TrackingFilter {
   searchQuery?: string;
   showOnlyActive?: boolean;
 }
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'owner' | 'technician';
+  recipientId: string;
+  recipientName: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  jobId?: string;
+  attachments?: MessageAttachment[];
+}
+
+export interface MessageAttachment {
+  id: string;
+  type: 'photo' | 'document';
+  uri: string;
+  name: string;
+  size?: number;
+}
+
+export interface JobComment {
+  id: string;
+  jobId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: 'owner' | 'technician';
+  content: string;
+  timestamp: string;
+  photos?: string[];
+  edited?: boolean;
+  editedAt?: string;
+}
+
+export interface Conversation {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantRole: 'owner' | 'technician';
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+}
