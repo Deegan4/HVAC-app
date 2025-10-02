@@ -24,6 +24,9 @@ import {
   Download,
   Grid3X3,
   List,
+  DollarSign,
+  Edit3,
+  X,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -50,7 +53,15 @@ interface NewItemForm {
   imageUrl: string;
 }
 
+interface ServiceType {
+  id: string;
+  name: string;
+  duration: number;
+  rate: number;
+}
+
 const STORAGE_KEY = 'price_book_items';
+const SERVICE_TYPES_KEY = 'serviceTypes';
 
 const defaultItems: PriceBookItem[] = [
   // Compressors
@@ -555,9 +566,21 @@ export default function PriceBookScreen() {
     unit: 'each',
     imageUrl: '',
   });
+  
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([
+    { id: '1', name: 'AC Repair', duration: 90, rate: 125 },
+    { id: '2', name: 'Furnace Maintenance', duration: 60, rate: 95 },
+    { id: '3', name: 'Refrigerator Repair', duration: 75, rate: 110 },
+    { id: '4', name: 'Installation', duration: 120, rate: 150 },
+    { id: '5', name: 'Emergency Service', duration: 45, rate: 200 },
+  ]);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editingService, setEditingService] = useState<ServiceType | null>(null);
+  const [newService, setNewService] = useState({ name: '', duration: '', rate: '' });
 
   useEffect(() => {
     loadItems();
+    loadServiceTypes();
   }, []);
 
   const loadItems = async () => {
@@ -575,6 +598,17 @@ export default function PriceBookScreen() {
     }
   };
 
+  const loadServiceTypes = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(SERVICE_TYPES_KEY);
+      if (stored) {
+        setServiceTypes(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error loading service types:', error);
+    }
+  };
+
   const saveItems = async (updatedItems: PriceBookItem[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
@@ -582,6 +616,16 @@ export default function PriceBookScreen() {
     } catch (error) {
       console.error('Error saving price book items:', error);
       Alert.alert('Error', 'Failed to save changes');
+    }
+  };
+
+  const saveServiceTypes = async (updatedServiceTypes: ServiceType[]) => {
+    try {
+      await AsyncStorage.setItem(SERVICE_TYPES_KEY, JSON.stringify(updatedServiceTypes));
+      setServiceTypes(updatedServiceTypes);
+    } catch (error) {
+      console.error('Error saving service types:', error);
+      Alert.alert('Error', 'Failed to save service types');
     }
   };
 
@@ -688,6 +732,78 @@ export default function PriceBookScreen() {
       unit: 'each',
       imageUrl: '',
     });
+  };
+
+  const handleAddServiceType = () => {
+    setEditingService(null);
+    setNewService({ name: '', duration: '', rate: '' });
+    setShowServiceModal(true);
+  };
+
+  const handleEditServiceType = (service: ServiceType) => {
+    setEditingService(service);
+    setNewService({
+      name: service.name,
+      duration: service.duration.toString(),
+      rate: service.rate.toString(),
+    });
+    setShowServiceModal(true);
+  };
+
+  const handleSaveServiceType = async () => {
+    if (!newService.name.trim() || !newService.duration || !newService.rate) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    const duration = parseInt(newService.duration);
+    const rate = parseFloat(newService.rate);
+
+    if (isNaN(duration) || isNaN(rate)) {
+      Alert.alert('Error', 'Please enter valid numbers for duration and rate.');
+      return;
+    }
+
+    let updatedServiceTypes;
+    if (editingService) {
+      updatedServiceTypes = serviceTypes.map(service => 
+        service.id === editingService.id 
+          ? { ...service, name: newService.name.trim(), duration, rate }
+          : service
+      );
+    } else {
+      const newServiceType: ServiceType = {
+        id: `service${Date.now()}`,
+        name: newService.name.trim(),
+        duration,
+        rate,
+      };
+      updatedServiceTypes = [...serviceTypes, newServiceType];
+    }
+
+    await saveServiceTypes(updatedServiceTypes);
+    setShowServiceModal(false);
+    Alert.alert('Success', `Service type ${editingService ? 'updated' : 'added'} successfully!`);
+  };
+
+  const handleDeleteServiceType = (serviceId: string) => {
+    const service = serviceTypes.find(s => s.id === serviceId);
+    Alert.alert(
+      'Delete Service Type',
+      `Are you sure you want to delete "${service?.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const updatedServiceTypes = serviceTypes.filter(s => s.id !== serviceId);
+            await saveServiceTypes(updatedServiceTypes);
+            Alert.alert('Success', 'Service type deleted successfully!');
+          }
+        }
+      ]
+    );
   };
 
   const handleExportPriceBook = async () => {
@@ -956,6 +1072,46 @@ export default function PriceBookScreen() {
         </View>
       </View>
 
+      {/* Service Types Section */}
+      <View style={styles.serviceTypesSection}>
+        <View style={styles.serviceTypesSectionHeader}>
+          <Text style={styles.serviceTypesSectionTitle}>Service Types</Text>
+          <TouchableOpacity onPress={handleAddServiceType} style={styles.addServiceButton}>
+            <Plus size={16} color={Colors.primary} />
+            <Text style={styles.addServiceButtonText}>Add Type</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.serviceTypesScroll}>
+          {serviceTypes.map((service) => (
+            <TouchableOpacity
+              key={service.id}
+              style={styles.serviceTypeCard}
+              onPress={() => handleEditServiceType(service)}
+            >
+              <View style={styles.serviceTypeCardHeader}>
+                <Text style={styles.serviceTypeCardName}>{service.name}</Text>
+                <TouchableOpacity
+                  onPress={() => handleDeleteServiceType(service.id)}
+                  style={styles.serviceTypeDeleteButton}
+                >
+                  <X size={14} color={Colors.status.emergency} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.serviceTypeCardDetails}>
+                <View style={styles.serviceTypeCardDetail}>
+                  <Clock size={14} color={Colors.text.secondary} />
+                  <Text style={styles.serviceTypeCardDetailText}>{service.duration}min</Text>
+                </View>
+                <View style={styles.serviceTypeCardDetail}>
+                  <DollarSign size={14} color={Colors.text.secondary} />
+                  <Text style={styles.serviceTypeCardDetailText}>${service.rate}/hr</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Category Filter */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
         {categories.map((category) => (
@@ -1161,6 +1317,65 @@ export default function PriceBookScreen() {
                   onChangeText={(text) => setNewItem({ ...newItem, unit: text })}
                 />
               </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Service Type Modal */}
+      <Modal
+        visible={showServiceModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowServiceModal(false)}>
+              <Text style={styles.modalCancelButton}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {editingService ? 'Edit Service Type' : 'Add Service Type'}
+            </Text>
+            <TouchableOpacity onPress={handleSaveServiceType}>
+              <Text style={styles.modalSaveButton}>Save</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Service Name *</Text>
+              <TextInput
+                style={styles.formInput}
+                value={newService.name}
+                onChangeText={(text) => setNewService(prev => ({ ...prev, name: text }))}
+                placeholder="e.g., AC Repair"
+                placeholderTextColor={Colors.text.secondary}
+                autoCapitalize="words"
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Duration (minutes) *</Text>
+              <TextInput
+                style={styles.formInput}
+                value={newService.duration}
+                onChangeText={(text) => setNewService(prev => ({ ...prev, duration: text }))}
+                placeholder="e.g., 90"
+                placeholderTextColor={Colors.text.secondary}
+                keyboardType="numeric"
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Rate ($/hour) *</Text>
+              <TextInput
+                style={styles.formInput}
+                value={newService.rate}
+                onChangeText={(text) => setNewService(prev => ({ ...prev, rate: text }))}
+                placeholder="e.g., 125"
+                placeholderTextColor={Colors.text.secondary}
+                keyboardType="numeric"
+              />
             </View>
           </ScrollView>
         </SafeAreaView>
@@ -1622,5 +1837,77 @@ const styles = StyleSheet.create({
     color: Colors.text.light,
     marginTop: 4,
     textAlign: 'center',
+  },
+  serviceTypesSection: {
+    backgroundColor: Colors.surface,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  serviceTypesSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  serviceTypesSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text.primary,
+  },
+  addServiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  addServiceButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  serviceTypesScroll: {
+    paddingHorizontal: 16,
+  },
+  serviceTypeCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 12,
+    minWidth: 160,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  serviceTypeCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  serviceTypeCardName: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    flex: 1,
+    marginRight: 4,
+  },
+  serviceTypeDeleteButton: {
+    padding: 2,
+  },
+  serviceTypeCardDetails: {
+    gap: 6,
+  },
+  serviceTypeCardDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  serviceTypeCardDetailText: {
+    fontSize: 13,
+    color: Colors.text.secondary,
   },
 });

@@ -42,13 +42,6 @@ interface ServiceSettings {
   routeOptimization: boolean;
 }
 
-interface ServiceType {
-  id: string;
-  name: string;
-  duration: number;
-  rate: number;
-}
-
 export default function ServiceSettingsScreen() {
   const [settings, setSettings] = useState<ServiceSettings>({
     defaultDuration: 60,
@@ -66,32 +59,17 @@ export default function ServiceSettingsScreen() {
     routeOptimization: true,
   });
 
-  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([
-    { id: '1', name: 'AC Repair', duration: 90, rate: 125 },
-    { id: '2', name: 'Furnace Maintenance', duration: 60, rate: 95 },
-    { id: '3', name: 'Refrigerator Repair', duration: 75, rate: 110 },
-    { id: '4', name: 'Installation', duration: 120, rate: 150 },
-    { id: '5', name: 'Emergency Service', duration: 45, rate: 200 },
-  ]);
-
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingField, setEditingField] = useState<string>('');
   const [editingValue, setEditingValue] = useState<string>('');
-  const [showServiceModal, setShowServiceModal] = useState(false);
-  const [editingService, setEditingService] = useState<ServiceType | null>(null);
-  const [newService, setNewService] = useState({ name: '', duration: '', rate: '' });
 
   // Load settings on component mount
   const loadSettings = useCallback(async () => {
     try {
       const savedSettings = await AsyncStorage.getItem('serviceSettings');
-      const savedServiceTypes = await AsyncStorage.getItem('serviceTypes');
       
       if (savedSettings) {
         setSettings(JSON.parse(savedSettings));
-      }
-      if (savedServiceTypes) {
-        setServiceTypes(JSON.parse(savedServiceTypes));
       }
     } catch (error) {
       console.log('Error loading settings:', error);
@@ -109,16 +87,6 @@ export default function ServiceSettingsScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to save settings.');
       console.log('Error saving settings:', error);
-    }
-  };
-
-  const saveServiceTypes = async (newServiceTypes: ServiceType[]) => {
-    try {
-      await AsyncStorage.setItem('serviceTypes', JSON.stringify(newServiceTypes));
-      setServiceTypes(newServiceTypes);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save service types.');
-      console.log('Error saving service types:', error);
     }
   };
 
@@ -141,78 +109,6 @@ export default function ServiceSettingsScreen() {
     await saveSettings(newSettings);
     setShowEditModal(false);
     Alert.alert('Success', 'Setting updated successfully!');
-  };
-
-  const handleAddServiceType = () => {
-    setEditingService(null);
-    setNewService({ name: '', duration: '', rate: '' });
-    setShowServiceModal(true);
-  };
-
-  const handleEditServiceType = (service: ServiceType) => {
-    setEditingService(service);
-    setNewService({
-      name: service.name,
-      duration: service.duration.toString(),
-      rate: service.rate.toString(),
-    });
-    setShowServiceModal(true);
-  };
-
-  const handleSaveServiceType = async () => {
-    if (!newService.name.trim() || !newService.duration || !newService.rate) {
-      Alert.alert('Error', 'Please fill in all fields.');
-      return;
-    }
-
-    const duration = parseInt(newService.duration);
-    const rate = parseFloat(newService.rate);
-
-    if (isNaN(duration) || isNaN(rate)) {
-      Alert.alert('Error', 'Please enter valid numbers for duration and rate.');
-      return;
-    }
-
-    let updatedServiceTypes;
-    if (editingService) {
-      updatedServiceTypes = serviceTypes.map(service => 
-        service.id === editingService.id 
-          ? { ...service, name: newService.name.trim(), duration, rate }
-          : service
-      );
-    } else {
-      const newServiceType: ServiceType = {
-        id: `service${Date.now()}`,
-        name: newService.name.trim(),
-        duration,
-        rate,
-      };
-      updatedServiceTypes = [...serviceTypes, newServiceType];
-    }
-
-    await saveServiceTypes(updatedServiceTypes);
-    setShowServiceModal(false);
-    Alert.alert('Success', `Service type ${editingService ? 'updated' : 'added'} successfully!`);
-  };
-
-  const handleDeleteServiceType = (serviceId: string) => {
-    const service = serviceTypes.find(s => s.id === serviceId);
-    Alert.alert(
-      'Delete Service Type',
-      `Are you sure you want to delete "${service?.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const updatedServiceTypes = serviceTypes.filter(s => s.id !== serviceId);
-            await saveServiceTypes(updatedServiceTypes);
-            Alert.alert('Success', 'Service type deleted successfully!');
-          }
-        }
-      ]
-    );
   };
 
   const SettingRow = ({ label, value, onPress, hasSwitch = false, switchValue, onSwitchChange }: {
@@ -304,55 +200,6 @@ export default function ServiceSettingsScreen() {
           </View>
         </View>
 
-        {/* Service Types */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Service Types</Text>
-            <TouchableOpacity onPress={handleAddServiceType} style={styles.addButton}>
-              <Plus size={16} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.sectionContent}>
-            {serviceTypes.map((service, index) => (
-              <View
-                key={service.id}
-                style={[
-                  styles.serviceTypeItem,
-                  index === serviceTypes.length - 1 && styles.lastItem
-                ]}
-              >
-                <View style={styles.serviceTypeInfo}>
-                  <Text style={styles.serviceTypeName}>{service.name}</Text>
-                  <View style={styles.serviceTypeDetails}>
-                    <View style={styles.serviceTypeDetail}>
-                      <Clock size={12} color={Colors.text.secondary} />
-                      <Text style={styles.serviceTypeDetailText}>{service.duration}min</Text>
-                    </View>
-                    <View style={styles.serviceTypeDetail}>
-                      <DollarSign size={12} color={Colors.text.secondary} />
-                      <Text style={styles.serviceTypeDetailText}>${service.rate}/hr</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.serviceActions}>
-                  <TouchableOpacity
-                    onPress={() => handleEditServiceType(service)}
-                    style={styles.editButton}
-                  >
-                    <Edit3 size={16} color={Colors.text.secondary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteServiceType(service.id)}
-                    style={styles.editButton}
-                  >
-                    <X size={16} color={Colors.status.emergency} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
         {/* Location Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Location & Routing</Text>
@@ -441,75 +288,6 @@ export default function ServiceSettingsScreen() {
           </SafeAreaView>
         </Modal>
 
-        {/* Service Type Modal */}
-        <Modal
-          visible={showServiceModal}
-          animationType="slide"
-          presentationStyle="pageSheet"
-        >
-          <SafeAreaView style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editingService ? 'Edit Service Type' : 'Add Service Type'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowServiceModal(false)}>
-                <X size={24} color={Colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.modalContent}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Service Name</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newService.name}
-                  onChangeText={(text) => setNewService(prev => ({ ...prev, name: text }))}
-                  placeholder="e.g., AC Repair"
-                  autoCapitalize="words"
-                />
-              </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Duration (minutes)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newService.duration}
-                  onChangeText={(text) => setNewService(prev => ({ ...prev, duration: text }))}
-                  placeholder="e.g., 90"
-                  keyboardType="numeric"
-                />
-              </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Rate ($/hour)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newService.rate}
-                  onChangeText={(text) => setNewService(prev => ({ ...prev, rate: text }))}
-                  placeholder="e.g., 125"
-                  keyboardType="numeric"
-                />
-              </View>
-            </ScrollView>
-            
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setShowServiceModal(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalSaveButton}
-                onPress={handleSaveServiceType}
-              >
-                <Text style={styles.modalSaveText}>
-                  {editingService ? 'Save Changes' : 'Add Service'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -526,21 +304,13 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600' as const,
     color: Colors.text.secondary,
     textTransform: 'uppercase' as const,
-  },
-  addButton: {
-    padding: 4,
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   sectionContent: {
     backgroundColor: Colors.surface,
@@ -565,47 +335,6 @@ const styles = StyleSheet.create({
   settingValue: {
     fontSize: 16,
     color: Colors.text.secondary,
-  },
-  serviceTypeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  lastItem: {
-    borderBottomWidth: 0,
-  },
-  serviceTypeInfo: {
-    flex: 1,
-  },
-  serviceTypeName: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  serviceTypeDetails: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  serviceTypeDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  serviceTypeDetailText: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-  },
-  editButton: {
-    padding: 8,
-  },
-  serviceActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   modalContainer: {
     flex: 1,
@@ -639,15 +368,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text.primary,
     backgroundColor: Colors.surface,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 8,
   },
   modalFooter: {
     flexDirection: 'row',
