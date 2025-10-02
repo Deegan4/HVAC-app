@@ -8,6 +8,7 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  Image,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
 import SnowingBackground from './SnowingBackground';
@@ -239,8 +240,11 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {currentIndex === 0 ? (
               <View style={styles.logoContainer}>
                 <View style={styles.logoCircle}>
-                  <Text style={styles.logoText}>OLIVA</Text>
-                  <Text style={styles.logoSubtext}>REFRIGERATION</Text>
+                  <Image 
+                    source={require('@/assets/images/icon.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </View>
               </View>
             ) : (
@@ -371,19 +375,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 12,
+    padding: 20,
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-  },
-  logoSubtext: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-    letterSpacing: 3,
-    marginTop: 4,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 28,
