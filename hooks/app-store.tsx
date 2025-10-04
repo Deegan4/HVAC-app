@@ -6,6 +6,7 @@ import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, Locati
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
+import { Language } from '@/components/LanguageSelectionScreen';
 
 interface AppState {
   customers: Customer[];
@@ -19,10 +20,12 @@ interface AppState {
   currentUserId: string;
   currentUserName: string;
   userRole: UserRole | null;
+  language: Language;
   isLoading: boolean;
   isAuthenticated: boolean;
   hasPin: boolean;
   hasRole: boolean;
+  hasLanguage: boolean;
   hasCompletedOnboarding: boolean;
   profileUpdateTrigger: number;
   addJob: (job: Omit<Job, 'id'>) => void;
@@ -44,6 +47,7 @@ interface AppState {
   getInvoicesByCustomer: (customerId: string) => Invoice[];
   setPin: (pin: string) => void;
   setUserRole: (role: UserRole) => void;
+  setLanguage: (language: Language) => void;
   authenticatePin: (pin: string) => boolean;
   logout: () => void;
   completeOnboarding: () => void;
@@ -66,9 +70,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const offlineStorage = OfflineStorageManager.getInstance();
   const [currentTechnicianId] = useState<string | null>(null);
   const [userRole, setUserRoleState] = useState<UserRole | null>(null);
+  const [language, setLanguageState] = useState<Language>('en');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasPin, setHasPin] = useState<boolean>(false);
   const [hasRole, setHasRole] = useState<boolean>(false);
+  const [hasLanguage, setHasLanguage] = useState<boolean>(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
   const [profileUpdateTrigger, setProfileUpdateTrigger] = useState<number>(0);
@@ -172,6 +178,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         setHasCompletedOnboarding(true);
       }
       return completed;
+    },
+  });
+
+  useQuery({
+    queryKey: ['language'],
+    queryFn: async () => {
+      const lang = await AsyncStorage.getItem('language');
+      if (lang) {
+        setLanguageState(lang as Language);
+        setHasLanguage(true);
+      }
+      return lang;
     },
   });
 
@@ -291,6 +309,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     await AsyncStorage.setItem('userRole', role);
     setUserRoleState(role);
     setHasRole(true);
+  }, []);
+
+  const setLanguage = useCallback(async (lang: Language) => {
+    await AsyncStorage.setItem('language', lang);
+    setLanguageState(lang);
+    setHasLanguage(true);
   }, []);
 
   const authenticatePin = useCallback((pin: string): boolean => {
@@ -509,10 +533,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     currentUserId,
     currentUserName,
     userRole,
+    language,
     isLoading,
     isAuthenticated,
     hasPin,
     hasRole,
+    hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
     addJob,
@@ -529,6 +555,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getInvoicesByCustomer,
     setPin,
     setUserRole,
+    setLanguage,
     authenticatePin,
     logout,
     completeOnboarding,
@@ -561,10 +588,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     currentUserId,
     currentUserName,
     userRole,
+    language,
     isLoading,
     isAuthenticated,
     hasPin,
     hasRole,
+    hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
     addJob,
@@ -581,6 +610,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getInvoicesByCustomer,
     setPin,
     setUserRole,
+    setLanguage,
     authenticatePin,
     logout,
     completeOnboarding,

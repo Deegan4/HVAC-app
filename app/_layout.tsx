@@ -9,6 +9,7 @@ import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
 import OnboardingScreen from "@/components/OnboardingScreen";
+import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,10 +51,21 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, hasCompletedOnboarding, userRole, setPin, setUserRole, authenticatePin, completeOnboarding } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, hasLanguage, hasCompletedOnboarding, userRole, setPin, setUserRole, setLanguage, authenticatePin, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
-  // First show onboarding
+  // First show language selection
+  if (!hasLanguage) {
+    return (
+      <LanguageSelectionScreen 
+        onLanguageSelected={(language: Language) => {
+          setLanguage(language);
+        }}
+      />
+    );
+  }
+  
+  // Then show onboarding
   if (!hasCompletedOnboarding) {
     return (
       <OnboardingScreen 
