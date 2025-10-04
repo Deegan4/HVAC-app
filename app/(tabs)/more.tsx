@@ -194,11 +194,11 @@ export default function MoreScreen() {
                   <View style={styles.menuItemLeft}>
                     <item.icon size={20} color={Colors.text.secondary} />
                     <Text style={styles.menuItemLabel}>{item.label}</Text>
-                    {'badge' in item && item.badge && item.badge > 0 ? (
+                    {'badge' in item && item.badge !== undefined && item.badge > 0 && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{item.badge}</Text>
                       </View>
-                    ) : null}
+                    )}
                   </View>
                   {'hasSwitch' in item && item.hasSwitch ? (
                     <Switch
