@@ -53,7 +53,16 @@ function AuthenticatedApp() {
   const { isAuthenticated, hasPin, hasRole, hasCompletedOnboarding, userRole, setPin, setUserRole, authenticatePin, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
-  // First check if user has selected a role
+  // First show onboarding
+  if (!hasCompletedOnboarding) {
+    return (
+      <OnboardingScreen 
+        onComplete={completeOnboarding}
+      />
+    );
+  }
+  
+  // Then check if user has selected a role
   if (!hasRole) {
     return (
       <RoleSelectionScreen 
@@ -61,15 +70,6 @@ function AuthenticatedApp() {
           setSelectedRole(role);
           setUserRole(role);
         }}
-      />
-    );
-  }
-  
-  // Show onboarding after role selection but before PIN setup
-  if (!hasCompletedOnboarding) {
-    return (
-      <OnboardingScreen 
-        onComplete={completeOnboarding}
       />
     );
   }
