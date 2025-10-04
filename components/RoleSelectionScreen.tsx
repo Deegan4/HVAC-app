@@ -11,6 +11,8 @@ import { Colors } from '@/constants/colors';
 import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
 import { User, Settings } from 'lucide-react-native';
+import { useAppStore } from '@/hooks/app-store';
+import { useTranslation } from '@/constants/translations';
 
 export type UserRole = 'owner' | 'technician';
 
@@ -19,6 +21,8 @@ interface RoleSelectionScreenProps {
 }
 
 export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScreenProps) {
+  const { language } = useAppStore();
+  const t = useTranslation(language);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   const handleRoleSelect = (role: UserRole) => {
@@ -27,7 +31,7 @@ export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScr
 
   const handleContinue = () => {
     if (!selectedRole) {
-      Alert.alert('Role Required', 'Please select your role to continue.');
+      Alert.alert(t.roleRequired, t.pleaseSelectRole);
       return;
     }
     onRoleSelected(selectedRole);
@@ -36,15 +40,15 @@ export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScr
   const roleOptions = [
     {
       id: 'owner' as UserRole,
-      title: 'Owner/Manager',
-      description: 'Full access to all features, reports, and settings',
+      title: t.ownerManager,
+      description: t.ownerDescription,
       icon: Settings,
       color: Colors.primary,
     },
     {
       id: 'technician' as UserRole,
-      title: 'Technician',
-      description: 'Access to jobs, customers, and field operations',
+      title: t.technician,
+      description: t.technicianDescription,
       icon: User,
       color: '#10b981',
     },
@@ -59,13 +63,13 @@ export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScr
             <SpinningSnowflake size={64} color={Colors.primary} />
             <Text style={styles.title}>Oliva Refrigeration</Text>
             <Text style={styles.subtitle}>
-              Welcome! Please select your role to get started
+              {t.selectRole}
             </Text>
           </View>
 
           {/* Role Selection */}
           <View style={styles.roleSection}>
-            <Text style={styles.sectionTitle}>Choose Your Role</Text>
+            <Text style={styles.sectionTitle}>{t.chooseYourRole}</Text>
             
             {roleOptions.map((role) => {
               const IconComponent = role.icon;
@@ -137,14 +141,14 @@ export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScr
               styles.continueButtonText,
               selectedRole && styles.continueButtonTextActive
             ]}>
-              Continue
+              {t.continue}
             </Text>
           </TouchableOpacity>
 
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              You can change your role later in settings
+              {t.roleChangeNote}
             </Text>
           </View>
         </View>

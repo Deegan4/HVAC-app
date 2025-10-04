@@ -23,6 +23,8 @@ import {
   MessageSquare,
   CheckCircle,
 } from 'lucide-react-native';
+import { useAppStore } from '@/hooks/app-store';
+import { useTranslation } from '@/constants/translations';
 
 const { width } = Dimensions.get('window');
 
@@ -39,127 +41,132 @@ interface Slide {
   color: string;
 }
 
-const slides: Slide[] = [
-  {
-    id: 1,
-    icon: Zap,
-    title: 'Welcome to Oliva Refrigeration',
-    description: 'Your complete HVAC business management solution',
-    features: [
-      'Streamline operations and boost efficiency',
-      'Manage jobs, customers, and invoices in one place',
-      'Real-time tracking and updates',
-      'Built for success and growth',
-    ],
-    color: Colors.primary,
-  },
-  {
-    id: 2,
-    icon: Calendar,
-    title: 'Smart Job Management',
-    description: 'Never miss a job or appointment',
-    features: [
-      'Schedule and dispatch jobs instantly',
-      'Track job status in real-time',
-      'Priority-based job organization',
-      'Automated reminders and notifications',
-    ],
-    color: '#10b981',
-  },
-  {
-    id: 3,
-    icon: Users,
-    title: 'Customer Excellence',
-    description: 'Build lasting relationships',
-    features: [
-      'Complete customer profiles and history',
-      'Equipment tracking and maintenance logs',
-      'Quick access to customer information',
-      'Service history at your fingertips',
-    ],
-    color: '#8b5cf6',
-  },
-  {
-    id: 4,
-    icon: FileText,
-    title: 'Effortless Invoicing',
-    description: 'Get paid faster',
-    features: [
-      'Create professional invoices on-site',
-      'Digital signatures for instant approval',
-      'Track payments and outstanding balances',
-      'Automated payment reminders',
-    ],
-    color: '#f59e0b',
-  },
-  {
-    id: 5,
-    icon: MapPin,
-    title: 'Live Technician Tracking',
-    description: 'Know where your team is',
-    features: [
-      'Real-time GPS location tracking',
-      'Optimize routes and reduce travel time',
-      'Monitor technician availability',
-      'Improve response times',
-    ],
-    color: '#ef4444',
-  },
-  {
-    id: 6,
-    icon: TrendingUp,
-    title: 'Powerful Analytics',
-    description: 'Make data-driven decisions',
-    features: [
-      'Revenue and performance insights',
-      'Job completion metrics',
-      'Customer satisfaction tracking',
-      'Identify growth opportunities',
-    ],
-    color: '#06b6d4',
-  },
-  {
-    id: 7,
-    icon: MessageSquare,
-    title: 'Team Collaboration',
-    description: 'Stay connected with your team',
-    features: [
-      'In-app messaging between office and field',
-      'Job notes and comments',
-      'Photo sharing for documentation',
-      'Instant communication',
-    ],
-    color: '#ec4899',
-  },
-  {
-    id: 8,
-    icon: Shield,
-    title: 'Offline Capabilities',
-    description: 'Work anywhere, anytime',
-    features: [
-      'Full offline functionality',
-      'Automatic sync when online',
-      'Never lose data',
-      'Reliable in any condition',
-    ],
-    color: '#14b8a6',
-  },
-  {
-    id: 9,
-    icon: CheckCircle,
-    title: 'Ready to Transform Your Business?',
-    description: 'Join successful HVAC companies using Oliva',
-    features: [
-      'Increase efficiency by up to 40%',
-      'Reduce paperwork and admin time',
-      'Improve customer satisfaction',
-      'Grow your revenue',
-    ],
-    color: Colors.primary,
-  },
-];
+function getSlides(t: ReturnType<typeof useTranslation>): Slide[] {
+  return [
+    {
+      id: 1,
+      icon: Zap,
+      title: t.welcomeTitle,
+      description: t.welcomeDescription,
+      features: [
+        t.welcomeFeature1,
+        t.welcomeFeature2,
+        t.welcomeFeature3,
+        t.welcomeFeature4,
+      ],
+      color: Colors.primary,
+    },
+    {
+      id: 2,
+      icon: Calendar,
+      title: t.jobManagementTitle,
+      description: t.jobManagementDescription,
+      features: [
+        t.jobManagementFeature1,
+        t.jobManagementFeature2,
+        t.jobManagementFeature3,
+        t.jobManagementFeature4,
+      ],
+      color: '#10b981',
+    },
+    {
+      id: 3,
+      icon: Users,
+      title: t.customerExcellenceTitle,
+      description: t.customerExcellenceDescription,
+      features: [
+        t.customerExcellenceFeature1,
+        t.customerExcellenceFeature2,
+        t.customerExcellenceFeature3,
+        t.customerExcellenceFeature4,
+      ],
+      color: '#8b5cf6',
+    },
+    {
+      id: 4,
+      icon: FileText,
+      title: t.invoicingTitle,
+      description: t.invoicingDescription,
+      features: [
+        t.invoicingFeature1,
+        t.invoicingFeature2,
+        t.invoicingFeature3,
+        t.invoicingFeature4,
+      ],
+      color: '#f59e0b',
+    },
+    {
+      id: 5,
+      icon: MapPin,
+      title: t.trackingTitle,
+      description: t.trackingDescription,
+      features: [
+        t.trackingFeature1,
+        t.trackingFeature2,
+        t.trackingFeature3,
+        t.trackingFeature4,
+      ],
+      color: '#ef4444',
+    },
+    {
+      id: 6,
+      icon: TrendingUp,
+      title: t.analyticsTitle,
+      description: t.analyticsDescription,
+      features: [
+        t.analyticsFeature1,
+        t.analyticsFeature2,
+        t.analyticsFeature3,
+        t.analyticsFeature4,
+      ],
+      color: '#06b6d4',
+    },
+    {
+      id: 7,
+      icon: MessageSquare,
+      title: t.collaborationTitle,
+      description: t.collaborationDescription,
+      features: [
+        t.collaborationFeature1,
+        t.collaborationFeature2,
+        t.collaborationFeature3,
+        t.collaborationFeature4,
+      ],
+      color: '#ec4899',
+    },
+    {
+      id: 8,
+      icon: Shield,
+      title: t.offlineTitle,
+      description: t.offlineDescription,
+      features: [
+        t.offlineFeature1,
+        t.offlineFeature2,
+        t.offlineFeature3,
+        t.offlineFeature4,
+      ],
+      color: '#14b8a6',
+    },
+    {
+      id: 9,
+      icon: CheckCircle,
+      title: t.readyTitle,
+      description: t.readyDescription,
+      features: [
+        t.readyFeature1,
+        t.readyFeature2,
+        t.readyFeature3,
+        t.readyFeature4,
+      ],
+      color: Colors.primary,
+    },
+  ];
+}
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
+  const { language } = useAppStore();
+  const t = useTranslation(language);
+  const slides = getSlides(t);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -230,7 +237,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
               onPress={handleSkip}
               activeOpacity={0.7}
             >
-              <Text style={styles.skipButtonText}>Skip</Text>
+              <Text style={styles.skipButtonText}>{t.skip}</Text>
             </TouchableOpacity>
           )}
 
@@ -289,7 +296,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
             {/* Progress Text */}
             <Text style={styles.progressText}>
-              {currentIndex + 1} of {slides.length}
+              {currentIndex + 1} {t.progressText} {slides.length}
             </Text>
 
             {/* Next/Get Started Button */}
@@ -299,7 +306,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
               activeOpacity={0.8}
             >
               <Text style={styles.nextButtonText}>
-                {currentIndex === slides.length - 1 ? "Get Started" : "Next"}
+                {currentIndex === slides.length - 1 ? t.getStarted : t.next}
               </Text>
             </TouchableOpacity>
           </View>
