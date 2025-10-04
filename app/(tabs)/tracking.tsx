@@ -45,6 +45,7 @@ import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Technician, TechnicianStatus, TrackingFilter } from '@/types';
 import EnhancedMapView from '@/components/EnhancedMapView';
+import { useTranslation } from '@/constants/translations';
 
 const { width, height } = Dimensions.get('window');
 
@@ -419,7 +420,8 @@ function AnalyticsView({ technicians }: AnalyticsViewProps) {
 }
 
 export default function TrackingScreen() {
-  const { technicians, userRole } = useAppStore();
+  const { technicians, userRole, language } = useAppStore();
+  const t = useTranslation(language);
   const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -488,9 +490,9 @@ export default function TrackingScreen() {
       <View style={styles.container}>
         <View style={styles.accessDenied}>
           <AlertCircle size={48} color={Colors.error} />
-          <Text style={styles.accessDeniedText}>Access Denied</Text>
+          <Text style={styles.accessDeniedText}>{t.accessDenied}</Text>
           <Text style={styles.accessDeniedSubtext}>
-            Technician tracking is only available for owners
+            {t.trackingOwnerOnly}
           </Text>
         </View>
       </View>
@@ -503,19 +505,19 @@ export default function TrackingScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Team Tracking</Text>
+            <Text style={styles.headerTitle}>{t.teamTracking}</Text>
             {technicians.length > 0 && (
               <View style={styles.headerStats}>
                 <View style={styles.statItem}>
                   <View style={[styles.statDot, { backgroundColor: Colors.success }]} />
                   <Text style={styles.statText}>
-                    {technicians.filter(t => t.availability !== 'offline').length} Active
+                    {technicians.filter(t => t.availability !== 'offline').length} {t.active}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
                   <View style={[styles.statDot, { backgroundColor: Colors.warning }]} />
                   <Text style={styles.statText}>
-                    {technicians.filter(t => t.status?.status === 'on-route').length} En Route
+                    {technicians.filter(t => t.status?.status === 'on-route').length} {t.enRoute}
                   </Text>
                 </View>
               </View>
@@ -534,9 +536,9 @@ export default function TrackingScreen() {
           <View style={styles.emptyIconContainer}>
             <Users size={64} color={Colors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>No Technicians Added Yet</Text>
+          <Text style={styles.emptyTitle}>{t.noTechniciansYet}</Text>
           <Text style={styles.emptySubtitle}>
-            Add technicians to your team to start tracking their locations and job progress in real-time
+            {t.noTechniciansDescription}
           </Text>
           
           <TouchableOpacity
@@ -547,30 +549,30 @@ export default function TrackingScreen() {
               <Plus size={24} color={Colors.white} />
             </View>
             <View style={styles.addTechnicianContent}>
-              <Text style={styles.addTechnicianTitle}>Add Your First Technician</Text>
+              <Text style={styles.addTechnicianTitle}>{t.addFirstTechnician}</Text>
               <Text style={styles.addTechnicianDescription}>
-                Set up your team to enable tracking
+                {t.setupTeamTracking}
               </Text>
             </View>
           </TouchableOpacity>
           
           <View style={styles.trackingFeatures}>
-            <Text style={styles.featuresTitle}>What you can track:</Text>
+            <Text style={styles.featuresTitle}>{t.whatYouCanTrack}</Text>
             <View style={styles.featureItem}>
               <MapPin size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>Real-time location updates</Text>
+              <Text style={styles.featureText}>{t.realTimeLocation}</Text>
             </View>
             <View style={styles.featureItem}>
               <Route size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>Job progress and status</Text>
+              <Text style={styles.featureText}>{t.jobProgressStatus}</Text>
             </View>
             <View style={styles.featureItem}>
               <Clock size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>Estimated arrival times</Text>
+              <Text style={styles.featureText}>{t.estimatedArrival}</Text>
             </View>
             <View style={styles.featureItem}>
               <BarChart3 size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>Performance analytics</Text>
+              <Text style={styles.featureText}>{t.performanceAnalytics}</Text>
             </View>
           </View>
         </ScrollView>
@@ -584,21 +586,21 @@ export default function TrackingScreen() {
                 onPress={() => setViewMode('list')}
               >
                 <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'list' && styles.viewButtonTextActive]}>List</Text>
+                <Text style={[styles.viewButtonText, viewMode === 'list' && styles.viewButtonTextActive]}>{t.list}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.viewButton, viewMode === 'map' && styles.viewButtonActive]}
                 onPress={() => setViewMode('map')}
               >
                 <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'map' && styles.viewButtonTextActive]}>Map</Text>
+                <Text style={[styles.viewButtonText, viewMode === 'map' && styles.viewButtonTextActive]}>{t.map}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.viewButton, viewMode === 'analytics' && styles.viewButtonActive]}
                 onPress={() => setViewMode('analytics')}
               >
                 <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'analytics' && styles.viewButtonTextActive]}>Stats</Text>
+                <Text style={[styles.viewButtonText, viewMode === 'analytics' && styles.viewButtonTextActive]}>{t.stats}</Text>
               </TouchableOpacity>
             </View>
             
@@ -607,7 +609,7 @@ export default function TrackingScreen() {
                 <Search size={16} color={Colors.text.secondary} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Search technicians..."
+                  placeholder={t.searchTechnicians}
                   placeholderTextColor={Colors.text.secondary}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -673,9 +675,9 @@ export default function TrackingScreen() {
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
                     <Users size={48} color={Colors.text.secondary} />
-                    <Text style={styles.emptyTitle}>No technicians found</Text>
+                    <Text style={styles.emptyTitle}>{t.noTechniciansFound}</Text>
                     <Text style={styles.emptySubtitle}>
-                      {searchQuery ? 'Try adjusting your search' : 'No technicians available'}
+                      {searchQuery ? t.tryAdjustingFilters : t.noTechniciansDescription}
                     </Text>
                   </View>
                 }

@@ -16,9 +16,11 @@ import { Colors } from '@/constants/colors';
 import { useAppStore, useRevenueStats } from '@/hooks/app-store';
 import { Invoice, InvoiceItem } from '@/types';
 import { router } from 'expo-router';
+import { useTranslation } from '@/constants/translations';
 
 export default function InvoicesScreen() {
-  const { invoices, isLoading, updateInvoiceStatus, customers, jobs } = useAppStore();
+  const { invoices, isLoading, updateInvoiceStatus, customers, jobs, language } = useAppStore();
+  const t = useTranslation(language);
   const revenueStats = useRevenueStats();
   const [filter, setFilter] = useState<'all' | Invoice['status']>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -82,12 +84,12 @@ export default function InvoicesScreen() {
 
   const handleDeleteInvoice = (invoiceId: string) => {
     Alert.alert(
-      'Delete Invoice',
-      'Are you sure you want to delete this invoice? This action cannot be undone.',
+      t.deleteInvoice,
+      t.deleteInvoiceConfirm,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Delete',
+          text: t.delete,
           style: 'destructive',
           onPress: () => {
             // TODO: Add delete invoice functionality to app store
@@ -103,12 +105,12 @@ export default function InvoicesScreen() {
     
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid payment amount.');
+      Alert.alert(t.invalidAmount, t.enterValidAmount);
       return;
     }
     
     if (amount > (selectedInvoice.total - selectedInvoice.paidAmount)) {
-      Alert.alert('Invalid Amount', 'Payment amount cannot exceed the remaining balance.');
+      Alert.alert(t.invalidAmount, t.paymentExceedsBalance);
       return;
     }
     
@@ -128,7 +130,7 @@ export default function InvoicesScreen() {
 
   const handleShareInvoice = (invoice: Invoice) => {
     // TODO: Implement PDF generation and sharing
-    Alert.alert('Share Invoice', `Invoice #${invoice.id} sharing functionality will be implemented.`);
+    Alert.alert(t.shareInvoice, `${t.invoice} #${invoice.id} ${t.sharingFunctionality}`);
   };
 
   const handleCreateInvoice = () => {
@@ -147,14 +149,14 @@ export default function InvoicesScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header with Create Button */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Invoices</Text>
+        <Text style={styles.headerTitle}>{t.invoices}</Text>
         <TouchableOpacity
           style={styles.createButton}
           onPress={handleCreateInvoice}
           testID="create-invoice-button"
         >
           <Plus size={20} color={Colors.text.inverse} />
-          <Text style={styles.createButtonText}>New</Text>
+          <Text style={styles.createButtonText}>{t.new}</Text>
         </TouchableOpacity>
       </View>
 
@@ -164,7 +166,7 @@ export default function InvoicesScreen() {
           <Search size={20} color={Colors.text.secondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search invoices..."
+            placeholder={t.searchInvoices}
             placeholderTextColor={Colors.text.light}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -178,14 +180,14 @@ export default function InvoicesScreen() {
             <Text style={styles.statAmount}>
               ${revenueStats.monthlyTotal.toFixed(2)}
             </Text>
-            <Text style={styles.statLabel}>Monthly Total</Text>
+            <Text style={styles.statLabel}>{t.monthlyTotal}</Text>
           </View>
           <View style={styles.statCard}>
             <CheckCircle size={20} color={Colors.status.completed} />
             <Text style={[styles.statAmount, { color: Colors.status.completed }]}>
               ${revenueStats.monthlyPaid.toFixed(2)}
             </Text>
-            <Text style={styles.statLabel}>Paid</Text>
+            <Text style={styles.statLabel}>{t.paid}</Text>
           </View>
         </View>
 
@@ -208,7 +210,7 @@ export default function InvoicesScreen() {
                 styles.filterTabText,
                 filter === status && styles.filterTabTextActive
               ]}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? t.all : status === 'draft' ? t.draft : status === 'sent' ? t.sent : status === 'paid' ? t.paid : t.overdue}
               </Text>
             </TouchableOpacity>
           ))}
@@ -258,13 +260,13 @@ export default function InvoicesScreen() {
 
               <View style={styles.invoiceFooter}>
                 <View>
-                  <Text style={styles.dueLabel}>Due Date</Text>
+                  <Text style={styles.dueLabel}>{t.dueDate}</Text>
                   <Text style={styles.dueDate}>
                     {new Date(invoice.dueDate).toLocaleDateString()}
                   </Text>
                 </View>
                 <View style={styles.totalContainer}>
-                  <Text style={styles.invoiceTotalLabel}>Total</Text>
+                  <Text style={styles.invoiceTotalLabel}>{t.total}</Text>
                   <Text style={styles.totalAmount}>
                     ${invoice.total.toFixed(2)}
                   </Text>
@@ -277,7 +279,7 @@ export default function InvoicesScreen() {
                     style={styles.sendButton}
                     onPress={() => updateInvoiceStatus(invoice.id, 'sent')}
                   >
-                    <Text style={styles.sendButtonText}>Send Invoice</Text>
+                    <Text style={styles.sendButtonText}>{t.sendInvoice}</Text>
                   </TouchableOpacity>
                 )}
                 
@@ -321,9 +323,9 @@ export default function InvoicesScreen() {
             {searchQuery || filter !== 'all' ? (
               <>
                 <FileText size={48} color={Colors.text.light} />
-                <Text style={styles.emptyStateText}>No invoices found</Text>
+                <Text style={styles.emptyStateText}>{t.noInvoicesFound}</Text>
                 <Text style={styles.emptyStateSubtext}>
-                  Try adjusting your search or filter
+                  {t.tryAdjustingSearch}
                 </Text>
               </>
             ) : (
@@ -331,9 +333,9 @@ export default function InvoicesScreen() {
                 <View style={styles.welcomeIconContainer}>
                   <Receipt size={48} color={Colors.primary} />
                 </View>
-                <Text style={styles.welcomeTitle}>Start Invoicing</Text>
+                <Text style={styles.welcomeTitle}>{t.startInvoicing}</Text>
                 <Text style={styles.welcomeSubtitle}>
-                  Create professional invoices and track payments
+                  {t.createProfessionalInvoices}
                 </Text>
                 
                 <TouchableOpacity
@@ -341,18 +343,18 @@ export default function InvoicesScreen() {
                   onPress={handleCreateInvoice}
                 >
                   <Plus size={20} color={Colors.text.inverse} />
-                  <Text style={styles.getStartedButtonText}>Create Your First Invoice</Text>
+                  <Text style={styles.getStartedButtonText}>{t.createFirstInvoice}</Text>
                 </TouchableOpacity>
                 
                 <View style={styles.featuresSection}>
-                  <Text style={styles.featuresTitle}>Invoice Features</Text>
+                  <Text style={styles.featuresTitle}>{t.invoiceFeatures}</Text>
                   
                   <View style={styles.featureItem}>
                     <TrendingUp size={20} color={Colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>Track Revenue</Text>
+                      <Text style={styles.featureTitle}>{t.trackRevenue}</Text>
                       <Text style={styles.featureDescription}>
-                        Monitor monthly income and payment status
+                        {t.monitorMonthlyIncome}
                       </Text>
                     </View>
                   </View>
@@ -360,9 +362,9 @@ export default function InvoicesScreen() {
                   <View style={styles.featureItem}>
                     <CreditCard size={20} color={Colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>Payment Recording</Text>
+                      <Text style={styles.featureTitle}>{t.paymentRecording}</Text>
                       <Text style={styles.featureDescription}>
-                        Track partial payments and outstanding balances
+                        {t.trackPartialPayments}
                       </Text>
                     </View>
                   </View>
@@ -370,9 +372,9 @@ export default function InvoicesScreen() {
                   <View style={styles.featureItem}>
                     <Share size={20} color={Colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>Easy Sharing</Text>
+                      <Text style={styles.featureTitle}>{t.easySharing}</Text>
                       <Text style={styles.featureDescription}>
-                        Send invoices directly to customers via email or text
+                        {t.sendInvoicesDirectly}
                       </Text>
                     </View>
                   </View>
@@ -381,7 +383,7 @@ export default function InvoicesScreen() {
                 <View style={styles.tipCard}>
                   <AlertCircle size={16} color={Colors.primary} />
                   <Text style={styles.tipText}>
-                    Tip: Set up your company info first to automatically include it on invoices
+                    {t.tipSetupCompanyInfo}
                   </Text>
                 </View>
               </>
@@ -400,13 +402,13 @@ export default function InvoicesScreen() {
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
-              Invoice #{selectedInvoice?.id}
+              {t.invoice} #{selectedInvoice?.id}
             </Text>
             <TouchableOpacity
               onPress={() => setShowInvoiceDetails(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>Done</Text>
+              <Text style={styles.closeButtonText}>{t.done}</Text>
             </TouchableOpacity>
           </View>
           
@@ -414,26 +416,26 @@ export default function InvoicesScreen() {
             <ScrollView style={styles.modalContent}>
               <View style={styles.invoiceDetailsCard}>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Customer:</Text>
+                  <Text style={styles.detailLabel}>{t.customer}:</Text>
                   <Text style={styles.detailValue}>{selectedInvoice.customerName}</Text>
                 </View>
                 
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Date:</Text>
+                  <Text style={styles.detailLabel}>{t.date}:</Text>
                   <Text style={styles.detailValue}>
                     {new Date(selectedInvoice.date).toLocaleDateString()}
                   </Text>
                 </View>
                 
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Due Date:</Text>
+                  <Text style={styles.detailLabel}>{t.dueDate}:</Text>
                   <Text style={styles.detailValue}>
                     {new Date(selectedInvoice.dueDate).toLocaleDateString()}
                   </Text>
                 </View>
                 
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Status:</Text>
+                  <Text style={styles.detailLabel}>{t.status}:</Text>
                   <View style={styles.statusContainer}>
                     {getStatusIcon(selectedInvoice.status)}
                     <Text style={[styles.statusText, { color: getStatusColor(selectedInvoice.status) }]}>
@@ -444,7 +446,7 @@ export default function InvoicesScreen() {
               </View>
               
               <View style={styles.itemsSection}>
-                <Text style={styles.sectionTitle}>Items</Text>
+                <Text style={styles.sectionTitle}>{t.items}</Text>
                 {selectedInvoice.items.map(item => (
                   <View key={item.id} style={styles.itemRow}>
                     <View style={styles.itemDetails}>
@@ -460,20 +462,20 @@ export default function InvoicesScreen() {
               
               <View style={styles.totalsSection}>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Subtotal:</Text>
+                  <Text style={styles.totalLabel}>{t.subtotal}:</Text>
                   <Text style={styles.totalValue}>${selectedInvoice.subtotal.toFixed(2)}</Text>
                 </View>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Tax:</Text>
+                  <Text style={styles.totalLabel}>{t.tax}:</Text>
                   <Text style={styles.totalValue}>${selectedInvoice.tax.toFixed(2)}</Text>
                 </View>
                 <View style={[styles.totalRow, styles.grandTotalRow]}>
-                  <Text style={styles.grandTotalLabel}>Total:</Text>
+                  <Text style={styles.grandTotalLabel}>{t.total}:</Text>
                   <Text style={styles.grandTotalValue}>${selectedInvoice.total.toFixed(2)}</Text>
                 </View>
                 {selectedInvoice.paidAmount > 0 && (
                   <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Paid:</Text>
+                    <Text style={styles.totalLabel}>{t.paid}:</Text>
                     <Text style={[styles.totalValue, { color: Colors.status.completed }]}>
                       ${selectedInvoice.paidAmount.toFixed(2)}
                     </Text>
@@ -481,7 +483,7 @@ export default function InvoicesScreen() {
                 )}
                 {selectedInvoice.paidAmount < selectedInvoice.total && (
                   <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Balance:</Text>
+                    <Text style={styles.totalLabel}>{t.balance}:</Text>
                     <Text style={[styles.totalValue, { color: Colors.status.emergency }]}>
                       ${(selectedInvoice.total - selectedInvoice.paidAmount).toFixed(2)}
                     </Text>
@@ -491,7 +493,7 @@ export default function InvoicesScreen() {
               
               {selectedInvoice.notes && (
                 <View style={styles.notesSection}>
-                  <Text style={styles.sectionTitle}>Notes</Text>
+                  <Text style={styles.sectionTitle}>{t.notes}</Text>
                   <Text style={styles.notesText}>{selectedInvoice.notes}</Text>
                 </View>
               )}
@@ -509,17 +511,17 @@ export default function InvoicesScreen() {
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Record Payment</Text>
+            <Text style={styles.modalTitle}>{t.recordPayment}</Text>
             <TouchableOpacity
               onPress={() => setShowPaymentModal(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>Cancel</Text>
+              <Text style={styles.closeButtonText}>{t.cancel}</Text>
             </TouchableOpacity>
           </View>
           
           <View style={styles.paymentForm}>
-            <Text style={styles.formLabel}>Payment Amount</Text>
+            <Text style={styles.formLabel}>{t.paymentAmount}</Text>
             <TextInput
               style={styles.paymentInput}
               placeholder="0.00"
@@ -530,7 +532,7 @@ export default function InvoicesScreen() {
               testID="payment-amount-input"
             />
             
-            <Text style={styles.formLabel}>Payment Method</Text>
+            <Text style={styles.formLabel}>{t.paymentMethod}</Text>
             <View style={styles.paymentMethods}>
               {(['cash', 'check', 'card', 'transfer'] as const).map(method => (
                 <TouchableOpacity
@@ -554,13 +556,13 @@ export default function InvoicesScreen() {
             {selectedInvoice && (
               <View style={styles.paymentSummary}>
                 <Text style={styles.summaryText}>
-                  Invoice Total: ${selectedInvoice.total.toFixed(2)}
+                  {t.invoiceTotal}: ${selectedInvoice.total.toFixed(2)}
                 </Text>
                 <Text style={styles.summaryText}>
-                  Already Paid: ${selectedInvoice.paidAmount.toFixed(2)}
+                  {t.alreadyPaid}: ${selectedInvoice.paidAmount.toFixed(2)}
                 </Text>
                 <Text style={styles.summaryText}>
-                  Remaining: ${(selectedInvoice.total - selectedInvoice.paidAmount).toFixed(2)}
+                  {t.remaining}: ${(selectedInvoice.total - selectedInvoice.paidAmount).toFixed(2)}
                 </Text>
               </View>
             )}
@@ -570,7 +572,7 @@ export default function InvoicesScreen() {
               onPress={handleRecordPayment}
               testID="record-payment-button"
             >
-              <Text style={styles.recordPaymentButtonText}>Record Payment</Text>
+              <Text style={styles.recordPaymentButtonText}>{t.recordPayment}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
