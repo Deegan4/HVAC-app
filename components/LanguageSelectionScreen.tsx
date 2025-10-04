@@ -26,6 +26,7 @@ export default function LanguageSelectionScreen({ onLanguageSelected }: Language
 
   const handleContinue = () => {
     if (selectedLanguage) {
+      console.log('Language selection - continuing with:', selectedLanguage);
       onLanguageSelected(selectedLanguage);
     }
   };

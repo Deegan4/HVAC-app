@@ -51,14 +51,17 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, hasLanguage, hasCompletedOnboarding, userRole, setPin, setUserRole, setLanguage, authenticatePin, completeOnboarding } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, hasLanguage, hasCompletedOnboarding, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  
+  console.log('AuthenticatedApp render - hasLanguage:', hasLanguage, 'language:', language);
   
   // First show language selection
   if (!hasLanguage) {
     return (
       <LanguageSelectionScreen 
         onLanguageSelected={(language: Language) => {
+          console.log('_layout - onLanguageSelected called with:', language);
           setLanguage(language);
         }}
       />
@@ -67,6 +70,7 @@ function AuthenticatedApp() {
   
   // Then show onboarding
   if (!hasCompletedOnboarding) {
+    console.log('Showing onboarding with language:', language);
     return (
       <OnboardingScreen 
         onComplete={completeOnboarding}

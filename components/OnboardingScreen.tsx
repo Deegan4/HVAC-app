@@ -166,10 +166,15 @@ function getSlides(t: ReturnType<typeof useTranslation>): Slide[] {
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { language } = useAppStore();
   const t = useTranslation(language);
-  const slides = getSlides(t);
+  const slides = React.useMemo(() => getSlides(t), [t]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  
+  React.useEffect(() => {
+    console.log('OnboardingScreen - language changed to:', language);
+    console.log('OnboardingScreen - first slide title:', slides[0]?.title);
+  }, [language, slides]);
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {

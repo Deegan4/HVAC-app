@@ -185,6 +185,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     queryKey: ['language'],
     queryFn: async () => {
       const lang = await AsyncStorage.getItem('language');
+      console.log('Loaded language from storage:', lang);
       if (lang) {
         setLanguageState(lang as Language);
         setHasLanguage(true);
@@ -312,9 +313,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, []);
 
   const setLanguage = useCallback(async (lang: Language) => {
+    console.log('Setting language to:', lang);
     await AsyncStorage.setItem('language', lang);
     setLanguageState(lang);
     setHasLanguage(true);
+    console.log('Language set successfully:', lang);
   }, []);
 
   const authenticatePin = useCallback((pin: string): boolean => {
