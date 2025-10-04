@@ -30,11 +30,13 @@ import {
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { router } from 'expo-router';
+import { useTranslation } from '@/constants/translations';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language } = useAppStore();
+  const t = useTranslation(language);
   const unreadCount = getUnreadCount();
   
   // For technician role, use the most recent technician if currentTechnicianId is not set
@@ -94,10 +96,10 @@ export default function MoreScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
+      t.logout,
       'Are you sure you want to logout?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         { text: 'Logout', style: 'destructive', onPress: () => {
           logout();
           router.replace('/');
@@ -116,10 +118,10 @@ export default function MoreScreen() {
     {
       title: 'Business',
       items: [
-        { icon: Building, label: 'Company Info', onPress: () => router.push('/company-info') },
-        { icon: Users, label: 'Team Management', onPress: () => router.push('/team-management') },
-        { icon: DollarSign, label: 'Price Book', onPress: () => router.push('/price-book') },
-        { icon: BarChart3, label: 'Reports & Analytics', onPress: () => router.push('/reports-analytics') },
+        { icon: Building, label: t.companyInfo, onPress: () => router.push('/company-info') },
+        { icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') },
+        { icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') },
+        { icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') },
         { icon: Wrench, label: 'Service Settings', onPress: () => router.push('/service-settings') },
       ]
     },
@@ -132,17 +134,17 @@ export default function MoreScreen() {
     {
       title: 'Account',
       items: [
-        { icon: User, label: userRole === 'owner' ? 'Owner Profile' : 'Profile', onPress: () => router.push('/profile') },
+        { icon: User, label: userRole === 'owner' ? 'Owner Profile' : t.profile, onPress: () => router.push('/profile') },
         { icon: Bell, label: 'Notifications', hasSwitch: true },
-        { icon: Shield, label: 'Privacy & Security', onPress: () => router.push('/privacy-security') },
+        { icon: Shield, label: t.privacySecurity, onPress: () => router.push('/privacy-security') },
       ]
     },
     {
       title: 'Support',
       items: [
         ...(userRole === 'owner' ? [{ icon: Phone, label: 'AI Answering Service', onPress: () => router.push('/ai-answering-service') }] : []),
-        { icon: HelpCircle, label: 'Help Center', onPress: () => router.push('/help-center') },
-        { icon: FileText, label: 'Terms & Conditions', onPress: () => router.push('/terms-conditions') },
+        { icon: HelpCircle, label: t.helpCenter, onPress: () => router.push('/help-center') },
+        { icon: FileText, label: t.termsConditions, onPress: () => router.push('/terms-conditions') },
       ]
     },
     {
@@ -217,7 +219,7 @@ export default function MoreScreen() {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <LogOut size={20} color={Colors.status.emergency} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t.logout}</Text>
         </TouchableOpacity>
 
         {/* App Version */}

@@ -17,9 +17,11 @@ import { useAppStore, useTodaysJobs, useJobStats } from '@/hooks/app-store';
 import { Job } from '@/types';
 import LoadingScreen from '@/components/LoadingScreen';
 import CalendarView from '@/components/CalendarView';
+import { useTranslation } from '@/constants/translations';
 
 export default function ScheduleScreen() {
-  const { jobs, isLoading, getUpcomingJobs, customers, userRole } = useAppStore();
+  const { jobs, isLoading, getUpcomingJobs, customers, userRole, language } = useAppStore();
+  const t = useTranslation(language);
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
   const [refreshing, setRefreshing] = useState(false);
@@ -53,6 +55,18 @@ export default function ScheduleScreen() {
     return null;
   };
 
+  const getStatusText = (status: Job['status']) => {
+    const statusMap: Record<string, string> = {
+      'scheduled': t.scheduled,
+      'in-progress': t.inProgress,
+      'inProgress': t.inProgress,
+      'completed': t.completed,
+      'cancelled': t.cancelled,
+      'emergency': t.emergency,
+    };
+    return statusMap[status] || status;
+  };
+
   const renderJobCard = (job: Job) => (
     <TouchableOpacity
       key={job.id}
@@ -69,7 +83,7 @@ export default function ScheduleScreen() {
           <Text style={styles.jobTime}>{job.scheduledTime}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
-          <Text style={styles.statusText}>{job.status.replace('-', ' ')}</Text>
+          <Text style={styles.statusText}>{getStatusText(job.status)}</Text>
         </View>
       </View>
 
@@ -237,14 +251,14 @@ export default function ScheduleScreen() {
               onPress={() => setViewMode('list')}
             >
               <List size={20} color={viewMode === 'list' ? Colors.text.inverse : Colors.text.secondary} />
-              <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>List</Text>
+              <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>{t.viewList}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
               onPress={() => setViewMode('calendar')}
             >
               <Calendar size={20} color={viewMode === 'calendar' ? Colors.text.inverse : Colors.text.secondary} />
-              <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>Calendar</Text>
+              <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>{t.viewCalendar}</Text>
             </TouchableOpacity>
           </View>
 
@@ -267,31 +281,31 @@ export default function ScheduleScreen() {
             <View style={styles.statsContainer}>
               <View style={styles.statCard}>
                 <Text style={styles.statNumber}>{stats.total}</Text>
-                <Text style={styles.statLabel}>Today's Jobs</Text>
+                <Text style={styles.statLabel}>{t.todaysSchedule}</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={[styles.statNumber, { color: Colors.status.completed }]}>
                   {stats.completed}
                 </Text>
-                <Text style={styles.statLabel}>Completed</Text>
+                <Text style={styles.statLabel}>{t.completed}</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={[styles.statNumber, { color: Colors.status.inProgress }]}>
                   {stats.inProgress}
                 </Text>
-                <Text style={styles.statLabel}>In Progress</Text>
+                <Text style={styles.statLabel}>{t.inProgress}</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={[styles.statNumber, { color: Colors.status.emergency }]}>
                   {stats.emergency}
                 </Text>
-                <Text style={styles.statLabel}>Emergency</Text>
+                <Text style={styles.statLabel}>{t.emergency}</Text>
               </View>
             </View>
 
             {/* Today's Jobs */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Today's Schedule</Text>
+              <Text style={styles.sectionTitle}>{t.todaysSchedule}</Text>
               <Text style={styles.sectionSubtitle}>
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
@@ -304,13 +318,13 @@ export default function ScheduleScreen() {
             {todaysJobs.length === 0 ? (
               <View style={styles.emptyState}>
                 <Calendar size={48} color={Colors.text.light} />
-                <Text style={styles.emptyStateText}>No jobs scheduled for today</Text>
+                <Text style={styles.emptyStateText}>{t.noJobsToday}</Text>
                 <TouchableOpacity
                   style={styles.emptyStateButton}
                   onPress={() => router.push('/new-job')}
                 >
                   <Plus size={20} color={Colors.text.inverse} />
-                  <Text style={styles.emptyStateButtonText}>Schedule a Job</Text>
+                  <Text style={styles.emptyStateButtonText}>{t.addNewJob}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -323,7 +337,7 @@ export default function ScheduleScreen() {
             {upcomingJobs.length > 0 && (
               <>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Upcoming Jobs</Text>
+                  <Text style={styles.sectionTitle}>{t.upcomingJobs}</Text>
                 </View>
                 <View style={styles.jobsList}>
                   {upcomingJobs.slice(0, 5).map(renderJobCard)}

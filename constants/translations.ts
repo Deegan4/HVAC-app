@@ -105,6 +105,55 @@ export const translations = {
     invoices: 'Invoices',
     tracking: 'Tracking',
     more: 'More',
+    
+    // Home Screen
+    todaysSchedule: "Today's Schedule",
+    upcomingJobs: 'Upcoming Jobs',
+    viewCalendar: 'View Calendar',
+    viewList: 'View List',
+    noJobsToday: 'No jobs scheduled for today',
+    noJobsDescription: 'Your schedule is clear. Add a new job to get started.',
+    addNewJob: 'Add New Job',
+    jobsCompleted: 'Jobs Completed',
+    jobsInProgress: 'Jobs In Progress',
+    jobsScheduled: 'Jobs Scheduled',
+    emergencyJobs: 'Emergency Jobs',
+    scheduled: 'Scheduled',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    emergency: 'Emergency',
+    
+    // Customer Screen
+    allCustomers: 'All Customers',
+    searchCustomers: 'Search customers...',
+    addNewCustomer: 'Add New Customer',
+    noCustomers: 'No customers yet',
+    noCustomersDescription: 'Start building your customer base by adding your first customer.',
+    
+    // Invoice Screen
+    allInvoices: 'All Invoices',
+    searchInvoices: 'Search invoices...',
+    addNewInvoice: 'Add New Invoice',
+    noInvoices: 'No invoices yet',
+    noInvoicesDescription: 'Create your first invoice to start tracking payments.',
+    paid: 'Paid',
+    pending: 'Pending',
+    overdue: 'Overdue',
+    draft: 'Draft',
+    sent: 'Sent',
+    
+    // More Screen
+    settings: 'Settings',
+    profile: 'Profile',
+    companyInfo: 'Company Information',
+    teamManagement: 'Team Management',
+    priceBook: 'Price Book',
+    reportsAnalytics: 'Reports & Analytics',
+    helpCenter: 'Help Center',
+    privacySecurity: 'Privacy & Security',
+    termsConditions: 'Terms & Conditions',
+    logout: 'Logout',
   },
   es: {
     // Common
@@ -210,6 +259,55 @@ export const translations = {
     invoices: 'Facturas',
     tracking: 'Seguimiento',
     more: 'Más',
+    
+    // Home Screen
+    todaysSchedule: 'Horario de Hoy',
+    upcomingJobs: 'Trabajos Próximos',
+    viewCalendar: 'Ver Calendario',
+    viewList: 'Ver Lista',
+    noJobsToday: 'No hay trabajos programados para hoy',
+    noJobsDescription: 'Su horario está despejado. Agregue un nuevo trabajo para comenzar.',
+    addNewJob: 'Agregar Nuevo Trabajo',
+    jobsCompleted: 'Trabajos Completados',
+    jobsInProgress: 'Trabajos en Progreso',
+    jobsScheduled: 'Trabajos Programados',
+    emergencyJobs: 'Trabajos de Emergencia',
+    scheduled: 'Programado',
+    inProgress: 'En Progreso',
+    completed: 'Completado',
+    cancelled: 'Cancelado',
+    emergency: 'Emergencia',
+    
+    // Customer Screen
+    allCustomers: 'Todos los Clientes',
+    searchCustomers: 'Buscar clientes...',
+    addNewCustomer: 'Agregar Nuevo Cliente',
+    noCustomers: 'Aún no hay clientes',
+    noCustomersDescription: 'Comience a construir su base de clientes agregando su primer cliente.',
+    
+    // Invoice Screen
+    allInvoices: 'Todas las Facturas',
+    searchInvoices: 'Buscar facturas...',
+    addNewInvoice: 'Agregar Nueva Factura',
+    noInvoices: 'Aún no hay facturas',
+    noInvoicesDescription: 'Cree su primera factura para comenzar a rastrear pagos.',
+    paid: 'Pagado',
+    pending: 'Pendiente',
+    overdue: 'Vencido',
+    draft: 'Borrador',
+    sent: 'Enviado',
+    
+    // More Screen
+    settings: 'Configuración',
+    profile: 'Perfil',
+    companyInfo: 'Información de la Empresa',
+    teamManagement: 'Gestión de Equipo',
+    priceBook: 'Lista de Precios',
+    reportsAnalytics: 'Informes y Análisis',
+    helpCenter: 'Centro de Ayuda',
+    privacySecurity: 'Privacidad y Seguridad',
+    termsConditions: 'Términos y Condiciones',
+    logout: 'Cerrar Sesión',
   },
 };
 

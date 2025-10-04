@@ -15,9 +15,11 @@ import { Search, Plus, ChevronRight, MapPin, Phone, Users, Upload, FileText } fr
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Customer } from '@/types';
+import { useTranslation } from '@/constants/translations';
 
 export default function CustomersScreen() {
-  const { customers, isLoading } = useAppStore();
+  const { customers, isLoading, language } = useAppStore();
+  const t = useTranslation(language);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -119,7 +121,7 @@ export default function CustomersScreen() {
     <View style={styles.container}>
       <Stack.Screen 
         options={{
-          title: 'Customers',
+          title: t.customers,
           headerRight: () => (
             <TouchableOpacity
               onPress={() => router.push('/new-customer')}
@@ -138,7 +140,7 @@ export default function CustomersScreen() {
           <Search size={20} color={Colors.text.light} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search"
+            placeholder={t.searchCustomers}
             placeholderTextColor={Colors.text.light}
             value={searchQuery}
             onChangeText={setSearchQuery}
