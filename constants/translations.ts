@@ -220,6 +220,22 @@ export const translations = {
     searchTechnicians: 'Search technicians...',
     noTechniciansFound: 'No technicians found',
     tryAdjustingFilters: 'Try adjusting your search',
+    
+    // More Screen - Additional
+    communication: 'Communication',
+    teamMessages: 'Team Messages',
+    business: 'Business',
+    account: 'Account',
+    support: 'Support',
+    developer: 'Developer',
+    ownerProfile: 'Owner Profile',
+    notifications: 'Notifications',
+    aiAnsweringService: 'AI Answering Service',
+    debugTools: 'Debug Tools',
+    serviceSettings: 'Service Settings',
+    locationStatus: 'Location & Status',
+    logoutConfirm: 'Are you sure you want to logout?',
+    appVersion: 'Oliva Refrigeration v1.0.0',
   },
   es: {
     // Common
@@ -440,6 +456,22 @@ export const translations = {
     searchTechnicians: 'Buscar técnicos...',
     noTechniciansFound: 'No se encontraron técnicos',
     tryAdjustingFilters: 'Intente ajustar su búsqueda',
+    
+    // More Screen - Additional
+    communication: 'Comunicación',
+    teamMessages: 'Mensajes del Equipo',
+    business: 'Negocio',
+    account: 'Cuenta',
+    support: 'Soporte',
+    developer: 'Desarrollador',
+    ownerProfile: 'Perfil del Propietario',
+    notifications: 'Notificaciones',
+    aiAnsweringService: 'Servicio de Respuesta AI',
+    debugTools: 'Herramientas de Depuración',
+    serviceSettings: 'Configuración de Servicio',
+    locationStatus: 'Ubicación y Estado',
+    logoutConfirm: '¿Está seguro de que desea cerrar sesión?',
+    appVersion: 'Oliva Refrigeration v1.0.0',
   },
 };
 

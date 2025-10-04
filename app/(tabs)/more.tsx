@@ -97,10 +97,10 @@ export default function MoreScreen() {
   const handleLogout = () => {
     Alert.alert(
       t.logout,
-      'Are you sure you want to logout?',
+      t.logoutConfirm,
       [
         { text: t.cancel, style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => {
+        { text: t.logout, style: 'destructive', onPress: () => {
           logout();
           router.replace('/');
         }}
@@ -110,47 +110,47 @@ export default function MoreScreen() {
 
   const menuSections = [
     {
-      title: 'Communication',
+      title: t.communication,
       items: [
-        { icon: MessageCircle, label: 'Team Messages', onPress: () => router.push('/messaging'), badge: unreadCount },
+        { icon: MessageCircle, label: t.teamMessages, onPress: () => router.push('/messaging'), badge: unreadCount },
       ]
     },
     {
-      title: 'Business',
+      title: t.business,
       items: [
         { icon: Building, label: t.companyInfo, onPress: () => router.push('/company-info') },
         { icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') },
         { icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') },
         { icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') },
-        { icon: Wrench, label: 'Service Settings', onPress: () => router.push('/service-settings') },
+        { icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') },
       ]
     },
     {
-      title: 'Technician',
+      title: t.technician,
       items: userRole === 'technician' ? [
-        { icon: MapPin, label: 'Location & Status', onPress: () => router.push('/technician-location') },
+        { icon: MapPin, label: t.locationStatus, onPress: () => router.push('/technician-location') },
       ] : []
     },
     {
-      title: 'Account',
+      title: t.account,
       items: [
-        { icon: User, label: userRole === 'owner' ? 'Owner Profile' : t.profile, onPress: () => router.push('/profile') },
-        { icon: Bell, label: 'Notifications', hasSwitch: true },
+        { icon: User, label: userRole === 'owner' ? t.ownerProfile : t.profile, onPress: () => router.push('/profile') },
+        { icon: Bell, label: t.notifications, hasSwitch: true },
         { icon: Shield, label: t.privacySecurity, onPress: () => router.push('/privacy-security') },
       ]
     },
     {
-      title: 'Support',
+      title: t.support,
       items: [
-        ...(userRole === 'owner' ? [{ icon: Phone, label: 'AI Answering Service', onPress: () => router.push('/ai-answering-service') }] : []),
+        ...(userRole === 'owner' ? [{ icon: Phone, label: t.aiAnsweringService, onPress: () => router.push('/ai-answering-service') }] : []),
         { icon: HelpCircle, label: t.helpCenter, onPress: () => router.push('/help-center') },
         { icon: FileText, label: t.termsConditions, onPress: () => router.push('/terms-conditions') },
       ]
     },
     {
-      title: 'Developer',
+      title: t.developer,
       items: [
-        { icon: Bug, label: 'Debug Tools', onPress: () => router.push('/debug') },
+        { icon: Bug, label: t.debugTools, onPress: () => router.push('/debug') },
       ]
     }
   ].filter(section => section.items.length > 0);
@@ -224,7 +224,7 @@ export default function MoreScreen() {
 
         {/* App Version */}
         <Text style={styles.versionText}>
-          Oliva Refrigeration v1.0.0
+          {t.appVersion}
         </Text>
       </ScrollView>
     </SafeAreaView>
