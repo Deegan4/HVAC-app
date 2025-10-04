@@ -8,10 +8,10 @@ import {
   Dimensions,
   ScrollView,
   Animated,
-  Image,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
 import SnowingBackground from './SnowingBackground';
+import SpinningSnowflake from './SpinningSnowflake';
 import {
   Calendar,
   Users,
@@ -239,13 +239,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {/* Icon or Logo */}
             {currentIndex === 0 ? (
               <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  <Image 
-                    source={require('@/assets/images/icon.png')}
-                    style={styles.logoImage}
-                    resizeMode="contain"
-                  />
-                </View>
+                <SpinningSnowflake size={180} color="#DC2626" duration={3000} />
               </View>
             ) : (
               <View style={[styles.iconContainer, { backgroundColor: currentSlide.color }]}>
