@@ -10,7 +10,6 @@ import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
 import OnboardingScreen from "@/components/OnboardingScreen";
 import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
-import { trpc, trpcClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -135,14 +134,12 @@ export default function RootLayout() {
   }
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <AuthenticatedApp />
-          </GestureHandlerRootView>
-        </AppProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <QueryClientProvider client={queryClient}>
+      <AppProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AuthenticatedApp />
+        </GestureHandlerRootView>
+      </AppProvider>
+    </QueryClientProvider>
   );
 }
