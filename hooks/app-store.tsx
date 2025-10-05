@@ -7,8 +7,7 @@ import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians }
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
 import { Language } from '@/components/LanguageSelectionScreen';
-import { supabase } from '@/utils/supabase';
-import { supabaseQueries } from '@/utils/supabase-queries';
+
 
 interface AppState {
   customers: Customer[];
@@ -87,128 +86,59 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
   const [profileUpdateTrigger, setProfileUpdateTrigger] = useState<number>(0);
-  const [authUserId, setAuthUserId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string>('owner-1');
-  const [currentUserName, setCurrentUserName] = useState<string>('Owner');
-
-  useQuery({
-    queryKey: ['authSession'],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user?.id ?? null;
-      setAuthUserId(id);
-      if (id) {
-        setCurrentUserId(id);
-        setCurrentUserName(data.session?.user?.email ?? 'User');
-      }
-      return id;
-    },
-  });
+  const [currentUserId] = useState<string>('owner-1');
+  const [currentUserName] = useState<string>('Owner');
 
   const { data: customers = mockCustomers, isLoading: customersLoading } = useQuery({
-    queryKey: ['customers', authUserId ?? 'anon'],
+    queryKey: ['customers'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.customers.getAll(authUserId);
-          await AsyncStorage.setItem('customers', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('customers fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('customers');
       return stored ? JSON.parse(stored) : mockCustomers;
     },
   });
 
   const { data: equipment = mockEquipment, isLoading: equipmentLoading } = useQuery({
-    queryKey: ['equipment', authUserId ?? 'anon'],
+    queryKey: ['equipment'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.equipment.getAll(authUserId);
-          await AsyncStorage.setItem('equipment', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('equipment fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('equipment');
       return stored ? JSON.parse(stored) : mockEquipment;
     },
   });
 
   const { data: jobs = mockJobs, isLoading: jobsLoading } = useQuery({
-    queryKey: ['jobs', authUserId ?? 'anon'],
+    queryKey: ['jobs'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.jobs.getAll(authUserId);
-          await AsyncStorage.setItem('jobs', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('jobs fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('jobs');
       return stored ? JSON.parse(stored) : mockJobs;
     },
   });
 
   const { data: invoices = mockInvoices, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['invoices', authUserId ?? 'anon'],
+    queryKey: ['invoices'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.invoices.getAll(authUserId);
-          await AsyncStorage.setItem('invoices', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('invoices fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('invoices');
       return stored ? JSON.parse(stored) : mockInvoices;
     },
   });
 
   const { data: technicians = mockTechnicians, isLoading: techniciansLoading } = useQuery({
-    queryKey: ['technicians', authUserId ?? 'anon'],
+    queryKey: ['technicians'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.technicians.getAll(authUserId);
-          await AsyncStorage.setItem('technicians', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('technicians fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('technicians');
       return stored ? JSON.parse(stored) : mockTechnicians;
     },
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
-    queryKey: ['messages', authUserId ?? 'anon'],
+    queryKey: ['messages'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.messages.getAll();
-          await AsyncStorage.setItem('messages', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('messages fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('messages');
       return stored ? JSON.parse(stored) : [] as Message[];
     },
   });
 
   const { data: jobComments = [], isLoading: jobCommentsLoading } = useQuery({
-    queryKey: ['jobComments', authUserId ?? 'anon'],
+    queryKey: ['jobComments'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('jobComments');
       return stored ? JSON.parse(stored) : [] as JobComment[];
@@ -216,17 +146,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
 
   const { data: events = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['events', authUserId ?? 'anon'],
+    queryKey: ['events'],
     queryFn: async () => {
-      try {
-        if (authUserId) {
-          const rows = await supabaseQueries.events.getAll(authUserId);
-          await AsyncStorage.setItem('events', JSON.stringify(rows));
-          return rows;
-        }
-      } catch (e) {
-        console.error('events fetch error', e);
-      }
       const stored = await AsyncStorage.getItem('events');
       return stored ? JSON.parse(stored) : [] as CalendarEvent[];
     },
@@ -365,24 +286,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const { mutate: mutateEvents } = eventsMutation;
 
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.jobs.create(job, authUserId);
-          const updated = [...jobs, created];
-          await AsyncStorage.setItem('jobs', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['jobs', authUserId] });
-        } catch (e) {
-          console.error('addJob error', e);
-          const fallback: Job = { ...job, id: `job${Date.now()}` } as Job;
-          mutateJobs([...jobs, fallback]);
-        }
-      })();
-      return;
-    }
     const newJob: Job = { ...job, id: `job${Date.now()}` } as Job;
     mutateJobs([...jobs, newJob]);
-  }, [authUserId, jobs, mutateJobs, queryClient]);
+  }, [jobs, mutateJobs]);
 
   const updateJobStatus = useCallback(async (jobId: string, status: Job['status']) => {
     const updatedJobs = jobs.map((job: Job) => {
@@ -403,18 +309,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         console.error('Error saving job offline:', error);
       }
     }
-    if (authUserId) {
-      try {
-        await supabaseQueries.jobs.update(jobId, { status, completedAt: updatedJob?.completedAt });
-        queryClient.invalidateQueries({ queryKey: ['jobs', authUserId] });
-      } catch (e) {
-        console.error('updateJobStatus remote error', e);
-        mutateJobs(updatedJobs);
-      }
-      return;
-    }
     mutateJobs(updatedJobs);
-  }, [jobs, mutateJobs, offlineStorage, authUserId, queryClient]);
+  }, [jobs, mutateJobs, offlineStorage]);
 
   const setPin = useCallback(async (pin: string) => {
     await AsyncStorage.setItem('userPin', pin);
@@ -473,60 +369,19 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, [localTechnicians]);
 
   const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.technicians.create(technician, authUserId);
-          const updated = [...localTechnicians, created];
-          await AsyncStorage.setItem('technicians', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['technicians', authUserId] });
-        } catch (e) {
-          console.error('addTechnician error', e);
-          const fallback = { ...technician, id: `tech${Date.now()}` } as Technician;
-          saveTechnicians([...localTechnicians, fallback]);
-        }
-      })();
-      return;
-    }
     const newTechnician: Technician = { ...technician, id: `tech${Date.now()}` } as Technician;
     saveTechnicians([...localTechnicians, newTechnician]);
-  }, [authUserId, localTechnicians, saveTechnicians, queryClient]);
+  }, [localTechnicians, saveTechnicians]);
 
   const updateTechnician = useCallback((technicianId: string, updates: Partial<Technician>) => {
     const updatedTechnicians = localTechnicians.map((tech: Technician) => (tech.id === technicianId ? { ...tech, ...updates } : tech));
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.technicians.update(technicianId, updates);
-          await AsyncStorage.setItem('technicians', JSON.stringify(updatedTechnicians));
-          queryClient.invalidateQueries({ queryKey: ['technicians', authUserId] });
-        } catch (e) {
-          console.error('updateTechnician error', e);
-          saveTechnicians(updatedTechnicians);
-        }
-      })();
-      return;
-    }
     saveTechnicians(updatedTechnicians);
-  }, [authUserId, localTechnicians, saveTechnicians, queryClient]);
+  }, [localTechnicians, saveTechnicians]);
 
   const deleteTechnician = useCallback((technicianId: string) => {
     const updated = localTechnicians.filter((tech: Technician) => tech.id !== technicianId);
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.technicians.delete(technicianId);
-          await AsyncStorage.setItem('technicians', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['technicians', authUserId] });
-        } catch (e) {
-          console.error('deleteTechnician error', e);
-          saveTechnicians(updated);
-        }
-      })();
-      return;
-    }
     saveTechnicians(updated);
-  }, [authUserId, localTechnicians, saveTechnicians, queryClient]);
+  }, [localTechnicians, saveTechnicians]);
 
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
@@ -537,69 +392,16 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, [customers]);
 
   const addCustomer = useCallback((customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.customers.create(customer, authUserId);
-          const updated = [...customers, created];
-          await AsyncStorage.setItem('customers', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['customers', authUserId] });
-        } catch (e) {
-          console.error('addCustomer error', e);
-          const newCustomer: Customer = { ...customer, id: `cust${Date.now()}`, createdAt: new Date().toISOString().split('T')[0], equipment: [], serviceHistory: [] } as Customer;
-          mutateCustomers([...customers, newCustomer]);
-        }
-      })();
-      return;
-    }
     const newCustomer: Customer = { ...customer, id: `cust${Date.now()}`, createdAt: new Date().toISOString().split('T')[0], equipment: [], serviceHistory: [] } as Customer;
     mutateCustomers([...customers, newCustomer]);
-  }, [authUserId, customers, mutateCustomers, queryClient]);
+  }, [customers, mutateCustomers]);
 
   const deleteCustomer = useCallback((customerId: string) => {
     const updatedCustomers = customers.filter((c: Customer) => c.id !== customerId);
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.customers.delete(customerId);
-          await AsyncStorage.setItem('customers', JSON.stringify(updatedCustomers));
-          queryClient.invalidateQueries({ queryKey: ['customers', authUserId] });
-        } catch (e) {
-          console.error('deleteCustomer error', e);
-          mutateCustomers(updatedCustomers);
-        }
-      })();
-      return;
-    }
     mutateCustomers(updatedCustomers);
-  }, [authUserId, customers, mutateCustomers, queryClient]);
+  }, [customers, mutateCustomers]);
 
   const addInvoice = useCallback((invoice: Omit<Invoice, 'id'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.invoices.create(invoice, authUserId);
-          const updated = [...invoices, created];
-          await AsyncStorage.setItem('invoices', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['invoices', authUserId] });
-          try {
-            await offlineStorage.updateInvoiceOffline(created, true);
-          } catch (error) {
-            console.error('Error saving invoice offline:', error);
-          }
-        } catch (e) {
-          console.error('addInvoice error', e);
-          const newInvoice: Invoice = { ...invoice, id: `inv${Date.now()}` } as Invoice;
-          mutateInvoices([...invoices, newInvoice]);
-          try {
-            await offlineStorage.updateInvoiceOffline(newInvoice, true);
-          } catch (error) {
-            console.error('Error saving invoice offline:', error);
-          }
-        }
-      })();
-      return;
-    }
     const newInvoice: Invoice = { ...invoice, id: `inv${Date.now()}` } as Invoice;
     mutateInvoices([...invoices, newInvoice]);
     (async () => {
@@ -609,29 +411,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         console.error('Error saving invoice offline:', error);
       }
     })();
-  }, [authUserId, invoices, mutateInvoices, offlineStorage, queryClient]);
+  }, [invoices, mutateInvoices, offlineStorage]);
 
   const updateInvoice = useCallback((invoiceId: string, updates: Partial<Invoice>) => {
     const updatedInvoices = invoices.map((inv: Invoice) => (inv.id === invoiceId ? { ...inv, ...updates } : inv));
-    if (authUserId) {
-      (async () => {
-        try {
-          const updated = await supabaseQueries.invoices.update(invoiceId, updates);
-          const merged = invoices.map((inv: Invoice) => (inv.id === invoiceId ? updated : inv));
-          await AsyncStorage.setItem('invoices', JSON.stringify(merged));
-          queryClient.invalidateQueries({ queryKey: ['invoices', authUserId] });
-          try {
-            await offlineStorage.updateInvoiceOffline(updated, false);
-          } catch (error) {
-            console.error('Error updating invoice offline:', error);
-          }
-        } catch (e) {
-          console.error('updateInvoice error', e);
-          mutateInvoices(updatedInvoices);
-        }
-      })();
-      return;
-    }
     mutateInvoices(updatedInvoices);
     const updated = updatedInvoices.find((i: Invoice) => i.id === invoiceId);
     if (updated) {
@@ -643,43 +426,17 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         }
       })();
     }
-  }, [authUserId, invoices, mutateInvoices, offlineStorage, queryClient]);
+  }, [invoices, mutateInvoices, offlineStorage]);
 
   const deleteInvoice = useCallback((invoiceId: string) => {
     const updatedInvoices = invoices.filter((invoice: Invoice) => invoice.id !== invoiceId);
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.invoices.delete(invoiceId);
-          await AsyncStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-          queryClient.invalidateQueries({ queryKey: ['invoices', authUserId] });
-        } catch (e) {
-          console.error('deleteInvoice error', e);
-          mutateInvoices(updatedInvoices);
-        }
-      })();
-      return;
-    }
     mutateInvoices(updatedInvoices);
-  }, [authUserId, invoices, mutateInvoices, queryClient]);
+  }, [invoices, mutateInvoices]);
 
   const updateInvoiceStatus = useCallback((invoiceId: string, status: Invoice['status']) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.invoices.update(invoiceId, { status });
-          queryClient.invalidateQueries({ queryKey: ['invoices', authUserId] });
-        } catch (e) {
-          console.error('updateInvoiceStatus error', e);
-          const updatedInvoices = invoices.map((invoice: Invoice) => (invoice.id === invoiceId ? { ...invoice, status } : invoice));
-          mutateInvoices(updatedInvoices);
-        }
-      })();
-      return;
-    }
     const updatedInvoices = invoices.map((invoice: Invoice) => (invoice.id === invoiceId ? { ...invoice, status } : invoice));
     mutateInvoices(updatedInvoices);
-  }, [authUserId, invoices, mutateInvoices, queryClient]);
+  }, [invoices, mutateInvoices]);
 
   const getTodaysJobs = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -708,42 +465,14 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, [invoices]);
 
   const sendMessage = useCallback((message: Omit<Message, 'id' | 'timestamp' | 'read'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.messages.create(message);
-          const updated = [...messages, created];
-          await AsyncStorage.setItem('messages', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['messages', authUserId] });
-        } catch (e) {
-          console.error('sendMessage error', e);
-          const newMessage: Message = { ...message, id: `msg${Date.now()}`, timestamp: new Date().toISOString(), read: false } as Message;
-          mutateMessages([...messages, newMessage]);
-        }
-      })();
-      return;
-    }
     const newMessage: Message = { ...message, id: `msg${Date.now()}`, timestamp: new Date().toISOString(), read: false } as Message;
     mutateMessages([...messages, newMessage]);
-  }, [authUserId, messages, mutateMessages, queryClient]);
+  }, [messages, mutateMessages]);
 
   const markMessageAsRead = useCallback((messageId: string) => {
     const updatedMessages = messages.map((msg: Message) => (msg.id === messageId ? { ...msg, read: true } : msg));
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.messages.markAsRead(messageId);
-          await AsyncStorage.setItem('messages', JSON.stringify(updatedMessages));
-          queryClient.invalidateQueries({ queryKey: ['messages', authUserId] });
-        } catch (e) {
-          console.error('markMessageAsRead error', e);
-          mutateMessages(updatedMessages);
-        }
-      })();
-      return;
-    }
     mutateMessages(updatedMessages);
-  }, [authUserId, messages, mutateMessages, queryClient]);
+  }, [messages, mutateMessages]);
 
   const getConversationMessages = useCallback((participantId: string) => {
     return messages
@@ -756,24 +485,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, [messages, currentUserId]);
 
   const addJobComment = useCallback((comment: Omit<JobComment, 'id' | 'timestamp'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.jobComments.create(comment);
-          const updated = [...jobComments, created];
-          await AsyncStorage.setItem('jobComments', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['jobComments', authUserId] });
-        } catch (e) {
-          console.error('addJobComment error', e);
-          const newComment: JobComment = { ...comment, id: `comment${Date.now()}`, timestamp: new Date().toISOString() } as JobComment;
-          mutateJobComments([...jobComments, newComment]);
-        }
-      })();
-      return;
-    }
     const newComment: JobComment = { ...comment, id: `comment${Date.now()}`, timestamp: new Date().toISOString() } as JobComment;
     mutateJobComments([...jobComments, newComment]);
-  }, [authUserId, jobComments, mutateJobComments, queryClient]);
+  }, [jobComments, mutateJobComments]);
 
   const getJobComments = useCallback((jobId: string) => {
     return jobComments
@@ -783,77 +497,23 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
 
   const deleteJobComment = useCallback((commentId: string) => {
     const updated = jobComments.filter((comment: JobComment) => comment.id !== commentId);
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.jobComments.delete(commentId);
-          await AsyncStorage.setItem('jobComments', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['jobComments', authUserId] });
-        } catch (e) {
-          console.error('deleteJobComment error', e);
-          mutateJobComments(updated);
-        }
-      })();
-      return;
-    }
     mutateJobComments(updated);
-  }, [authUserId, jobComments, mutateJobComments, queryClient]);
+  }, [jobComments, mutateJobComments]);
 
   const addEvent = useCallback((event: Omit<CalendarEvent, 'id' | 'createdAt'>) => {
-    if (authUserId) {
-      (async () => {
-        try {
-          const created = await supabaseQueries.events.create(event, authUserId);
-          const updated = [...events, created];
-          await AsyncStorage.setItem('events', JSON.stringify(updated));
-          queryClient.invalidateQueries({ queryKey: ['events', authUserId] });
-        } catch (e) {
-          console.error('addEvent error', e);
-          const newEvent: CalendarEvent = { ...event, id: `event${Date.now()}`, createdAt: new Date().toISOString() } as CalendarEvent;
-          mutateEvents([...events, newEvent]);
-        }
-      })();
-      return;
-    }
     const newEvent: CalendarEvent = { ...event, id: `event${Date.now()}`, createdAt: new Date().toISOString() } as CalendarEvent;
     mutateEvents([...events, newEvent]);
-  }, [authUserId, events, mutateEvents, queryClient]);
+  }, [events, mutateEvents]);
 
   const updateEvent = useCallback((eventId: string, updates: Partial<CalendarEvent>) => {
     const updatedEvents = events.map((event: CalendarEvent) => (event.id === eventId ? { ...event, ...updates } : event));
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.events.update(eventId, updates);
-          await AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
-          queryClient.invalidateQueries({ queryKey: ['events', authUserId] });
-        } catch (e) {
-          console.error('updateEvent error', e);
-          mutateEvents(updatedEvents);
-        }
-      })();
-      return;
-    }
     mutateEvents(updatedEvents);
-  }, [authUserId, events, mutateEvents, queryClient]);
+  }, [events, mutateEvents]);
 
   const deleteEvent = useCallback((eventId: string) => {
     const updatedEvents = events.filter((event: CalendarEvent) => event.id !== eventId);
-    if (authUserId) {
-      (async () => {
-        try {
-          await supabaseQueries.events.delete(eventId);
-          await AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
-          queryClient.invalidateQueries({ queryKey: ['events', authUserId] });
-        } catch (e) {
-          console.error('deleteEvent error', e);
-          mutateEvents(updatedEvents);
-        }
-      })();
-      return;
-    }
     mutateEvents(updatedEvents);
-  }, [authUserId, events, mutateEvents, queryClient]);
+  }, [events, mutateEvents]);
 
   const getEventsByDate = useCallback((date: string) => {
     return events.filter((event: CalendarEvent) => event.date === date);
@@ -931,6 +591,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     localTechnicians,
     messages,
     jobComments,
+    events,
     currentTechnicianId,
     currentUserId,
     currentUserName,
