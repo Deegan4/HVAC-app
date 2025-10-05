@@ -8,10 +8,9 @@ import {
   ActivityIndicator,
   RefreshControl,
   SectionList,
-  ScrollView,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { Search, Plus, ChevronRight, MapPin, Phone, Users, Upload, FileText } from 'lucide-react-native';
+import { Search, Plus, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Customer } from '@/types';
@@ -79,31 +78,13 @@ export default function CustomersScreen() {
       activeOpacity={0.7}
     >
       <View style={styles.customerContent}>
-        <View style={styles.customerInfo}>
-          <Text style={styles.customerName}>{item.name}</Text>
-          <View style={styles.customerDetails}>
-            <View style={styles.detailRow}>
-              <Phone size={14} color={Colors.text.secondary} />
-              <Text style={styles.customerPhone}>{item.phone}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MapPin size={14} color={Colors.text.secondary} />
-              <Text style={styles.customerAddress} numberOfLines={1}>
-                {item.address}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <Text style={styles.customerName}>{item.name}</Text>
         <ChevronRight size={22} color={Colors.text.light} />
       </View>
     </TouchableOpacity>
   );
 
-  const renderSectionHeader = ({ section }: { section: { title: string } }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionHeaderText}>{section.title}</Text>
-    </View>
-  );
+  const renderSectionHeader = ({ section }: { section: { title: string } }) => null;
 
 
 
@@ -167,71 +148,13 @@ export default function CustomersScreen() {
           />
         }
         ListEmptyComponent={
-          searchQuery ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No customers found</Text>
-              <Text style={styles.emptyStateSubtext}>
-                Try adjusting your search terms
-              </Text>
-            </View>
-          ) : (
-            <ScrollView contentContainerStyle={styles.welcomeContainer}>
-              <View style={styles.welcomeIconContainer}>
-                <Users size={64} color={Colors.primary} />
-              </View>
-              <Text style={styles.welcomeTitle}>Welcome to Your Service Business</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Start by adding your first customer to begin scheduling jobs and tracking service history
-              </Text>
-              
-              <TouchableOpacity
-                style={styles.primaryActionCard}
-                onPress={() => router.push('/new-customer')}
-              >
-                <View style={styles.primaryActionIcon}>
-                  <Plus size={28} color={Colors.white} />
-                </View>
-                <View style={styles.primaryActionContent}>
-                  <Text style={styles.primaryActionTitle}>Add Your First Customer</Text>
-                  <Text style={styles.primaryActionDescription}>
-                    Get started by adding customer details
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              
-              <View style={styles.featureGrid}>
-                <View style={styles.featureCard}>
-                  <FileText size={24} color={Colors.primary} />
-                  <Text style={styles.featureTitle}>Service History</Text>
-                  <Text style={styles.featureDescription}>Track all jobs and maintenance</Text>
-                </View>
-                <View style={styles.featureCard}>
-                  <MapPin size={24} color={Colors.primary} />
-                  <Text style={styles.featureTitle}>Equipment Tracking</Text>
-                  <Text style={styles.featureDescription}>Manage customer equipment</Text>
-                </View>
-                <View style={styles.featureCard}>
-                  <Phone size={24} color={Colors.primary} />
-                  <Text style={styles.featureTitle}>Contact Management</Text>
-                  <Text style={styles.featureDescription}>Store preferences and notes</Text>
-                </View>
-                <View style={styles.featureCard}>
-                  <Upload size={24} color={Colors.primary} />
-                  <Text style={styles.featureTitle}>Import Data</Text>
-                  <Text style={styles.featureDescription}>Bulk import from CSV files</Text>
-                </View>
-              </View>
-              
-              <View style={styles.tipSection}>
-                <Text style={styles.tipTitle}>💡 Pro Tip</Text>
-                <Text style={styles.tipText}>
-                  Add detailed notes about each customer's preferences, equipment locations, and service history to provide better service and build stronger relationships.
-                </Text>
-              </View>
-            </ScrollView>
-          )
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              {searchQuery ? 'No customers found' : 'No customers yet'}
+            </Text>
+          </View>
         }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={null}
       />
     </View>
   );
@@ -252,22 +175,17 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
     backgroundColor: '#F5F5F7',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 40,
   },
   searchInput: {
     flex: 1,
@@ -279,66 +197,26 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
-  sectionHeader: {
-    backgroundColor: '#F5F5F7',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E5EA',
-  },
-  sectionHeaderText: {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: Colors.text.secondary,
-    letterSpacing: 0.5,
-  },
+
   customerCard: {
     backgroundColor: Colors.surface,
-    marginHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
   },
   customerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
-  customerInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
+
   customerName: {
     fontSize: 17,
-    fontWeight: '600' as const,
+    fontWeight: '400' as const,
     color: Colors.text.primary,
-    marginBottom: 6,
   },
-  customerDetails: {
-    gap: 4,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  customerPhone: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  customerAddress: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    flex: 1,
-  },
-  separator: {
-    height: 1,
-  },
+
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -346,134 +224,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    fontWeight: '500' as const,
+    fontWeight: '400' as const,
     color: Colors.text.secondary,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: Colors.text.light,
-    marginTop: 8,
-    textAlign: 'center' as const,
-  },
-  welcomeContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 32,
-  },
-  welcomeIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 32,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: '800' as const,
-    color: Colors.text.primary,
-    textAlign: 'center' as const,
-    marginBottom: 12,
-    lineHeight: 34,
-  },
-  welcomeSubtitle: {
-    fontSize: 17,
-    color: Colors.text.secondary,
-    textAlign: 'center' as const,
-    marginBottom: 40,
-    paddingHorizontal: 16,
-    lineHeight: 24,
-  },
-  primaryActionCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primary,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  primaryActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  primaryActionContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  primaryActionTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: Colors.white,
-    marginBottom: 4,
-  },
-  primaryActionDescription: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  featureGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 32,
-  },
-  featureCard: {
-    width: '48%',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  featureTitle: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginTop: 8,
-    marginBottom: 4,
-    textAlign: 'center' as const,
-  },
-  featureDescription: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-    textAlign: 'center' as const,
-    lineHeight: 16,
-  },
-  tipSection: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 12,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  tipTitle: {
-    fontSize: 16,
-    fontWeight: '700' as const,
-    color: Colors.text.primary,
-    marginBottom: 8,
-  },
-  tipText: {
-    fontSize: 14,
-    color: Colors.text.inverse,
-    lineHeight: 20,
   },
 });
