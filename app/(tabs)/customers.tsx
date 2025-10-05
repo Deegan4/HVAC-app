@@ -117,6 +117,22 @@ export default function CustomersScreen() {
     );
   }
 
+  const renderListHeader = () => (
+    <View style={styles.searchContainer}>
+      <View style={styles.searchBar}>
+        <Search size={20} color={Colors.text.light} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t.searchCustomers}
+          placeholderTextColor={Colors.text.light}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          testID="customer-search"
+        />
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Stack.Screen 
@@ -133,21 +149,6 @@ export default function CustomersScreen() {
           ),
         }} 
       />
-      
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={Colors.text.light} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t.searchCustomers}
-            placeholderTextColor={Colors.text.light}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            testID="customer-search"
-          />
-        </View>
-      </View>
 
       <SectionList
         sections={groupedCustomers}
@@ -156,6 +157,7 @@ export default function CustomersScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         stickySectionHeadersEnabled={true}
+        ListHeaderComponent={renderListHeader}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -250,11 +252,9 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingTop: 12,
+    paddingBottom: 16,
+    backgroundColor: '#F5F5F7',
   },
   searchBar: {
     flexDirection: 'row',
