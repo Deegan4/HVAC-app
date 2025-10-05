@@ -163,3 +163,19 @@ export interface Conversation {
   lastMessageTime: string;
   unreadCount: number;
 }
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  startTime: string;
+  endTime?: string;
+  type: 'meeting' | 'reminder' | 'appointment' | 'other';
+  location?: string;
+  attendees?: string[];
+  color?: string;
+  allDay?: boolean;
+  createdAt: string;
+  createdBy: string;
+}

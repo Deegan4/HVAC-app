@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -16,6 +16,7 @@ interface AppState {
   technicians: Technician[];
   messages: Message[];
   jobComments: JobComment[];
+  events: CalendarEvent[];
   currentTechnicianId: string | null;
   currentUserId: string;
   currentUserName: string;
@@ -65,6 +66,10 @@ interface AppState {
   addJobComment: (comment: Omit<JobComment, 'id' | 'timestamp'>) => void;
   getJobComments: (jobId: string) => JobComment[];
   deleteJobComment: (commentId: string) => void;
+  addEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt'>) => void;
+  updateEvent: (eventId: string, updates: Partial<CalendarEvent>) => void;
+  deleteEvent: (eventId: string) => void;
+  getEventsByDate: (date: string) => CalendarEvent[];
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -134,6 +139,14 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     queryKey: ['jobComments'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('jobComments');
+      return stored ? JSON.parse(stored) : [];
+    },
+  });
+
+  const { data: events = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem('events');
       return stored ? JSON.parse(stored) : [];
     },
   });
@@ -265,6 +278,17 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
   const { mutate: mutateJobComments } = jobCommentsMutation;
+
+  const eventsMutation = useMutation({
+    mutationFn: async (newEvents: CalendarEvent[]) => {
+      await AsyncStorage.setItem('events', JSON.stringify(newEvents));
+      return newEvents;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+  const { mutate: mutateEvents } = eventsMutation;
 
   // Helper functions
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
@@ -545,7 +569,32 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateJobComments(updatedComments);
   }, [jobComments, mutateJobComments]);
 
-  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading || messagesLoading || jobCommentsLoading;
+  const addEvent = useCallback((event: Omit<CalendarEvent, 'id' | 'createdAt'>) => {
+    const newEvent: CalendarEvent = {
+      ...event,
+      id: `event${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    mutateEvents([...events, newEvent]);
+  }, [events, mutateEvents]);
+
+  const updateEvent = useCallback((eventId: string, updates: Partial<CalendarEvent>) => {
+    const updatedEvents = events.map((event: CalendarEvent) =>
+      event.id === eventId ? { ...event, ...updates } : event
+    );
+    mutateEvents(updatedEvents);
+  }, [events, mutateEvents]);
+
+  const deleteEvent = useCallback((eventId: string) => {
+    const updatedEvents = events.filter((event: CalendarEvent) => event.id !== eventId);
+    mutateEvents(updatedEvents);
+  }, [events, mutateEvents]);
+
+  const getEventsByDate = useCallback((date: string) => {
+    return events.filter((event: CalendarEvent) => event.date === date);
+  }, [events]);
+
+  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading || messagesLoading || jobCommentsLoading || eventsLoading;
 
   return useMemo(() => ({
     customers,
@@ -555,6 +604,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     technicians: localTechnicians,
     messages,
     jobComments,
+    events,
     currentTechnicianId,
     currentUserId,
     currentUserName,
@@ -604,6 +654,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addJobComment,
     getJobComments,
     deleteJobComment,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    getEventsByDate,
   }), [
     customers,
     equipment,
@@ -661,6 +715,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addJobComment,
     getJobComments,
     deleteJobComment,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    getEventsByDate,
   ]);
 });
 

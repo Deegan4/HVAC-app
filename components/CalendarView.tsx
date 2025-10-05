@@ -12,12 +12,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, ChevronRight, Plus, Briefcase, FileText, Calendar } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { Job } from '@/types';
+import { Job, Invoice, CalendarEvent } from '@/types';
 
 interface CalendarViewProps {
   jobs: Job[];
+  invoices?: Invoice[];
+  events?: CalendarEvent[];
   onDateSelect: (date: Date) => void;
   onJobPress: (job: Job) => void;
+  onInvoicePress?: (invoice: Invoice) => void;
+  onEventPress?: (event: CalendarEvent) => void;
   onAddJob: (date: Date) => void;
   onAddInvoice?: (date: Date) => void;
   onAddEvent?: (date: Date) => void;
@@ -36,8 +40,12 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function CalendarView({ 
   jobs, 
+  invoices = [],
+  events = [],
   onDateSelect, 
-  onJobPress, 
+  onJobPress,
+  onInvoicePress,
+  onEventPress,
   onAddJob,
   onAddInvoice,
   onAddEvent,
@@ -47,7 +55,7 @@ export default function CalendarView({
   const [longPressDate, setLongPressDate] = useState<Date | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
 
-  const { calendarDays, jobsByDate } = useMemo(() => {
+  const { calendarDays, itemsByDate } = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
@@ -63,20 +71,37 @@ export default function CalendarView({
       currentDay.setDate(currentDay.getDate() + 1);
     }
     
-    const jobsMap = new Map<string, Job[]>();
+    const itemsMap = new Map<string, { jobs: Job[], invoices: Invoice[], events: CalendarEvent[] }>();
+    
     jobs.forEach(job => {
       const dateKey = new Date(job.scheduledDate).toDateString();
-      if (!jobsMap.has(dateKey)) {
-        jobsMap.set(dateKey, []);
+      if (!itemsMap.has(dateKey)) {
+        itemsMap.set(dateKey, { jobs: [], invoices: [], events: [] });
       }
-      jobsMap.get(dateKey)!.push(job);
+      itemsMap.get(dateKey)!.jobs.push(job);
+    });
+    
+    invoices.forEach(invoice => {
+      const dateKey = new Date(invoice.date).toDateString();
+      if (!itemsMap.has(dateKey)) {
+        itemsMap.set(dateKey, { jobs: [], invoices: [], events: [] });
+      }
+      itemsMap.get(dateKey)!.invoices.push(invoice);
+    });
+    
+    events.forEach(event => {
+      const dateKey = new Date(event.date).toDateString();
+      if (!itemsMap.has(dateKey)) {
+        itemsMap.set(dateKey, { jobs: [], invoices: [], events: [] });
+      }
+      itemsMap.get(dateKey)!.events.push(event);
     });
     
     return {
       calendarDays: days,
-      jobsByDate: jobsMap
+      itemsByDate: itemsMap
     };
-  }, [currentDate, jobs]);
+  }, [currentDate, jobs, invoices, events]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
@@ -101,8 +126,8 @@ export default function CalendarView({
     return date.getMonth() === currentDate.getMonth();
   };
 
-  const getJobsForDate = (date: Date) => {
-    return jobsByDate.get(date.toDateString()) || [];
+  const getItemsForDate = (date: Date) => {
+    return itemsByDate.get(date.toDateString()) || { jobs: [], invoices: [], events: [] };
   };
 
   const getStatusColor = (status: Job['status']) => {
@@ -116,7 +141,7 @@ export default function CalendarView({
     return statusMap[status] || Colors.text.secondary;
   };
 
-  const selectedDateJobs = getJobsForDate(selectedDate);
+  const selectedDateItems = getItemsForDate(selectedDate);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -154,7 +179,8 @@ export default function CalendarView({
       <ScrollView style={styles.calendarContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.calendarGrid}>
           {calendarDays.map((date, index) => {
-            const dayJobs = getJobsForDate(date);
+            const dayItems = getItemsForDate(date);
+            const totalItems = dayItems.jobs.length + dayItems.invoices.length + dayItems.events.length;
             const isCurrentMonthDay = isCurrentMonth(date);
             const isTodayDate = isToday(date);
             const isSelectedDate = isSelected(date);
@@ -184,19 +210,37 @@ export default function CalendarView({
                   {date.getDate()}
                 </Text>
                 
-                {dayJobs.length > 0 && (
-                  <View style={styles.jobIndicators}>
-                    {dayJobs.slice(0, 3).map((job, jobIndex) => (
+                {totalItems > 0 && (
+                  <View style={styles.itemIndicators}>
+                    {dayItems.jobs.slice(0, 2).map((job) => (
                       <View
                         key={job.id}
                         style={[
-                          styles.jobDot,
+                          styles.itemDot,
                           { backgroundColor: getStatusColor(job.status) }
                         ]}
                       />
                     ))}
-                    {dayJobs.length > 3 && (
-                      <Text style={styles.moreJobsText}>+{dayJobs.length - 3}</Text>
+                    {dayItems.invoices.slice(0, 2 - dayItems.jobs.length).map((invoice) => (
+                      <View
+                        key={invoice.id}
+                        style={[
+                          styles.itemDot,
+                          { backgroundColor: invoice.status === 'paid' ? Colors.success : Colors.warning }
+                        ]}
+                      />
+                    ))}
+                    {dayItems.events.slice(0, 2 - dayItems.jobs.length - dayItems.invoices.length).map((event) => (
+                      <View
+                        key={event.id}
+                        style={[
+                          styles.itemDot,
+                          { backgroundColor: event.color || Colors.primary }
+                        ]}
+                      />
+                    ))}
+                    {totalItems > 2 && (
+                      <Text style={styles.moreItemsText}>+{totalItems - 2}</Text>
                     )}
                   </View>
                 )}
@@ -295,7 +339,7 @@ export default function CalendarView({
         </Pressable>
       </Modal>
 
-      {/* Selected Date Jobs */}
+      {/* Selected Date Items */}
       <View style={styles.selectedDateSection}>
         <View style={styles.selectedDateHeader}>
           <Text style={styles.selectedDateTitle}>
@@ -306,49 +350,110 @@ export default function CalendarView({
             })}
           </Text>
           <TouchableOpacity 
-            style={styles.addJobButton}
-            onPress={() => onAddJob(selectedDate)}
+            style={styles.addButton}
+            onPress={() => {
+              setLongPressDate(selectedDate);
+              setShowActionModal(true);
+            }}
           >
             <Plus size={20} color={Colors.text.inverse} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.jobsList} showsVerticalScrollIndicator={false}>
-          {selectedDateJobs.length === 0 ? (
-            <View style={styles.noJobsContainer}>
-              <Text style={styles.noJobsText}>No jobs scheduled for this date</Text>
+        <ScrollView style={styles.itemsList} showsVerticalScrollIndicator={false}>
+          {selectedDateItems.jobs.length === 0 && selectedDateItems.invoices.length === 0 && selectedDateItems.events.length === 0 ? (
+            <View style={styles.noItemsContainer}>
+              <Text style={styles.noItemsText}>No items scheduled for this date</Text>
             </View>
           ) : (
-            selectedDateJobs.map(job => (
-              <TouchableOpacity
-                key={job.id}
-                style={styles.jobCard}
-                onPress={() => onJobPress(job)}
-              >
-                <View style={styles.jobCardHeader}>
-                  <Text style={styles.jobTime}>{job.scheduledTime}</Text>
-                  <View style={[
-                    styles.jobStatus,
-                    { backgroundColor: getStatusColor(job.status) }
-                  ]}>
-                    <Text style={styles.jobStatusText}>
-                      {job.status.replace('-', ' ')}
+            <>
+              {selectedDateItems.jobs.map(job => (
+                <TouchableOpacity
+                  key={job.id}
+                  style={styles.itemCard}
+                  onPress={() => onJobPress(job)}
+                >
+                  <View style={styles.itemCardHeader}>
+                    <View style={styles.itemTypeIndicator}>
+                      <Briefcase size={16} color={Colors.primary} />
+                      <Text style={styles.itemType}>Job</Text>
+                    </View>
+                    <View style={[
+                      styles.itemStatus,
+                      { backgroundColor: getStatusColor(job.status) }
+                    ]}>
+                      <Text style={styles.itemStatusText}>
+                        {job.status.replace('-', ' ')}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.itemTime}>{job.scheduledTime}</Text>
+                  <Text style={styles.itemTitle}>{job.customerName}</Text>
+                  <Text style={styles.itemDescription} numberOfLines={2}>
+                    {job.description}
+                  </Text>
+                  {job.priority === 'emergency' && (
+                    <View style={styles.emergencyBadge}>
+                      <Text style={styles.emergencyText}>EMERGENCY</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+              
+              {selectedDateItems.invoices.map(invoice => (
+                <TouchableOpacity
+                  key={invoice.id}
+                  style={styles.itemCard}
+                  onPress={() => onInvoicePress?.(invoice)}
+                >
+                  <View style={styles.itemCardHeader}>
+                    <View style={styles.itemTypeIndicator}>
+                      <FileText size={16} color={Colors.success} />
+                      <Text style={styles.itemType}>Invoice</Text>
+                    </View>
+                    <View style={[
+                      styles.itemStatus,
+                      { backgroundColor: invoice.status === 'paid' ? Colors.success : Colors.warning }
+                    ]}>
+                      <Text style={styles.itemStatusText}>
+                        {invoice.status}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.itemTitle}>{invoice.customerName}</Text>
+                  <Text style={styles.itemDescription}>
+                    ${invoice.total.toFixed(2)} - Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              
+              {selectedDateItems.events.map(event => (
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.itemCard}
+                  onPress={() => onEventPress?.(event)}
+                >
+                  <View style={styles.itemCardHeader}>
+                    <View style={styles.itemTypeIndicator}>
+                      <Calendar size={16} color={event.color || Colors.warning} />
+                      <Text style={styles.itemType}>Event</Text>
+                    </View>
+                    {event.allDay && (
+                      <View style={[styles.itemStatus, { backgroundColor: Colors.text.secondary }]}>
+                        <Text style={styles.itemStatusText}>All Day</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.itemTime}>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</Text>
+                  <Text style={styles.itemTitle}>{event.title}</Text>
+                  {event.description && (
+                    <Text style={styles.itemDescription} numberOfLines={2}>
+                      {event.description}
                     </Text>
-                  </View>
-                </View>
-                
-                <Text style={styles.jobCustomer}>{job.customerName}</Text>
-                <Text style={styles.jobDescription} numberOfLines={2}>
-                  {job.description}
-                </Text>
-                
-                {job.priority === 'emergency' && (
-                  <View style={styles.emergencyBadge}>
-                    <Text style={styles.emergencyText}>EMERGENCY</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))
+                  )}
+                </TouchableOpacity>
+              ))}
+            </>
           )}
         </ScrollView>
       </View>
@@ -444,22 +549,33 @@ const styles = StyleSheet.create({
     color: Colors.text.inverse,
     fontWeight: '600' as const,
   },
-  jobIndicators: {
+  itemIndicators: {
     position: 'absolute',
     bottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
   },
-  jobDot: {
+  itemDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
   },
-  moreJobsText: {
+  moreItemsText: {
     fontSize: 8,
     color: Colors.text.secondary,
     marginLeft: 2,
+  },
+  itemTypeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemType: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+    textTransform: 'uppercase' as const,
   },
   selectedDateSection: {
     maxHeight: 300,
@@ -481,7 +597,7 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.text.primary,
   },
-  addJobButton: {
+  addButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -489,19 +605,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  jobsList: {
+  itemsList: {
     flex: 1,
     paddingHorizontal: 16,
   },
-  noJobsContainer: {
+  noItemsContainer: {
     paddingVertical: 32,
     alignItems: 'center',
   },
-  noJobsText: {
+  noItemsText: {
     fontSize: 14,
     color: Colors.text.light,
   },
-  jobCard: {
+  itemCard: {
     backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 12,
@@ -509,35 +625,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  jobCardHeader: {
+  itemCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  jobTime: {
+  itemTime: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    color: Colors.text.secondary,
+    marginBottom: 4,
+  },
+  itemTitle: {
     fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
+    marginBottom: 4,
   },
-  jobStatus: {
+  itemStatus: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  jobStatusText: {
+  itemStatusText: {
     fontSize: 10,
     fontWeight: '600' as const,
     color: Colors.text.inverse,
     textTransform: 'uppercase' as const,
   },
-  jobCustomer: {
-    fontSize: 14,
-    fontWeight: '500' as const,
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  jobDescription: {
+  itemDescription: {
     fontSize: 12,
     color: Colors.text.secondary,
     lineHeight: 16,

@@ -20,7 +20,7 @@ import CalendarView from '@/components/CalendarView';
 import { useTranslation } from '@/constants/translations';
 
 export default function ScheduleScreen() {
-  const { jobs, isLoading, getUpcomingJobs, customers, userRole, language } = useAppStore();
+  const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language } = useAppStore();
   const t = useTranslation(language);
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
@@ -132,6 +132,31 @@ export default function ScheduleScreen() {
       }
     });
   };
+
+  const handleAddInvoice = (date: Date) => {
+    router.push({
+      pathname: '/new-invoice',
+      params: { 
+        selectedDate: date.toISOString().split('T')[0]
+      }
+    });
+  };
+
+  const handleAddEvent = (date: Date) => {
+    setLongPressDate(date);
+    setShowEventModal(true);
+  };
+
+  const handleInvoicePress = (invoice: any) => {
+    router.push('/invoices');
+  };
+
+  const handleEventPress = (event: any) => {
+    console.log('Event pressed:', event);
+  };
+
+  const [longPressDate, setLongPressDate] = useState<Date | null>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
 
   if (isLoading) {
     return <LoadingScreen message="Setting up your workspace..." size={56} />;
@@ -265,10 +290,16 @@ export default function ScheduleScreen() {
           {viewMode === 'calendar' ? (
             <CalendarView
               jobs={jobs}
+              invoices={invoices}
+              events={events}
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
               onJobPress={handleJobPress}
+              onInvoicePress={handleInvoicePress}
+              onEventPress={handleEventPress}
               onAddJob={handleAddJob}
+              onAddInvoice={handleAddInvoice}
+              onAddEvent={handleAddEvent}
             />
           ) : (
             <ScrollView
