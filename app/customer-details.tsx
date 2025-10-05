@@ -8,6 +8,8 @@ import {
   Image,
   Linking,
   Alert,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { 
@@ -17,18 +19,37 @@ import {
   MessageCircle,
   MapPin,
   ChevronRight,
+  X,
+  Save,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Paperclip,
+  Calendar,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 
 export default function CustomerDetailsScreen() {
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
-  const { getCustomerById, jobs, getInvoicesByCustomer } = useAppStore();
+  const { getCustomerById, jobs, getInvoicesByCustomer, customers } = useAppStore();
   const [notificationsOn, setNotificationsOn] = useState(true);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [showLeadSourceModal, setShowLeadSourceModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [leadSource, setLeadSource] = useState('Choice HW');
+  const [paymentModalType, setPaymentModalType] = useState<'card' | 'request'>('card');
   
   const customer = getCustomerById(customerId);
   const customerJobs = jobs.filter(job => job.customerId === customerId);
   const invoices = getInvoicesByCustomer(customerId);
+  
+  React.useEffect(() => {
+    if (customer?.notes) {
+      setNotes(customer.notes);
+    }
+  }, [customer]);
 
   if (!customer) {
     return (
@@ -61,6 +82,66 @@ export default function CustomerDetailsScreen() {
     });
   };
 
+  const handleEditCustomer = () => {
+    Alert.alert(
+      'Edit Customer',
+      'Customer editing functionality will be available soon.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleAddNote = () => {
+    setShowNotesModal(true);
+  };
+
+  const handleSaveNotes = () => {
+    setShowNotesModal(false);
+    Alert.alert('Success', 'Notes saved successfully');
+  };
+
+  const handleViewHistory = () => {
+    Alert.alert(
+      'Service History',
+      `This customer has ${customerJobs.length} job(s) in their history.\n\nDetailed history view coming soon.`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleViewAttachments = () => {
+    Alert.alert(
+      'Attachments',
+      'View and manage customer attachments, photos, and documents.\n\nComing soon.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleAddPaymentMethod = (type: 'card' | 'request') => {
+    setPaymentModalType(type);
+    setShowPaymentModal(true);
+  };
+
+  const handleSavePaymentMethod = () => {
+    setShowPaymentModal(false);
+    Alert.alert('Success', 'Payment method saved successfully');
+  };
+
+  const handleEditLeadSource = () => {
+    setShowLeadSourceModal(true);
+  };
+
+  const handleSaveLeadSource = () => {
+    setShowLeadSourceModal(false);
+    Alert.alert('Success', 'Lead source updated successfully');
+  };
+
+  const handleCreateEstimate = () => {
+    Alert.alert(
+      'Create Estimate',
+      'Create a detailed estimate for this customer.\n\nEstimate creation coming soon.',
+      [{ text: 'OK' }]
+    );
+  };
+
   // Mock property data - in real app this would come from customer data
   const propertyData = {
     image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=400&fit=crop',
@@ -89,10 +170,16 @@ export default function CustomerDetailsScreen() {
           ),
           headerRight: () => (
             <View style={styles.headerRightButtons}>
-              <TouchableOpacity style={styles.headerIconButton}>
+              <TouchableOpacity 
+                style={styles.headerIconButton}
+                onPress={() => Alert.alert('Customer Satisfaction', 'View customer satisfaction ratings and feedback.\n\nComing soon.')}
+              >
                 <Smile size={24} color={Colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.headerIconButton}>
+              <TouchableOpacity 
+                style={styles.headerIconButton}
+                onPress={handleEditCustomer}
+              >
                 <Edit size={24} color={Colors.primary} />
               </TouchableOpacity>
             </View>
@@ -141,7 +228,10 @@ export default function CustomerDetailsScreen() {
           >
             <Text style={styles.actionButtonText}>+ Job</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleCreateEstimate}
+          >
             <Text style={styles.actionButtonText}>+ Estimate</Text>
           </TouchableOpacity>
         </View>
@@ -192,10 +282,18 @@ export default function CustomerDetailsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment method</Text>
           <View style={styles.paymentButtons}>
-            <TouchableOpacity style={styles.paymentButton}>
-              <Text style={styles.paymentButtonText}>Add credit c...</Text>
+            <TouchableOpacity 
+              style={styles.paymentButton}
+              onPress={() => handleAddPaymentMethod('card')}
+            >
+              <CreditCard size={18} color={Colors.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.paymentButtonText}>Add credit card</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.paymentButton}>
+            <TouchableOpacity 
+              style={styles.paymentButton}
+              onPress={() => handleAddPaymentMethod('request')}
+            >
+              <DollarSign size={18} color={Colors.primary} style={{ marginRight: 8 }} />
               <Text style={styles.paymentButtonText}>Send request</Text>
             </TouchableOpacity>
           </View>
@@ -203,8 +301,16 @@ export default function CustomerDetailsScreen() {
 
         {/* Lead Source */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lead source</Text>
-          <Text style={styles.leadSource}>Choice HW</Text>
+          <TouchableOpacity 
+            style={styles.leadSourceContainer}
+            onPress={handleEditLeadSource}
+          >
+            <View>
+              <Text style={styles.sectionTitle}>Lead source</Text>
+              <Text style={styles.leadSource}>{leadSource}</Text>
+            </View>
+            <Edit size={20} color={Colors.text.secondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Addresses */}
@@ -223,14 +329,24 @@ export default function CustomerDetailsScreen() {
         </View>
 
         {/* Notes */}
-        <TouchableOpacity style={styles.listItem}>
-          <Text style={styles.listItemText}>Notes</Text>
+        <TouchableOpacity 
+          style={styles.listItem}
+          onPress={handleAddNote}
+        >
+          <View style={styles.listItemContent}>
+            <FileText size={20} color={Colors.text.secondary} style={{ marginRight: 12 }} />
+            <Text style={styles.listItemText}>Notes</Text>
+          </View>
           <ChevronRight size={20} color={Colors.text.light} />
         </TouchableOpacity>
 
         {/* History */}
-        <TouchableOpacity style={styles.listItem}>
+        <TouchableOpacity 
+          style={styles.listItem}
+          onPress={handleViewHistory}
+        >
           <View style={styles.listItemContent}>
+            <Calendar size={20} color={Colors.text.secondary} style={{ marginRight: 12 }} />
             <Text style={styles.listItemText}>History</Text>
             <Text style={styles.listItemCount}>{customerJobs.length}</Text>
           </View>
@@ -238,14 +354,183 @@ export default function CustomerDetailsScreen() {
         </TouchableOpacity>
 
         {/* Attachments */}
-        <TouchableOpacity style={styles.listItem}>
+        <TouchableOpacity 
+          style={styles.listItem}
+          onPress={handleViewAttachments}
+        >
           <View style={styles.listItemContent}>
+            <Paperclip size={20} color={Colors.text.secondary} style={{ marginRight: 12 }} />
             <Text style={styles.listItemText}>Attachments</Text>
             <Text style={styles.listItemCount}>1</Text>
           </View>
           <ChevronRight size={20} color={Colors.text.light} />
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Notes Modal */}
+      <Modal
+        visible={showNotesModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowNotesModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowNotesModal(false)}>
+              <X size={24} color={Colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Customer Notes</Text>
+            <TouchableOpacity onPress={handleSaveNotes}>
+              <Save size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.modalContent}>
+            <TextInput
+              style={styles.notesInput}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Add notes about this customer...\n\n• Service preferences\n• Special instructions\n• Equipment details\n• Contact preferences"
+              placeholderTextColor={Colors.text.light}
+              multiline
+              textAlignVertical="top"
+            />
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Lead Source Modal */}
+      <Modal
+        visible={showLeadSourceModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowLeadSourceModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowLeadSourceModal(false)}>
+              <X size={24} color={Colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Lead Source</Text>
+            <TouchableOpacity onPress={handleSaveLeadSource}>
+              <Save size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.modalContent}>
+            <Text style={styles.inputLabel}>How did this customer find you?</Text>
+            <TextInput
+              style={styles.textInput}
+              value={leadSource}
+              onChangeText={setLeadSource}
+              placeholder="e.g., Google, Referral, Social Media"
+              placeholderTextColor={Colors.text.light}
+            />
+            <View style={styles.leadSourceOptions}>
+              <Text style={styles.optionsTitle}>Common Sources:</Text>
+              {['Google Search', 'Referral', 'Social Media', 'Website', 'Repeat Customer', 'Advertisement'].map((source) => (
+                <TouchableOpacity
+                  key={source}
+                  style={styles.optionButton}
+                  onPress={() => setLeadSource(source)}
+                >
+                  <Text style={styles.optionButtonText}>{source}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Payment Method Modal */}
+      <Modal
+        visible={showPaymentModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
+              <X size={24} color={Colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {paymentModalType === 'card' ? 'Add Credit Card' : 'Send Payment Request'}
+            </Text>
+            <TouchableOpacity onPress={handleSavePaymentMethod}>
+              <Save size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.modalContent}>
+            {paymentModalType === 'card' ? (
+              <View>
+                <Text style={styles.inputLabel}>Card Number</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="1234 5678 9012 3456"
+                  placeholderTextColor={Colors.text.light}
+                  keyboardType="number-pad"
+                />
+                <View style={styles.cardRow}>
+                  <View style={styles.cardHalf}>
+                    <Text style={styles.inputLabel}>Expiry Date</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="MM/YY"
+                      placeholderTextColor={Colors.text.light}
+                      keyboardType="number-pad"
+                    />
+                  </View>
+                  <View style={styles.cardHalf}>
+                    <Text style={styles.inputLabel}>CVV</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="123"
+                      placeholderTextColor={Colors.text.light}
+                      keyboardType="number-pad"
+                      secureTextEntry
+                    />
+                  </View>
+                </View>
+                <Text style={styles.inputLabel}>Cardholder Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="John Doe"
+                  placeholderTextColor={Colors.text.light}
+                  autoCapitalize="words"
+                />
+              </View>
+            ) : (
+              <View>
+                <Text style={styles.inputLabel}>Amount</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="$0.00"
+                  placeholderTextColor={Colors.text.light}
+                  keyboardType="decimal-pad"
+                />
+                <Text style={styles.inputLabel}>Description</Text>
+                <TextInput
+                  style={[styles.textInput, styles.textArea]}
+                  placeholder="Payment for services rendered..."
+                  placeholderTextColor={Colors.text.light}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+                <Text style={styles.inputLabel}>Send Via</Text>
+                <View style={styles.sendViaOptions}>
+                  <TouchableOpacity style={styles.sendViaButton}>
+                    <MessageCircle size={20} color={Colors.primary} />
+                    <Text style={styles.sendViaText}>SMS</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.sendViaButton}>
+                    <Text style={styles.sendViaText}>📧 Email</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -432,11 +717,13 @@ const styles = StyleSheet.create({
   },
   paymentButton: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 14,
     borderRadius: 25,
     borderWidth: 2,
     borderColor: Colors.primary,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   paymentButtonText: {
     fontSize: 17,
@@ -487,5 +774,114 @@ const styles = StyleSheet.create({
   listItemCount: {
     fontSize: 17,
     color: Colors.text.secondary,
+  },
+  leadSourceContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  modalContent: {
+    flex: 1,
+    padding: 16,
+  },
+  notesInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: Colors.text.primary,
+    minHeight: 300,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  textInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  leadSourceOptions: {
+    marginTop: 24,
+  },
+  optionsTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 12,
+  },
+  optionButton: {
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  optionButtonText: {
+    fontSize: 16,
+    color: Colors.text.primary,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cardHalf: {
+    flex: 1,
+  },
+  sendViaOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  sendViaButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  sendViaText: {
+    fontSize: 16,
+    color: Colors.text.primary,
+    fontWeight: '500' as const,
   },
 });
