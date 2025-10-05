@@ -764,8 +764,11 @@ const styles = StyleSheet.create({
   controlsSection: {
     backgroundColor: Colors.surface,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
     gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   
   // View Mode Container
