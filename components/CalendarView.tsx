@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Plus, Briefcase, FileText, Calendar } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { Job } from '@/types';
 
@@ -17,6 +19,8 @@ interface CalendarViewProps {
   onDateSelect: (date: Date) => void;
   onJobPress: (job: Job) => void;
   onAddJob: (date: Date) => void;
+  onAddInvoice?: (date: Date) => void;
+  onAddEvent?: (date: Date) => void;
   selectedDate?: Date;
 }
 
@@ -35,9 +39,13 @@ export default function CalendarView({
   onDateSelect, 
   onJobPress, 
   onAddJob,
+  onAddInvoice,
+  onAddEvent,
   selectedDate = new Date() 
 }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [longPressDate, setLongPressDate] = useState<Date | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
 
   const { calendarDays, jobsByDate } = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -152,7 +160,7 @@ export default function CalendarView({
             const isSelectedDate = isSelected(date);
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={index}
                 style={[
                   styles.dayCell,
@@ -161,6 +169,11 @@ export default function CalendarView({
                   !isCurrentMonthDay && styles.otherMonthCell,
                 ]}
                 onPress={() => onDateSelect(date)}
+                onLongPress={() => {
+                  setLongPressDate(date);
+                  setShowActionModal(true);
+                }}
+                delayLongPress={500}
               >
                 <Text style={[
                   styles.dayText,
@@ -187,11 +200,100 @@ export default function CalendarView({
                     )}
                   </View>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>
       </ScrollView>
+
+      {/* Action Modal */}
+      <Modal
+        visible={showActionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowActionModal(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setShowActionModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {longPressDate?.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </Text>
+            <Text style={styles.modalSubtitle}>Create new...</Text>
+            
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setShowActionModal(false);
+                if (longPressDate) {
+                  onAddJob(longPressDate);
+                }
+              }}
+            >
+              <View style={[styles.modalIconContainer, { backgroundColor: Colors.primary + '20' }]}>
+                <Briefcase size={24} color={Colors.primary} />
+              </View>
+              <View style={styles.modalOptionText}>
+                <Text style={styles.modalOptionTitle}>Job</Text>
+                <Text style={styles.modalOptionDescription}>Schedule a new service job</Text>
+              </View>
+            </TouchableOpacity>
+
+            {onAddInvoice && (
+              <TouchableOpacity
+                style={styles.modalOption}
+                onPress={() => {
+                  setShowActionModal(false);
+                  if (longPressDate) {
+                    onAddInvoice(longPressDate);
+                  }
+                }}
+              >
+                <View style={[styles.modalIconContainer, { backgroundColor: Colors.success + '20' }]}>
+                  <FileText size={24} color={Colors.success} />
+                </View>
+                <View style={styles.modalOptionText}>
+                  <Text style={styles.modalOptionTitle}>Invoice</Text>
+                  <Text style={styles.modalOptionDescription}>Create a new invoice</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {onAddEvent && (
+              <TouchableOpacity
+                style={styles.modalOption}
+                onPress={() => {
+                  setShowActionModal(false);
+                  if (longPressDate) {
+                    onAddEvent(longPressDate);
+                  }
+                }}
+              >
+                <View style={[styles.modalIconContainer, { backgroundColor: Colors.warning + '20' }]}>
+                  <Calendar size={24} color={Colors.warning} />
+                </View>
+                <View style={styles.modalOptionText}>
+                  <Text style={styles.modalOptionTitle}>Event</Text>
+                  <Text style={styles.modalOptionDescription}>Add a calendar event</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowActionModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Selected Date Jobs */}
       <View style={styles.selectedDateSection}>
@@ -453,5 +555,76 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '700' as const,
     color: Colors.text.inverse,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  modalOptionText: {
+    flex: 1,
+  },
+  modalOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  modalOptionDescription: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+  },
+  modalCancelButton: {
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
   },
 });
