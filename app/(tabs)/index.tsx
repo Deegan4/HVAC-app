@@ -8,10 +8,14 @@ import {
   RefreshControl,
   ActivityIndicator,
   Platform,
+  Modal,
+  Pressable,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Plus, Clock, MapPin, AlertCircle, CheckCircle, Wrench, Calendar, List } from 'lucide-react-native';
+import { Plus, Clock, MapPin, AlertCircle, CheckCircle, Wrench, Calendar, List, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore, useTodaysJobs, useJobStats } from '@/hooks/app-store';
 import { Job } from '@/types';
@@ -20,7 +24,7 @@ import CalendarView from '@/components/CalendarView';
 import { useTranslation } from '@/constants/translations';
 
 export default function ScheduleScreen() {
-  const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language } = useAppStore();
+  const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language, addEvent, currentUserId } = useAppStore();
   const t = useTranslation(language);
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
@@ -144,6 +148,13 @@ export default function ScheduleScreen() {
 
   const handleAddEvent = (date: Date) => {
     setLongPressDate(date);
+    setEventTitle('');
+    setEventDescription('');
+    setEventStartTime('');
+    setEventEndTime('');
+    setEventType('other');
+    setEventLocation('');
+    setEventAllDay(false);
     setShowEventModal(true);
   };
 
@@ -157,6 +168,51 @@ export default function ScheduleScreen() {
 
   const [longPressDate, setLongPressDate] = useState<Date | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventStartTime, setEventStartTime] = useState('');
+  const [eventEndTime, setEventEndTime] = useState('');
+  const [eventType, setEventType] = useState<'meeting' | 'reminder' | 'appointment' | 'other'>('other');
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventAllDay, setEventAllDay] = useState(false);
+
+  const handleCreateEvent = () => {
+    if (!eventTitle.trim()) {
+      Alert.alert('Error', 'Please enter an event title');
+      return;
+    }
+
+    if (!longPressDate) {
+      Alert.alert('Error', 'No date selected');
+      return;
+    }
+
+    addEvent({
+      title: eventTitle,
+      description: eventDescription,
+      date: longPressDate.toISOString().split('T')[0],
+      startTime: eventStartTime || '09:00',
+      endTime: eventEndTime,
+      type: eventType,
+      location: eventLocation,
+      color: getEventTypeColor(eventType),
+      allDay: eventAllDay,
+      createdBy: currentUserId,
+    });
+
+    setShowEventModal(false);
+    Alert.alert('Success', 'Event created successfully');
+  };
+
+  const getEventTypeColor = (type: 'meeting' | 'reminder' | 'appointment' | 'other') => {
+    const colorMap = {
+      meeting: Colors.primary,
+      reminder: Colors.warning,
+      appointment: Colors.success,
+      other: Colors.text.secondary,
+    };
+    return colorMap[type];
+  };
 
   if (isLoading) {
     return <LoadingScreen message="Setting up your workspace..." size={56} />;
@@ -388,6 +444,155 @@ export default function ScheduleScreen() {
               <Plus size={24} color={Colors.text.inverse} />
             </TouchableOpacity>
           )}
+
+          {/* Event Creation Modal */}
+          <Modal
+            visible={showEventModal}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowEventModal(false)}
+          >
+            <View style={styles.eventModalOverlay}>
+              <View style={styles.eventModalContent}>
+                <View style={styles.eventModalHeader}>
+                  <Text style={styles.eventModalTitle}>Create Event</Text>
+                  <TouchableOpacity onPress={() => setShowEventModal(false)}>
+                    <X size={24} color={Colors.text.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView style={styles.eventModalForm} showsVerticalScrollIndicator={false}>
+                  <Text style={styles.eventModalDate}>
+                    {longPressDate?.toLocaleDateString('en-US', { 
+                      weekday: 'long',
+                      month: 'long', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </Text>
+
+                  <View style={styles.eventFormGroup}>
+                    <Text style={styles.eventLabel}>Title *</Text>
+                    <TextInput
+                      style={styles.eventInput}
+                      value={eventTitle}
+                      onChangeText={setEventTitle}
+                      placeholder="Event title"
+                      placeholderTextColor={Colors.text.light}
+                    />
+                  </View>
+
+                  <View style={styles.eventFormGroup}>
+                    <Text style={styles.eventLabel}>Type</Text>
+                    <View style={styles.eventTypeContainer}>
+                      {(['meeting', 'reminder', 'appointment', 'other'] as const).map((type) => (
+                        <TouchableOpacity
+                          key={type}
+                          style={[
+                            styles.eventTypeButton,
+                            eventType === type && styles.eventTypeButtonActive,
+                            { borderColor: getEventTypeColor(type) },
+                            eventType === type && { backgroundColor: getEventTypeColor(type) + '20' }
+                          ]}
+                          onPress={() => setEventType(type)}
+                        >
+                          <Text style={[
+                            styles.eventTypeText,
+                            eventType === type && styles.eventTypeTextActive,
+                            eventType === type && { color: getEventTypeColor(type) }
+                          ]}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <View style={styles.eventFormGroup}>
+                    <View style={styles.eventCheckboxRow}>
+                      <TouchableOpacity
+                        style={styles.eventCheckbox}
+                        onPress={() => setEventAllDay(!eventAllDay)}
+                      >
+                        <View style={[
+                          styles.eventCheckboxBox,
+                          eventAllDay && styles.eventCheckboxBoxChecked
+                        ]}>
+                          {eventAllDay && <CheckCircle size={16} color={Colors.primary} />}
+                        </View>
+                        <Text style={styles.eventCheckboxLabel}>All Day Event</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {!eventAllDay && (
+                    <View style={styles.eventTimeRow}>
+                      <View style={[styles.eventFormGroup, { flex: 1 }]}>
+                        <Text style={styles.eventLabel}>Start Time</Text>
+                        <TextInput
+                          style={styles.eventInput}
+                          value={eventStartTime}
+                          onChangeText={setEventStartTime}
+                          placeholder="09:00"
+                          placeholderTextColor={Colors.text.light}
+                        />
+                      </View>
+                      <View style={[styles.eventFormGroup, { flex: 1 }]}>
+                        <Text style={styles.eventLabel}>End Time</Text>
+                        <TextInput
+                          style={styles.eventInput}
+                          value={eventEndTime}
+                          onChangeText={setEventEndTime}
+                          placeholder="10:00"
+                          placeholderTextColor={Colors.text.light}
+                        />
+                      </View>
+                    </View>
+                  )}
+
+                  <View style={styles.eventFormGroup}>
+                    <Text style={styles.eventLabel}>Location</Text>
+                    <TextInput
+                      style={styles.eventInput}
+                      value={eventLocation}
+                      onChangeText={setEventLocation}
+                      placeholder="Event location"
+                      placeholderTextColor={Colors.text.light}
+                    />
+                  </View>
+
+                  <View style={styles.eventFormGroup}>
+                    <Text style={styles.eventLabel}>Description</Text>
+                    <TextInput
+                      style={[styles.eventInput, styles.eventTextArea]}
+                      value={eventDescription}
+                      onChangeText={setEventDescription}
+                      placeholder="Event description"
+                      placeholderTextColor={Colors.text.light}
+                      multiline
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                    />
+                  </View>
+                </ScrollView>
+
+                <View style={styles.eventModalActions}>
+                  <TouchableOpacity
+                    style={styles.eventCancelButton}
+                    onPress={() => setShowEventModal(false)}
+                  >
+                    <Text style={styles.eventCancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.eventCreateButton}
+                    onPress={handleCreateEvent}
+                  >
+                    <Text style={styles.eventCreateButtonText}>Create Event</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </>
       )}
     </SafeAreaView>
@@ -710,6 +915,158 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.inverse,
+  },
+  eventModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  eventModalContent: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  eventModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  eventModalTitle: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+  },
+  eventModalForm: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  eventModalDate: {
+    fontSize: 16,
+    fontWeight: '500' as const,
+    color: Colors.primary,
+    marginBottom: 20,
+  },
+  eventFormGroup: {
+    marginBottom: 16,
+  },
+  eventLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  eventInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+  },
+  eventTextArea: {
+    minHeight: 100,
+    paddingTop: 12,
+  },
+  eventTypeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  eventTypeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  eventTypeButtonActive: {
+    borderWidth: 2,
+  },
+  eventTypeText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: Colors.text.secondary,
+  },
+  eventTypeTextActive: {
+    fontWeight: '600' as const,
+  },
+  eventCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventCheckbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  eventCheckboxBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eventCheckboxBoxChecked: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  eventCheckboxLabel: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: Colors.text.primary,
+  },
+  eventTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  eventModalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  eventCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  eventCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.secondary,
+  },
+  eventCreateButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+  },
+  eventCreateButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text.inverse,
