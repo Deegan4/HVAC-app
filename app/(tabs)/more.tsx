@@ -26,7 +26,6 @@ import {
   MapPin,
   Phone,
   MessageCircle,
-  Sparkles
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -151,7 +150,6 @@ export default function MoreScreen() {
     {
       title: t.developer,
       items: [
-        { icon: Sparkles, label: 'Liquid Glass Demo', onPress: () => router.push('/glass-demo') },
         { icon: Bug, label: t.debugTools, onPress: () => router.push('/debug') },
       ]
     }
