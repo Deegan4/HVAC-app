@@ -119,10 +119,10 @@ export default function MoreScreen() {
       title: t.business,
       items: [
         { icon: Building, label: t.companyInfo, onPress: () => router.push('/company-info') },
-        { icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') },
+        ...(userRole === 'owner' ? [{ icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') }] : []),
         { icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') },
-        { icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') },
-        { icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') },
+        ...(userRole === 'owner' ? [{ icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') }] : []),
+        ...(userRole === 'owner' ? [{ icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') }] : []),
       ]
     },
     {
