@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,14 +10,16 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, router } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Plus, X, Calendar, User } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Customer, Job, InvoiceItem } from '@/types';
 
 export default function NewInvoiceScreen() {
-  const { customers, jobs, addInvoice } = useAppStore();
+  const { invoiceId } = useLocalSearchParams<{ invoiceId?: string }>();
+  const { customers, jobs, invoices, addInvoice, updateInvoice } = useAppStore();
+  const existingInvoice = invoiceId ? invoices.find(inv => inv.id === invoiceId) : null;
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState<boolean>(false);
@@ -31,7 +33,39 @@ export default function NewInvoiceScreen() {
   }]);
   const [dueDate, setDueDate] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  const [taxRate, setTaxRate] = useState<number>(8.5); // Default tax rate
+  const [taxRate, setTaxRate] = useState<number>(8.5);
+
+  useEffect(() => {
+    if (existingInvoice) {
+      const customer = customers.find(c => c.id === existingInvoice.customerId);
+      if (customer) {
+        setSelectedCustomer(customer);
+      }
+      
+      if (existingInvoice.jobId) {
+        const job = jobs.find(j => j.id === existingInvoice.jobId);
+        if (job) {
+          setSelectedJob(job);
+        }
+      }
+      
+      setItems(existingInvoice.items.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+        type: item.type
+      })));
+      
+      setDueDate(existingInvoice.dueDate);
+      setNotes(existingInvoice.notes || '');
+      
+      const calculatedTaxRate = existingInvoice.subtotal > 0 
+        ? (existingInvoice.tax / existingInvoice.subtotal) * 100 
+        : 8.5;
+      setTaxRate(calculatedTaxRate);
+    }
+  }, [existingInvoice, customers, jobs]); // Default tax rate
 
   const availableJobs = useMemo(() => {
     if (!selectedCustomer) return [];
@@ -99,28 +133,45 @@ export default function NewInvoiceScreen() {
 
     const invoiceItems: InvoiceItem[] = items.map((item, index) => ({
       ...item,
-      id: `item${Date.now()}_${index}`
+      id: existingInvoice?.items[index]?.id || `item${Date.now()}_${index}`
     }));
 
-    const newInvoice = {
-      jobId: selectedJob?.id || '',
-      customerId: selectedCustomer.id,
-      customerName: selectedCustomer.name,
-      date: new Date().toISOString().split('T')[0],
-      dueDate,
-      status: 'draft' as const,
-      items: invoiceItems,
-      subtotal,
-      tax,
-      total,
-      paidAmount: 0,
-      notes: notes.trim() || undefined
-    };
+    if (existingInvoice) {
+      updateInvoice(existingInvoice.id, {
+        jobId: selectedJob?.id || '',
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
+        dueDate,
+        items: invoiceItems,
+        subtotal,
+        tax,
+        total,
+        notes: notes.trim() || undefined
+      });
+      Alert.alert('Success', 'Invoice updated successfully!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    } else {
+      const newInvoice = {
+        jobId: selectedJob?.id || '',
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
+        date: new Date().toISOString().split('T')[0],
+        dueDate,
+        status: 'draft' as const,
+        items: invoiceItems,
+        subtotal,
+        tax,
+        total,
+        paidAmount: 0,
+        notes: notes.trim() || undefined
+      };
 
-    addInvoice(newInvoice);
-    Alert.alert('Success', 'Invoice created successfully!', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
+      addInvoice(newInvoice);
+      Alert.alert('Success', 'Invoice created successfully!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -138,7 +189,7 @@ export default function NewInvoiceScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen 
         options={{
-          title: 'New Invoice',
+          title: existingInvoice ? 'Edit Invoice' : 'New Invoice',
           headerRight: () => (
             <TouchableOpacity
               onPress={handleSave}

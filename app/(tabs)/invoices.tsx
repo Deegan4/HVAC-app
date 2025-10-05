@@ -19,7 +19,7 @@ import { router } from 'expo-router';
 import { useTranslation } from '@/constants/translations';
 
 export default function InvoicesScreen() {
-  const { invoices, isLoading, updateInvoiceStatus, customers, jobs, language } = useAppStore();
+  const { invoices, isLoading, updateInvoiceStatus, deleteInvoice, customers, jobs, language } = useAppStore();
   const t = useTranslation(language);
   const revenueStats = useRevenueStats();
   const [filter, setFilter] = useState<'all' | Invoice['status']>('all');
@@ -92,12 +92,22 @@ export default function InvoicesScreen() {
           text: t.delete,
           style: 'destructive',
           onPress: () => {
-            // TODO: Add delete invoice functionality to app store
-            console.log('Delete invoice:', invoiceId);
+            deleteInvoice(invoiceId);
+            if (selectedInvoice?.id === invoiceId) {
+              setShowInvoiceDetails(false);
+              setSelectedInvoice(null);
+            }
           }
         }
       ]
     );
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    router.push({
+      pathname: '/new-invoice',
+      params: { invoiceId: invoice.id }
+    });
   };
 
   const handleRecordPayment = () => {
@@ -284,6 +294,14 @@ export default function InvoicesScreen() {
                 )}
                 
                 <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleEditInvoice(invoice)}
+                    testID={`edit-invoice-${invoice.id}`}
+                  >
+                    <Edit3 size={16} color={Colors.primary} />
+                  </TouchableOpacity>
+                  
                   <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => handleShareInvoice(invoice)}

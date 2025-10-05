@@ -36,6 +36,8 @@ interface AppState {
   updateTechnician: (technicianId: string, updates: Partial<Technician>) => void;
   deleteTechnician: (technicianId: string) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
+  updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => void;
+  deleteInvoice: (invoiceId: string) => void;
   updateInvoiceStatus: (invoiceId: string, status: Invoice['status']) => void;
   importCustomers: (importedCustomers: Customer[]) => Promise<void>;
   exportCustomers: () => Customer[];
@@ -427,6 +429,27 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     }
   }, [invoices, mutateInvoices, offlineStorage]);
 
+  const updateInvoice = useCallback(async (invoiceId: string, updates: Partial<Invoice>) => {
+    const updatedInvoices = invoices.map((invoice: Invoice) =>
+      invoice.id === invoiceId ? { ...invoice, ...updates } : invoice
+    );
+    mutateInvoices(updatedInvoices);
+    
+    const updatedInvoice = updatedInvoices.find((inv: Invoice) => inv.id === invoiceId);
+    if (updatedInvoice) {
+      try {
+        await offlineStorage.updateInvoiceOffline(updatedInvoice, false);
+      } catch (error) {
+        console.error('Error updating invoice offline:', error);
+      }
+    }
+  }, [invoices, mutateInvoices, offlineStorage]);
+
+  const deleteInvoice = useCallback((invoiceId: string) => {
+    const updatedInvoices = invoices.filter((invoice: Invoice) => invoice.id !== invoiceId);
+    mutateInvoices(updatedInvoices);
+  }, [invoices, mutateInvoices]);
+
   const updateInvoiceStatus = useCallback(async (invoiceId: string, status: Invoice['status']) => {
     const updatedInvoices = invoices.map((invoice: Invoice) =>
       invoice.id === invoiceId ? { ...invoice, status } : invoice
@@ -549,6 +572,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addCustomer,
     deleteCustomer,
     addInvoice,
+    updateInvoice,
+    deleteInvoice,
     updateInvoiceStatus,
     getTodaysJobs,
     getUpcomingJobs,
@@ -604,6 +629,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     addCustomer,
     deleteCustomer,
     addInvoice,
+    updateInvoice,
+    deleteInvoice,
     updateInvoiceStatus,
     getTodaysJobs,
     getUpcomingJobs,
