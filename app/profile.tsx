@@ -55,7 +55,11 @@ ProfileField.displayName = 'ProfileField';
 
 export default function ProfileScreen() {
   const { technicians, currentTechnicianId, jobs, invoices, userRole, triggerProfileUpdate } = useAppStore();
-  const currentTech = technicians.find(t => t.id === currentTechnicianId);
+  const currentTech = currentTechnicianId 
+    ? technicians.find(t => t.id === currentTechnicianId)
+    : (userRole === 'technician' && technicians.length > 0) 
+      ? technicians[technicians.length - 1]
+      : null;
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   
@@ -75,7 +79,7 @@ export default function ProfileScreen() {
   // Load profile data and photo on component mount
   const loadProfileData = useCallback(async () => {
     try {
-      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+      const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
       console.log('Loading profile data for:', profileId);
       const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
       const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${profileId}`);
@@ -98,7 +102,7 @@ export default function ProfileScreen() {
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
-  }, [currentTechnicianId, defaultProfile, userRole]);
+  }, [currentTech?.id, defaultProfile, userRole]);
 
   useEffect(() => {
     loadProfileData();
@@ -133,7 +137,7 @@ export default function ProfileScreen() {
 
   const handleSave = async () => {
     try {
-      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+      const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
       console.log('Saving profile:', profile, 'with ID:', profileId);
       await AsyncStorage.setItem(`profile_${profileId}`, JSON.stringify(profile));
       setOriginalProfile(profile);
@@ -183,7 +187,7 @@ export default function ProfileScreen() {
 
       if (!result.canceled && result.assets[0]) {
         const photoUri = result.assets[0].uri;
-        const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+        const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
         setProfilePhoto(photoUri);
         await AsyncStorage.setItem(`profilePhoto_${profileId}`, photoUri);
       }
@@ -210,7 +214,7 @@ export default function ProfileScreen() {
 
       if (!result.canceled && result.assets[0]) {
         const photoUri = result.assets[0].uri;
-        const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+        const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
         setProfilePhoto(photoUri);
         await AsyncStorage.setItem(`profilePhoto_${profileId}`, photoUri);
       }
@@ -222,7 +226,7 @@ export default function ProfileScreen() {
 
   const removePhoto = async () => {
     try {
-      const profileId = userRole === 'owner' ? 'owner' : currentTechnicianId;
+      const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
       setProfilePhoto(null);
       await AsyncStorage.removeItem(`profilePhoto_${profileId}`);
     } catch (error) {
