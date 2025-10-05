@@ -656,9 +656,10 @@ export default function TrackingScreen() {
                     technician={item}
                     isSelected={selectedTechnician === item.id}
                     onPress={() => {
-                      setSelectedTechnician(
-                        selectedTechnician === item.id ? null : item.id
-                      );
+                      router.push({
+                        pathname: '/technician-location',
+                        params: { technicianId: item.id }
+                      });
                     }}
                   />
                 )}
