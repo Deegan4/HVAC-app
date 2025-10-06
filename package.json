@@ -6,6 +6,10 @@
     "start": "bunx rork start -p zxe41fqs3zralpfajqtq8 --tunnel",
     "start-web": "bunx rork start -p zxe41fqs3zralpfajqtq8 --web --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p zxe41fqs3zralpfajqtq8 --web --tunnel",
+    "export:web": "npx expo export --platform web",
+    "deploy": "vercel --prod",
+    "deploy:quick": "bash scripts/deploy-vercel.sh || scripts\\deploy-vercel.bat",
+    "tunnel": "bash scripts/start-tunnel.sh || scripts\\start-tunnel.bat",
     "lint": "expo lint"
   },
   "dependencies": {
