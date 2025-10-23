@@ -10,6 +10,7 @@ import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
 import OnboardingScreen from "@/components/OnboardingScreen";
 import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -134,12 +135,14 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <AuthenticatedApp />
-        </GestureHandlerRootView>
-      </AppProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AuthenticatedApp />
+          </GestureHandlerRootView>
+        </AppProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

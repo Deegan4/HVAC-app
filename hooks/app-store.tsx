@@ -1,13 +1,12 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
 import { Language } from '@/components/LanguageSelectionScreen';
-
 
 interface AppState {
   customers: Customer[];
@@ -75,21 +74,12 @@ interface AppState {
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const queryClient = useQueryClient();
-  const offlineStorage = OfflineStorageManager.getInstance();
-  const [currentTechnicianId] = useState<string | null>(null);
-  const [userRole, setUserRoleState] = useState<UserRole | null>(null);
-  const [language, setLanguageState] = useState<Language>('en');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [hasPin, setHasPin] = useState<boolean>(false);
-  const [hasRole, setHasRole] = useState<boolean>(false);
-  const [hasLanguage, setHasLanguage] = useState<boolean>(false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
-  const [storedPin, setStoredPin] = useState<string | null>(null);
-  const [profileUpdateTrigger, setProfileUpdateTrigger] = useState<number>(0);
-  const [currentUserId] = useState<string>('owner-1');
-  const [currentUserName] = useState<string>('Owner');
+  const offlineStorage = useMemo(() => OfflineStorageManager.getInstance(), []);
+  const currentTechnicianId = null;
+  const currentUserId = 'owner-1';
+  const currentUserName = 'Owner';
 
-  const { data: customers = mockCustomers, isLoading: customersLoading } = useQuery({
+  const customersQuery = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('customers');
@@ -97,7 +87,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: equipment = mockEquipment, isLoading: equipmentLoading } = useQuery({
+  const equipmentQuery = useQuery({
     queryKey: ['equipment'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('equipment');
@@ -105,7 +95,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: jobs = mockJobs, isLoading: jobsLoading } = useQuery({
+  const jobsQuery = useQuery({
     queryKey: ['jobs'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('jobs');
@@ -113,7 +103,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: invoices = mockInvoices, isLoading: invoicesLoading } = useQuery({
+  const invoicesQuery = useQuery({
     queryKey: ['invoices'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('invoices');
@@ -121,7 +111,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: technicians = mockTechnicians, isLoading: techniciansLoading } = useQuery({
+  const techniciansQuery = useQuery({
     queryKey: ['technicians'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('technicians');
@@ -129,7 +119,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+  const messagesQuery = useQuery({
     queryKey: ['messages'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('messages');
@@ -137,7 +127,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: jobComments = [], isLoading: jobCommentsLoading } = useQuery({
+  const jobCommentsQuery = useQuery({
     queryKey: ['jobComments'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('jobComments');
@@ -145,7 +135,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const { data: events = [], isLoading: eventsLoading } = useQuery({
+  const eventsQuery = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem('events');
@@ -153,58 +143,44 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
-  const [localTechnicians, setLocalTechnicians] = useState<Technician[]>(technicians);
-
-  React.useEffect(() => {
-    setLocalTechnicians(technicians);
-  }, [technicians]);
-
-  useQuery({
-    queryKey: ['pin'],
+  const authQuery = useQuery({
+    queryKey: ['auth'],
     queryFn: async () => {
-      const pin = await AsyncStorage.getItem('userPin');
-      if (pin) {
-        setHasPin(true);
-        setStoredPin(pin);
-      }
-      return pin;
+      const [pin, role, onboarding, lang] = await Promise.all([
+        AsyncStorage.getItem('userPin'),
+        AsyncStorage.getItem('userRole'),
+        AsyncStorage.getItem('hasCompletedOnboarding'),
+        AsyncStorage.getItem('language'),
+      ]);
+
+      return {
+        pin,
+        userRole: role as UserRole | null,
+        hasCompletedOnboarding: onboarding === 'true',
+        language: (lang as Language) || 'en',
+        isAuthenticated: false,
+        profileUpdateTrigger: 0,
+      };
     },
   });
 
-  useQuery({
-    queryKey: ['userRole'],
-    queryFn: async () => {
-      const role = await AsyncStorage.getItem('userRole');
-      if (role) {
-        setUserRoleState(role as UserRole);
-        setHasRole(true);
-      }
-      return role;
-    },
-  });
+  const customers = useMemo(() => customersQuery.data ?? mockCustomers, [customersQuery.data]);
+  const equipment = useMemo(() => equipmentQuery.data ?? mockEquipment, [equipmentQuery.data]);
+  const jobs = useMemo(() => jobsQuery.data ?? mockJobs, [jobsQuery.data]);
+  const invoices = useMemo(() => invoicesQuery.data ?? mockInvoices, [invoicesQuery.data]);
+  const technicians = useMemo(() => techniciansQuery.data ?? mockTechnicians, [techniciansQuery.data]);
+  const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
+  const jobComments = useMemo(() => jobCommentsQuery.data ?? [], [jobCommentsQuery.data]);
+  const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
 
-  useQuery({
-    queryKey: ['onboarding'],
-    queryFn: async () => {
-      const completed = await AsyncStorage.getItem('hasCompletedOnboarding');
-      if (completed === 'true') {
-        setHasCompletedOnboarding(true);
-      }
-      return completed;
-    },
-  });
-
-  useQuery({
-    queryKey: ['language'],
-    queryFn: async () => {
-      const lang = await AsyncStorage.getItem('language');
-      if (lang) {
-        setLanguageState(lang as Language);
-        setHasLanguage(true);
-      }
-      return lang;
-    },
-  });
+  const hasPin = Boolean(authQuery.data?.pin);
+  const hasRole = Boolean(authQuery.data?.userRole);
+  const hasLanguage = Boolean(authQuery.data?.language);
+  const hasCompletedOnboarding = authQuery.data?.hasCompletedOnboarding ?? false;
+  const userRole = authQuery.data?.userRole ?? null;
+  const language = authQuery.data?.language ?? 'en';
+  const isAuthenticated = authQuery.data?.isAuthenticated ?? false;
+  const profileUpdateTrigger = authQuery.data?.profileUpdateTrigger ?? 0;
 
   const jobsMutation = useMutation({
     mutationFn: async (newJobs: Job[]) => {
@@ -245,12 +221,11 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       await AsyncStorage.setItem('technicians', JSON.stringify(newTechnicians));
       return newTechnicians;
     },
-    onSuccess: (newTechnicians) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['technicians'] });
-      setLocalTechnicians(newTechnicians);
     },
   });
-  const { mutate: saveTechnicians } = techniciansMutation;
+  const { mutate: mutateTechnicians } = techniciansMutation;
 
   const messagesMutation = useMutation({
     mutationFn: async (newMessages: Message[]) => {
@@ -285,6 +260,37 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
   const { mutate: mutateEvents } = eventsMutation;
 
+  const authMutation = useMutation({
+    mutationFn: async (updates: {
+      pin?: string;
+      userRole?: UserRole;
+      hasCompletedOnboarding?: boolean;
+      language?: Language;
+      isAuthenticated?: boolean;
+      profileUpdateTrigger?: number;
+    }) => {
+      const promises = [];
+      if (updates.pin !== undefined) {
+        promises.push(AsyncStorage.setItem('userPin', updates.pin));
+      }
+      if (updates.userRole !== undefined) {
+        promises.push(AsyncStorage.setItem('userRole', updates.userRole));
+      }
+      if (updates.hasCompletedOnboarding !== undefined) {
+        promises.push(AsyncStorage.setItem('hasCompletedOnboarding', updates.hasCompletedOnboarding ? 'true' : 'false'));
+      }
+      if (updates.language !== undefined) {
+        promises.push(AsyncStorage.setItem('language', updates.language));
+      }
+      await Promise.all(promises);
+      return updates;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+  });
+  const { mutate: mutateAuth } = authMutation;
+
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
     const newJob: Job = { ...job, id: `job${Date.now()}` } as Job;
     mutateJobs([...jobs, newJob]);
@@ -312,45 +318,37 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateJobs(updatedJobs);
   }, [jobs, mutateJobs, offlineStorage]);
 
-  const setPin = useCallback(async (pin: string) => {
-    await AsyncStorage.setItem('userPin', pin);
-    setStoredPin(pin);
-    setHasPin(true);
-    setIsAuthenticated(true);
-  }, []);
+  const setPin = useCallback((pin: string) => {
+    mutateAuth({ pin, isAuthenticated: true });
+  }, [mutateAuth]);
 
-  const setUserRole = useCallback(async (role: UserRole) => {
-    await AsyncStorage.setItem('userRole', role);
-    setUserRoleState(role);
-    setHasRole(true);
-  }, []);
+  const setUserRole = useCallback((role: UserRole) => {
+    mutateAuth({ userRole: role });
+  }, [mutateAuth]);
 
-  const setLanguage = useCallback(async (lang: Language) => {
-    await AsyncStorage.setItem('language', lang);
-    setLanguageState(lang);
-    setHasLanguage(true);
-  }, []);
+  const setLanguage = useCallback((lang: Language) => {
+    mutateAuth({ language: lang });
+  }, [mutateAuth]);
 
   const authenticatePin = useCallback((pin: string): boolean => {
-    if (storedPin === pin) {
-      setIsAuthenticated(true);
+    if (authQuery.data?.pin === pin) {
+      mutateAuth({ isAuthenticated: true });
       return true;
     }
     return false;
-  }, [storedPin]);
+  }, [authQuery.data?.pin, mutateAuth]);
 
   const logout = useCallback(() => {
-    setIsAuthenticated(false);
-  }, []);
+    mutateAuth({ isAuthenticated: false });
+  }, [mutateAuth]);
 
   const triggerProfileUpdate = useCallback(() => {
-    setProfileUpdateTrigger((prev) => prev + 1);
-  }, []);
+    mutateAuth({ profileUpdateTrigger: (profileUpdateTrigger ?? 0) + 1 });
+  }, [profileUpdateTrigger, mutateAuth]);
 
-  const completeOnboarding = useCallback(async () => {
-    await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-    setHasCompletedOnboarding(true);
-  }, []);
+  const completeOnboarding = useCallback(() => {
+    mutateAuth({ hasCompletedOnboarding: true });
+  }, [mutateAuth]);
 
   const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
     console.log('Updating technician location:', technicianId, locationUpdate);
@@ -361,27 +359,27 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   }, []);
 
   const getTechniciansByStatus = useCallback((status: TechnicianStatus['status']) => {
-    return localTechnicians.filter((tech: Technician) => tech.status?.status === status);
-  }, [localTechnicians]);
+    return technicians.filter((tech: Technician) => tech.status?.status === status);
+  }, [technicians]);
 
   const getActiveTechnicians = useCallback(() => {
-    return localTechnicians.filter((tech: Technician) => tech.availability !== 'offline');
-  }, [localTechnicians]);
+    return technicians.filter((tech: Technician) => tech.availability !== 'offline');
+  }, [technicians]);
 
   const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
     const newTechnician: Technician = { ...technician, id: `tech${Date.now()}` } as Technician;
-    saveTechnicians([...localTechnicians, newTechnician]);
-  }, [localTechnicians, saveTechnicians]);
+    mutateTechnicians([...technicians, newTechnician]);
+  }, [technicians, mutateTechnicians]);
 
   const updateTechnician = useCallback((technicianId: string, updates: Partial<Technician>) => {
-    const updatedTechnicians = localTechnicians.map((tech: Technician) => (tech.id === technicianId ? { ...tech, ...updates } : tech));
-    saveTechnicians(updatedTechnicians);
-  }, [localTechnicians, saveTechnicians]);
+    const updatedTechnicians = technicians.map((tech: Technician) => (tech.id === technicianId ? { ...tech, ...updates } : tech));
+    mutateTechnicians(updatedTechnicians);
+  }, [technicians, mutateTechnicians]);
 
   const deleteTechnician = useCallback((technicianId: string) => {
-    const updated = localTechnicians.filter((tech: Technician) => tech.id !== technicianId);
-    saveTechnicians(updated);
-  }, [localTechnicians, saveTechnicians]);
+    const updated = technicians.filter((tech: Technician) => tech.id !== technicianId);
+    mutateTechnicians(updated);
+  }, [technicians, mutateTechnicians]);
 
   const importCustomers = useCallback(async (importedCustomers: Customer[]) => {
     mutateCustomers(importedCustomers);
@@ -519,14 +517,23 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return events.filter((event: CalendarEvent) => event.date === date);
   }, [events]);
 
-  const isLoading = customersLoading || equipmentLoading || jobsLoading || invoicesLoading || techniciansLoading || messagesLoading || jobCommentsLoading || eventsLoading;
+  const isLoading = 
+    customersQuery.isLoading || 
+    equipmentQuery.isLoading || 
+    jobsQuery.isLoading || 
+    invoicesQuery.isLoading || 
+    techniciansQuery.isLoading || 
+    messagesQuery.isLoading || 
+    jobCommentsQuery.isLoading || 
+    eventsQuery.isLoading ||
+    authQuery.isLoading;
 
   return useMemo(() => ({
     customers,
     equipment,
     jobs,
     invoices,
-    technicians: localTechnicians,
+    technicians,
     messages,
     jobComments,
     events,
@@ -588,7 +595,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     equipment,
     jobs,
     invoices,
-    localTechnicians,
+    technicians,
     messages,
     jobComments,
     events,
