@@ -32,7 +32,7 @@ export interface Job {
   address: string;
   scheduledDate: string;
   scheduledTime: string;
-  status: 'scheduled' | 'inProgress' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'in-progress' | 'inProgress' | 'completed' | 'cancelled' | 'emergency';
   priority: 'low' | 'normal' | 'high' | 'emergency';
   type: 'repair' | 'maintenance' | 'installation' | 'inspection';
   description: string;
