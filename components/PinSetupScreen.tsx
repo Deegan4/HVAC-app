@@ -67,7 +67,9 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
     if (confirmPin.length === maxPinLength && isConfirming) {
       setTimeout(async () => {
         if (pin === confirmPin) {
+          console.log('PinSetupScreen - PIN matches, calling onPinSet');
           await onPinSet(pin);
+          console.log('PinSetupScreen - onPinSet completed');
         } else {
           if (Platform.OS !== 'web') {
             Vibration.vibrate(500);

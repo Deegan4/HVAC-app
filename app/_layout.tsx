@@ -55,7 +55,15 @@ function AuthenticatedApp() {
   const { isAuthenticated, hasPin, hasRole, hasLanguage, hasCompletedOnboarding, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
-  console.log('AuthenticatedApp render - hasLanguage:', hasLanguage, 'language:', language);
+  console.log('AuthenticatedApp state:', { 
+    hasLanguage, 
+    hasCompletedOnboarding, 
+    hasRole, 
+    hasPin, 
+    isAuthenticated,
+    userRole,
+    language
+  });
   
   // First show language selection
   if (!hasLanguage) {
@@ -98,7 +106,9 @@ function AuthenticatedApp() {
     return (
       <PinSetupScreen 
         onPinSet={async (pin: string) => {
+          console.log('_layout - PinSetupScreen onPinSet called');
           await setPin(pin);
+          console.log('_layout - setPin completed');
         }}
         isFirstTime={true}
         userRole={userRole || selectedRole || undefined}

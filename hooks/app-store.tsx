@@ -146,11 +146,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const authQuery = useQuery({
     queryKey: ['auth'],
     queryFn: async () => {
-      const [pin, role, onboarding, lang] = await Promise.all([
+      const [pin, role, onboarding, lang, authenticated] = await Promise.all([
         AsyncStorage.getItem('userPin'),
         AsyncStorage.getItem('userRole'),
         AsyncStorage.getItem('hasCompletedOnboarding'),
         AsyncStorage.getItem('language'),
+        AsyncStorage.getItem('isAuthenticated'),
       ]);
 
       return {
@@ -158,7 +159,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         userRole: role as UserRole | null,
         hasCompletedOnboarding: onboarding === 'true',
         language: (lang as Language) || 'en',
-        isAuthenticated: false,
+        isAuthenticated: authenticated === 'true',
         profileUpdateTrigger: 0,
       };
     },
@@ -269,6 +270,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       isAuthenticated?: boolean;
       profileUpdateTrigger?: number;
     }) => {
+      console.log('authMutation - mutationFn called with:', updates);
       const promises = [];
       if (updates.pin !== undefined) {
         promises.push(AsyncStorage.setItem('userPin', updates.pin));
@@ -282,12 +284,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       if (updates.language !== undefined) {
         promises.push(AsyncStorage.setItem('language', updates.language));
       }
+      if (updates.isAuthenticated !== undefined) {
+        promises.push(AsyncStorage.setItem('isAuthenticated', updates.isAuthenticated ? 'true' : 'false'));
+      }
       await Promise.all(promises);
+      console.log('authMutation - AsyncStorage updated');
       return updates;
     },
     onSuccess: async () => {
+      console.log('authMutation - onSuccess, invalidating queries');
       await queryClient.invalidateQueries({ queryKey: ['auth'] });
       await queryClient.refetchQueries({ queryKey: ['auth'] });
+      console.log('authMutation - queries refetched');
     },
   });
   const { mutateAsync: mutateAuth } = authMutation;
