@@ -1,5 +1,4 @@
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform, Alert } from 'react-native';
 import { Customer } from '@/types';
@@ -36,18 +35,28 @@ export class ImportExportManager {
         
         Alert.alert('Success', `${customers.length} customers exported successfully!`);
       } else {
-        // Mobile export using file system and sharing
-        const fileUri = FileSystem.documentDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, jsonData);
-        
+        // Mobile export using sharing API directly
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Export Customers Data',
-          });
-          Alert.alert('Success', `${customers.length} customers exported successfully!`);
+          // Create a temporary blob and share it
+          const blob = new Blob([jsonData], { type: 'application/json' });
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const base64data = reader.result as string;
+              await Sharing.shareAsync(base64data, {
+                mimeType: 'application/json',
+                dialogTitle: 'Export Customers Data',
+                UTI: 'public.json',
+              });
+              Alert.alert('Success', `${customers.length} customers exported successfully!`);
+            } catch (shareError) {
+              console.error('Share error:', shareError);
+              Alert.alert('Error', 'Failed to share export file.');
+            }
+          };
+          reader.readAsDataURL(blob);
         } else {
-          Alert.alert('Success', `${customers.length} customers exported to: ${fileUri}`);
+          Alert.alert('Error', 'Sharing is not available on this device.');
         }
       }
     } catch (error) {
@@ -102,7 +111,9 @@ export class ImportExportManager {
 
         if (!result.canceled && result.assets[0]) {
           console.log('File selected:', result.assets[0].name);
-          const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
+          // Read file content using fetch for mobile
+          const response = await fetch(result.assets[0].uri);
+          const fileContent = await response.text();
           const customers = JSON.parse(fileContent);
           console.log('Parsed customers:', customers.length);
           
@@ -142,18 +153,28 @@ export class ImportExportManager {
         
         Alert.alert('Success', `${items.length} price book items exported successfully!`);
       } else {
-        // Mobile export using file system and sharing
-        const fileUri = FileSystem.documentDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, jsonData);
-        
+        // Mobile export using sharing API directly
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Export Price Book Data',
-          });
-          Alert.alert('Success', `${items.length} price book items exported successfully!`);
+          // Create a temporary blob and share it
+          const blob = new Blob([jsonData], { type: 'application/json' });
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const base64data = reader.result as string;
+              await Sharing.shareAsync(base64data, {
+                mimeType: 'application/json',
+                dialogTitle: 'Export Price Book Data',
+                UTI: 'public.json',
+              });
+              Alert.alert('Success', `${items.length} price book items exported successfully!`);
+            } catch (shareError) {
+              console.error('Share error:', shareError);
+              Alert.alert('Error', 'Failed to share export file.');
+            }
+          };
+          reader.readAsDataURL(blob);
         } else {
-          Alert.alert('Success', `${items.length} price book items exported to: ${fileUri}`);
+          Alert.alert('Error', 'Sharing is not available on this device.');
         }
       }
     } catch (error) {
@@ -208,7 +229,9 @@ export class ImportExportManager {
 
         if (!result.canceled && result.assets[0]) {
           console.log('File selected:', result.assets[0].name);
-          const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
+          // Read file content using fetch for mobile
+          const response = await fetch(result.assets[0].uri);
+          const fileContent = await response.text();
           const items = JSON.parse(fileContent);
           console.log('Parsed price book items:', items.length);
           

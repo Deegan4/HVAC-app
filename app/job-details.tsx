@@ -182,7 +182,8 @@ export default function JobDetailsScreen() {
   };
 
   const getStatusColor = (status: Job['status']) => {
-    return Colors.status[status] || Colors.text.secondary;
+    const statusKey = status === 'inProgress' ? 'inProgress' : status;
+    return Colors.status[statusKey as keyof typeof Colors.status] || Colors.text.secondary;
   };
 
   const getPriorityColor = (priority: Job['priority']) => {
