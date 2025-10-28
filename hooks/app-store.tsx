@@ -48,17 +48,17 @@ interface AppState {
   getCustomerById: (id: string) => Customer | undefined;
   getEquipmentByCustomer: (customerId: string) => Equipment[];
   getInvoicesByCustomer: (customerId: string) => Invoice[];
-  setPin: (pin: string) => void;
-  setUserRole: (role: UserRole) => void;
-  setLanguage: (language: Language) => void;
-  authenticatePin: (pin: string) => boolean;
-  logout: () => void;
-  completeOnboarding: () => void;
+  setPin: (pin: string) => Promise<void>;
+  setUserRole: (role: UserRole) => Promise<void>;
+  setLanguage: (language: Language) => Promise<void>;
+  authenticatePin: (pin: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
   updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
   getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
   getActiveTechnicians: () => Technician[];
-  triggerProfileUpdate: () => void;
+  triggerProfileUpdate: () => Promise<void>;
   sendMessage: (message: Omit<Message, 'id' | 'timestamp' | 'read'>) => void;
   markMessageAsRead: (messageId: string) => void;
   getConversationMessages: (participantId: string) => Message[];
@@ -285,11 +285,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       await Promise.all(promises);
       return updates;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['auth'] });
+      await queryClient.refetchQueries({ queryKey: ['auth'] });
     },
   });
-  const { mutate: mutateAuth } = authMutation;
+  const { mutateAsync: mutateAuth } = authMutation;
 
   const addJob = useCallback((job: Omit<Job, 'id'>) => {
     const newJob: Job = { ...job, id: `job${Date.now()}` } as Job;
@@ -318,36 +319,36 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateJobs(updatedJobs);
   }, [jobs, mutateJobs, offlineStorage]);
 
-  const setPin = useCallback((pin: string) => {
-    mutateAuth({ pin, isAuthenticated: true });
+  const setPin = useCallback(async (pin: string) => {
+    await mutateAuth({ pin, isAuthenticated: true });
   }, [mutateAuth]);
 
-  const setUserRole = useCallback((role: UserRole) => {
-    mutateAuth({ userRole: role });
+  const setUserRole = useCallback(async (role: UserRole) => {
+    await mutateAuth({ userRole: role });
   }, [mutateAuth]);
 
-  const setLanguage = useCallback((lang: Language) => {
-    mutateAuth({ language: lang });
+  const setLanguage = useCallback(async (lang: Language) => {
+    await mutateAuth({ language: lang });
   }, [mutateAuth]);
 
-  const authenticatePin = useCallback((pin: string): boolean => {
+  const authenticatePin = useCallback(async (pin: string): Promise<boolean> => {
     if (authQuery.data?.pin === pin) {
-      mutateAuth({ isAuthenticated: true });
+      await mutateAuth({ isAuthenticated: true });
       return true;
     }
     return false;
   }, [authQuery.data?.pin, mutateAuth]);
 
-  const logout = useCallback(() => {
-    mutateAuth({ isAuthenticated: false });
+  const logout = useCallback(async () => {
+    await mutateAuth({ isAuthenticated: false });
   }, [mutateAuth]);
 
-  const triggerProfileUpdate = useCallback(() => {
-    mutateAuth({ profileUpdateTrigger: (profileUpdateTrigger ?? 0) + 1 });
+  const triggerProfileUpdate = useCallback(async () => {
+    await mutateAuth({ profileUpdateTrigger: (profileUpdateTrigger ?? 0) + 1 });
   }, [profileUpdateTrigger, mutateAuth]);
 
-  const completeOnboarding = useCallback(() => {
-    mutateAuth({ hasCompletedOnboarding: true });
+  const completeOnboarding = useCallback(async () => {
+    await mutateAuth({ hasCompletedOnboarding: true });
   }, [mutateAuth]);
 
   const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {

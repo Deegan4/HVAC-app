@@ -14,7 +14,7 @@ import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
 
 interface PinAuthScreenProps {
-  onAuthenticate: (pin: string) => boolean;
+  onAuthenticate: (pin: string) => Promise<boolean>;
 }
 
 export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
@@ -31,8 +31,9 @@ export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
       setPin(newPin);
       
       if (newPin.length === maxPinLength) {
-        setTimeout(() => {
-          if (onAuthenticate(newPin)) {
+        setTimeout(async () => {
+          const isAuthenticated = await onAuthenticate(newPin);
+          if (isAuthenticated) {
             // Success - PIN is correct
             setPin('');
             setAttempts(0);

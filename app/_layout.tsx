@@ -61,9 +61,9 @@ function AuthenticatedApp() {
   if (!hasLanguage) {
     return (
       <LanguageSelectionScreen 
-        onLanguageSelected={(language: Language) => {
+        onLanguageSelected={async (language: Language) => {
           console.log('_layout - onLanguageSelected called with:', language);
-          setLanguage(language);
+          await setLanguage(language);
         }}
       />
     );
@@ -74,7 +74,9 @@ function AuthenticatedApp() {
     console.log('Showing onboarding with language:', language);
     return (
       <OnboardingScreen 
-        onComplete={completeOnboarding}
+        onComplete={async () => {
+          await completeOnboarding();
+        }}
       />
     );
   }
@@ -83,9 +85,9 @@ function AuthenticatedApp() {
   if (!hasRole) {
     return (
       <RoleSelectionScreen 
-        onRoleSelected={(role: UserRole) => {
+        onRoleSelected={async (role: UserRole) => {
           setSelectedRole(role);
-          setUserRole(role);
+          await setUserRole(role);
         }}
       />
     );
@@ -95,7 +97,9 @@ function AuthenticatedApp() {
   if (!hasPin) {
     return (
       <PinSetupScreen 
-        onPinSet={setPin}
+        onPinSet={async (pin: string) => {
+          await setPin(pin);
+        }}
         isFirstTime={true}
         userRole={userRole || selectedRole || undefined}
       />
@@ -106,7 +110,9 @@ function AuthenticatedApp() {
   if (!isAuthenticated) {
     return (
       <PinAuthScreen 
-        onAuthenticate={authenticatePin}
+        onAuthenticate={async (pin: string) => {
+          return await authenticatePin(pin);
+        }}
       />
     );
   }

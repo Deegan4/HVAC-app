@@ -14,7 +14,7 @@ import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
 
 interface PinSetupScreenProps {
-  onPinSet: (pin: string) => void;
+  onPinSet: (pin: string) => Promise<void>;
   isFirstTime?: boolean;
   userRole?: string;
 }
@@ -65,9 +65,9 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
 
   useEffect(() => {
     if (confirmPin.length === maxPinLength && isConfirming) {
-      setTimeout(() => {
+      setTimeout(async () => {
         if (pin === confirmPin) {
-          onPinSet(pin);
+          await onPinSet(pin);
         } else {
           if (Platform.OS !== 'web') {
             Vibration.vibrate(500);
@@ -88,7 +88,7 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
         }
       }, 300);
     }
-  }, [confirmPin, pin, onPinSet]);
+  }, [confirmPin, pin, onPinSet, isConfirming]);
 
   const renderPinDots = (currentPin: string) => {
     return (
