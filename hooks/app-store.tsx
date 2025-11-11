@@ -330,8 +330,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const setPin = useCallback(async (pin: string) => {
     console.log('setPin - starting');
     await mutateAuth({ pin, isAuthenticated: true });
-    console.log('setPin - mutateAuth completed');
-  }, [mutateAuth]);
+    console.log('setPin - mutateAuth completed, waiting for refetch');
+    await queryClient.refetchQueries({ queryKey: ['auth'] });
+    console.log('setPin - refetch completed');
+  }, [mutateAuth, queryClient]);
 
   const setUserRole = useCallback(async (role: UserRole) => {
     await mutateAuth({ userRole: role });
