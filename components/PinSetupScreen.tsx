@@ -9,6 +9,8 @@ import {
   Vibration,
   Platform
 } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { Fingerprint } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
@@ -24,8 +26,42 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
   const [confirmPin, setConfirmPin] = useState<string>('');
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [attempts, setAttempts] = useState<number>(0);
+  const [biometricAvailable, setBiometricAvailable] = useState<boolean>(false);
+  const [biometricType, setBiometricType] = useState<string>('');
 
   const maxPinLength = 4;
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    if (Platform.OS === 'web') {
+      setBiometricAvailable(false);
+      return;
+    }
+
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+
+      if (compatible && enrolled) {
+        setBiometricAvailable(true);
+        
+        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+          setBiometricType('Face ID');
+        } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+          setBiometricType('Touch ID');
+        } else {
+          setBiometricType('Biometric');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+      setBiometricAvailable(false);
+    }
+  };
 
   const handleNumberPress = (number: string) => {
     if (isConfirming) {
@@ -195,6 +231,14 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
 
           {/* Footer */}
           <View style={styles.footer}>
+            {biometricAvailable && !isConfirming && pin.length === 0 && (
+              <View style={styles.biometricInfo}>
+                <Fingerprint size={20} color={Colors.primary} />
+                <Text style={styles.biometricInfoText}>
+                  {biometricType} will be available after setup
+                </Text>
+              </View>
+            )}
             <Text style={styles.footerText}>
               Your PIN keeps your work data secure
             </Text>
@@ -307,6 +351,23 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     paddingBottom: 20,
+    gap: 12,
+  },
+  biometricInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0, 102, 204, 0.15)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  biometricInfoText: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: '500',
   },
   footerText: {
     fontSize: 14,

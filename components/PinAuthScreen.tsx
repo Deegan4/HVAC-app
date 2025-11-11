@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -9,6 +9,8 @@ import {
   Vibration,
   Platform
 } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { Fingerprint } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
@@ -21,9 +23,71 @@ export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
   const [pin, setPin] = useState<string>('');
   const [attempts, setAttempts] = useState<number>(0);
   const [isShaking, setIsShaking] = useState<boolean>(false);
+  const [biometricAvailable, setBiometricAvailable] = useState<boolean>(false);
+  const [biometricType, setBiometricType] = useState<string>('');
 
   const maxPinLength = 4;
   const maxAttempts = 5;
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    if (Platform.OS === 'web') {
+      setBiometricAvailable(false);
+      return;
+    }
+
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+
+      if (compatible && enrolled) {
+        setBiometricAvailable(true);
+        
+        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+          setBiometricType('Face ID');
+        } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+          setBiometricType('Touch ID');
+        } else {
+          setBiometricType('Biometric');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+      setBiometricAvailable(false);
+    }
+  };
+
+  const handleBiometricAuth = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert('Not Available', 'Biometric authentication is not available on web.');
+      return;
+    }
+
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to access Oliva Refrigeration',
+        fallbackLabel: 'Use PIN instead',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        const authenticated = await onAuthenticate('biometric-auth-success');
+        if (!authenticated) {
+          Alert.alert('Authentication Failed', 'Could not verify your identity.');
+        }
+      } else {
+        console.log('Biometric authentication failed or cancelled');
+      }
+    } catch (error) {
+      console.error('Biometric authentication error:', error);
+      Alert.alert('Error', 'Could not complete biometric authentication.');
+    }
+  };
 
   const handleNumberPress = (number: string) => {
     if (pin.length < maxPinLength) {
@@ -174,6 +238,20 @@ export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
           {/* Number Pad */}
           {renderNumberPad()}
 
+          {/* Biometric Auth Button */}
+          {biometricAvailable && (
+            <TouchableOpacity
+              style={styles.biometricButton}
+              onPress={handleBiometricAuth}
+              activeOpacity={0.7}
+            >
+              <Fingerprint size={32} color={Colors.primary} />
+              <Text style={styles.biometricButtonText}>
+                Use {biometricType}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Clear Button */}
           <TouchableOpacity
             style={[styles.clearButton, attempts >= maxAttempts && styles.disabledButton]}
@@ -298,6 +376,24 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: 'rgba(255, 255, 255, 0.3)',
+  },
+  biometricButton: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    marginBottom: 12,
+  },
+  biometricButtonText: {
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: '600',
   },
   clearButton: {
     alignSelf: 'center',
