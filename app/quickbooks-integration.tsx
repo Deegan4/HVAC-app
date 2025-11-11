@@ -624,15 +624,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   infoCard: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.primary,
+    color: Colors.text.primary,
     marginBottom: 8,
   },
   infoText: {
