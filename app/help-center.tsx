@@ -23,28 +23,17 @@ import {
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
-import AppTour from '@/components/AppTour';
-import { ownerTourSteps, technicianTourSteps, quickTourSteps } from '@/constants/tour-flows';
+import TourManager, { TourType } from '@/components/TourManager';
 
 export default function HelpCenterScreen() {
-  const { userRole, resetTour, completeTour } = useAppStore();
+  const { userRole, resetTour } = useAppStore();
   const [showTour, setShowTour] = useState(false);
-  const [selectedTour, setSelectedTour] = useState<'full' | 'quick'>('full');
+  const [selectedTour, setSelectedTour] = useState<TourType>('owner');
 
-  const handleStartTour = (tourType: 'full' | 'quick') => {
+  const handleStartTour = async (tourType: TourType) => {
+    await resetTour();
     setSelectedTour(tourType);
-    resetTour();
     setShowTour(true);
-  };
-
-  const handleCompleteTour = () => {
-    completeTour();
-    setShowTour(false);
-    Alert.alert('Tour Complete!', 'You can restart this tour anytime from Help Center.');
-  };
-
-  const handleSkipTour = () => {
-    setShowTour(false);
   };
 
   const handleContactSupport = (method: 'phone' | 'email' | 'chat') => {
@@ -140,7 +129,7 @@ export default function HelpCenterScreen() {
           <View style={styles.sectionContent}>
             <TouchableOpacity 
               style={styles.tourCard}
-              onPress={() => handleStartTour('full')}
+              onPress={() => handleStartTour(userRole === 'owner' ? 'owner' : 'technician')}
             >
               <View style={styles.tourIconContainer}>
                 <Sparkles size={24} color={Colors.primary} />
@@ -149,8 +138,8 @@ export default function HelpCenterScreen() {
                 <Text style={styles.tourTitle}>Complete App Tour</Text>
                 <Text style={styles.tourDescription}>
                   {userRole === 'owner' 
-                    ? 'Learn all features for managing your service business'
-                    : 'Complete guide for technicians'}
+                    ? 'Step-by-step guide through all business management features'
+                    : 'Complete walkthrough for field technicians'}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -162,9 +151,9 @@ export default function HelpCenterScreen() {
                 <HelpCircle size={24} color={Colors.primary} />
               </View>
               <View style={styles.tourContent}>
-                <Text style={styles.tourTitle}>Quick Tour</Text>
+                <Text style={styles.tourTitle}>Quick Start Guide</Text>
                 <Text style={styles.tourDescription}>
-                  5-minute overview of the main features
+                  2-minute quick overview to get you started immediately
                 </Text>
               </View>
             </TouchableOpacity>
@@ -313,15 +302,9 @@ export default function HelpCenterScreen() {
         </View>
       </ScrollView>
 
-      <AppTour
-        visible={showTour}
-        steps={selectedTour === 'full' 
-          ? (userRole === 'owner' ? ownerTourSteps : technicianTourSteps)
-          : quickTourSteps
-        }
-        onComplete={handleCompleteTour}
-        onSkip={handleSkipTour}
-      />
+      {showTour && (
+        <TourManager tourType={selectedTour} autoStart={true} />
+      )}
     </SafeAreaView>
   );
 }

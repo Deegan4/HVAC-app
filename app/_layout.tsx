@@ -11,6 +11,7 @@ import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen"
 import OnboardingScreen from "@/components/OnboardingScreen";
 import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import TourManager from "@/components/TourManager";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -127,7 +128,12 @@ function AuthenticatedApp() {
     );
   }
   
-  return <RootLayoutNav />;
+  return (
+    <>
+      <RootLayoutNav />
+      <TourManager autoStart={true} />
+    </>
+  );
 }
 
 export default function RootLayout() {
