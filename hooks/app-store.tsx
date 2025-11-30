@@ -158,7 +158,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         pin,
         userRole: role as UserRole | null,
         hasCompletedOnboarding: onboarding === 'true',
-        language: (lang as Language) || 'en',
+        language: lang as Language | null,
         isAuthenticated: authenticated === 'true',
         profileUpdateTrigger: 0,
       };
@@ -176,7 +176,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
 
   const hasPin = Boolean(authQuery.data?.pin);
   const hasRole = Boolean(authQuery.data?.userRole);
-  const hasLanguage = Boolean(authQuery.data?.language);
+  const hasLanguage = authQuery.data?.language !== null && authQuery.data?.language !== undefined;
   const hasCompletedOnboarding = authQuery.data?.hasCompletedOnboarding ?? false;
   const userRole = authQuery.data?.userRole ?? null;
   const language = authQuery.data?.language ?? 'en';
