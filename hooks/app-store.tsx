@@ -28,7 +28,6 @@ interface AppState {
   hasRole: boolean;
   hasLanguage: boolean;
   hasCompletedOnboarding: boolean;
-  hasCompletedTour: boolean;
   profileUpdateTrigger: number;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
@@ -55,8 +54,6 @@ interface AppState {
   authenticatePin: (pin: string) => Promise<boolean>;
   logout: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
-  completeTour: () => Promise<void>;
-  resetTour: () => Promise<void>;
   updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
   updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
   getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
@@ -149,20 +146,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const authQuery = useQuery({
     queryKey: ['auth'],
     queryFn: async () => {
-      const [pin, role, onboarding, lang, authenticated, tour] = await Promise.all([
+      const [pin, role, onboarding, lang, authenticated] = await Promise.all([
         AsyncStorage.getItem('userPin'),
         AsyncStorage.getItem('userRole'),
         AsyncStorage.getItem('hasCompletedOnboarding'),
         AsyncStorage.getItem('language'),
         AsyncStorage.getItem('isAuthenticated'),
-        AsyncStorage.getItem('hasCompletedTour'),
       ]);
 
       return {
         pin,
         userRole: role as UserRole | null,
         hasCompletedOnboarding: onboarding === 'true',
-        hasCompletedTour: tour === 'true',
         language: (lang as Language) || 'en',
         isAuthenticated: authenticated === 'true',
         profileUpdateTrigger: 0,
@@ -183,7 +178,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const hasRole = Boolean(authQuery.data?.userRole);
   const hasLanguage = Boolean(authQuery.data?.language);
   const hasCompletedOnboarding = authQuery.data?.hasCompletedOnboarding ?? false;
-  const hasCompletedTour = authQuery.data?.hasCompletedTour ?? false;
   const userRole = authQuery.data?.userRole ?? null;
   const language = authQuery.data?.language ?? 'en';
   const isAuthenticated = authQuery.data?.isAuthenticated ?? false;
@@ -272,7 +266,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       pin?: string;
       userRole?: UserRole;
       hasCompletedOnboarding?: boolean;
-      hasCompletedTour?: boolean;
       language?: Language;
       isAuthenticated?: boolean;
       profileUpdateTrigger?: number;
@@ -287,9 +280,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       }
       if (updates.hasCompletedOnboarding !== undefined) {
         promises.push(AsyncStorage.setItem('hasCompletedOnboarding', updates.hasCompletedOnboarding ? 'true' : 'false'));
-      }
-      if (updates.hasCompletedTour !== undefined) {
-        promises.push(AsyncStorage.setItem('hasCompletedTour', updates.hasCompletedTour ? 'true' : 'false'));
       }
       if (updates.language !== undefined) {
         promises.push(AsyncStorage.setItem('language', updates.language));
@@ -369,14 +359,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
 
   const completeOnboarding = useCallback(async () => {
     await mutateAuth({ hasCompletedOnboarding: true });
-  }, [mutateAuth]);
-
-  const completeTour = useCallback(async () => {
-    await mutateAuth({ hasCompletedTour: true });
-  }, [mutateAuth]);
-
-  const resetTour = useCallback(async () => {
-    await mutateAuth({ hasCompletedTour: false });
   }, [mutateAuth]);
 
   const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
@@ -577,7 +559,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasRole,
     hasLanguage,
     hasCompletedOnboarding,
-    hasCompletedTour,
     profileUpdateTrigger,
     addJob,
     updateJobStatus,
@@ -599,8 +580,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     authenticatePin,
     logout,
     completeOnboarding,
-    completeTour,
-    resetTour,
     importCustomers,
     exportCustomers,
     updateTechnicianLocation,
@@ -642,7 +621,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasRole,
     hasLanguage,
     hasCompletedOnboarding,
-    hasCompletedTour,
     profileUpdateTrigger,
     addJob,
     updateJobStatus,
@@ -664,8 +642,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     authenticatePin,
     logout,
     completeOnboarding,
-    completeTour,
-    resetTour,
     importCustomers,
     exportCustomers,
     updateTechnicianLocation,

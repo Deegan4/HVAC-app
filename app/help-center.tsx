@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -18,24 +18,11 @@ import {
   Book,
   Video,
   ExternalLink,
-  Search,
-  Sparkles,
+  Search
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { useAppStore } from '@/hooks/app-store';
-import TourManager, { TourType } from '@/components/TourManager';
 
 export default function HelpCenterScreen() {
-  const { userRole, resetTour } = useAppStore();
-  const [showTour, setShowTour] = useState(false);
-  const [selectedTour, setSelectedTour] = useState<TourType>('owner');
-
-  const handleStartTour = async (tourType: TourType) => {
-    await resetTour();
-    setSelectedTour(tourType);
-    setShowTour(true);
-  };
-
   const handleContactSupport = (method: 'phone' | 'email' | 'chat') => {
     switch (method) {
       case 'phone':
@@ -123,43 +110,6 @@ export default function HelpCenterScreen() {
       />
       
       <ScrollView style={styles.scrollView}>
-        {/* App Tour */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App Tour</Text>
-          <View style={styles.sectionContent}>
-            <TouchableOpacity 
-              style={styles.tourCard}
-              onPress={() => handleStartTour(userRole === 'owner' ? 'owner' : 'technician')}
-            >
-              <View style={styles.tourIconContainer}>
-                <Sparkles size={24} color={Colors.primary} />
-              </View>
-              <View style={styles.tourContent}>
-                <Text style={styles.tourTitle}>Complete App Tour</Text>
-                <Text style={styles.tourDescription}>
-                  {userRole === 'owner' 
-                    ? 'Step-by-step guide through all business management features'
-                    : 'Complete walkthrough for field technicians'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.tourCard}
-              onPress={() => handleStartTour('quick')}
-            >
-              <View style={styles.tourIconContainer}>
-                <HelpCircle size={24} color={Colors.primary} />
-              </View>
-              <View style={styles.tourContent}>
-                <Text style={styles.tourTitle}>Quick Start Guide</Text>
-                <Text style={styles.tourDescription}>
-                  2-minute quick overview to get you started immediately
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Get Help</Text>
@@ -301,10 +251,6 @@ export default function HelpCenterScreen() {
           </View>
         </View>
       </ScrollView>
-
-      {showTour && (
-        <TourManager tourType={selectedTour} autoStart={true} />
-      )}
     </SafeAreaView>
   );
 }
@@ -448,36 +394,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
-  },
-  tourCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: 12,
-  },
-  tourIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: `${Colors.primary}20`,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tourContent: {
-    flex: 1,
-  },
-  tourTitle: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  tourDescription: {
-    fontSize: 13,
-    color: Colors.text.secondary,
-    lineHeight: 18,
   },
 });

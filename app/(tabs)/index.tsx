@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
+  Platform,
   Modal,
+  Pressable,
   TextInput,
   Alert,
 } from 'react-native';
@@ -19,40 +22,19 @@ import { Job } from '@/types';
 import LoadingScreen from '@/components/LoadingScreen';
 import CalendarView from '@/components/CalendarView';
 import { useTranslation } from '@/constants/translations';
-import AppTour from '@/components/AppTour';
-import { ownerTourSteps, technicianTourSteps } from '@/constants/tour-flows';
 
 export default function ScheduleScreen() {
-  const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language, addEvent, currentUserId, hasCompletedTour, completeTour } = useAppStore();
+  const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language, addEvent, currentUserId } = useAppStore();
   const t = useTranslation(language);
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [showTour, setShowTour] = useState(false);
   
   const isFirstTimeUser = customers.length === 0 && jobs.length === 0;
 
-  const upcomingJobs = useMemo(() => getUpcomingJobs(), [jobs, getUpcomingJobs]);
-
-  useEffect(() => {
-    if (!hasCompletedTour && !isLoading && userRole) {
-      const timer = setTimeout(() => {
-        setShowTour(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasCompletedTour, isLoading, userRole]);
-
-  const handleCompleteTour = () => {
-    completeTour();
-    setShowTour(false);
-  };
-
-  const handleSkipTour = () => {
-    setShowTour(false);
-  };
+  const upcomingJobs = useMemo(() => getUpcomingJobs(), [jobs]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -251,7 +233,7 @@ export default function ScheduleScreen() {
               Welcome {userRole === 'owner' ? 'Owner' : 'Technician'}
             </Text>
             <Text style={styles.welcomeSubtitle}>
-              Let&apos;s get your business set up and running
+              Let's get your business set up and running
             </Text>
             
             <View style={styles.quickStartSection}>
@@ -613,13 +595,6 @@ export default function ScheduleScreen() {
           </Modal>
         </>
       )}
-
-      <AppTour
-        visible={showTour}
-        steps={userRole === 'owner' ? ownerTourSteps : technicianTourSteps}
-        onComplete={handleCompleteTour}
-        onSkip={handleSkipTour}
-      />
     </SafeAreaView>
   );
 }
