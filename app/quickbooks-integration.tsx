@@ -483,10 +483,13 @@ const styles = StyleSheet.create({
   },
   statusCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   statusHeader: {
     flexDirection: 'row',
