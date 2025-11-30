@@ -1,0 +1,191 @@
+import React from 'react';
+import { 
+  Calendar, 
+  Users, 
+  FileText, 
+  MapPin, 
+  Plus, 
+  Grid3x3,
+  Wrench,
+  Settings,
+  TrendingUp,
+  MessageSquare,
+  Clock,
+  Building,
+} from 'lucide-react-native';
+import { Colors } from '@/constants/colors';
+import { TourStep } from '@/components/AppTour';
+
+export const ownerTourSteps: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome to Your Service Business Manager',
+    description: 'This tour will guide you through all the features to help you manage your HVAC/refrigeration service business efficiently. You can skip this tour anytime or restart it from Settings.',
+    icon: <Wrench size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'dashboard',
+    title: 'Your Dashboard',
+    description: 'Here you can see today\'s schedule, upcoming jobs, and quick stats. Tap the + button to create a new job. Use the calendar view to see all your appointments.',
+    icon: <Calendar size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'customers',
+    title: 'Customer Management',
+    description: 'Manage all your customers in one place. Add new customers, track their service history, equipment, and contact information. You can also import customers from CSV files.',
+    icon: <Users size={24} color={Colors.primary} />,
+    targetRoute: '/customers',
+    actionLabel: 'View Customers',
+  },
+  {
+    id: 'add-customer',
+    title: 'Adding a Customer',
+    description: 'Tap the + button to add your first customer. Include their contact info, address, and any equipment they own for easy service tracking.',
+    icon: <Plus size={24} color={Colors.primary} />,
+    targetRoute: '/customers',
+  },
+  {
+    id: 'invoices',
+    title: 'Invoice & Billing',
+    description: 'Create professional invoices, track payments, and manage your revenue. Filter by status (draft, sent, paid, overdue) to stay on top of your finances.',
+    icon: <FileText size={24} color={Colors.primary} />,
+    targetRoute: '/invoices',
+    actionLabel: 'View Invoices',
+  },
+  {
+    id: 'tracking',
+    title: 'Technician Tracking',
+    description: 'Track your field technicians in real-time. See who\'s available, on route, at a job, or on break. Monitor their locations and assign jobs efficiently.',
+    icon: <MapPin size={24} color={Colors.primary} />,
+    targetRoute: '/tracking',
+    actionLabel: 'View Tracking',
+  },
+  {
+    id: 'team',
+    title: 'Team Management',
+    description: 'From the More tab, you can add team members, assign roles, manage their schedules, and track their performance.',
+    icon: <Users size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'company-info',
+    title: 'Company Information',
+    description: 'Set up your company details, branding, and business hours. This information will appear on your invoices and customer communications.',
+    icon: <Building size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'reports',
+    title: 'Reports & Analytics',
+    description: 'Access detailed reports on revenue, job completion rates, technician performance, and customer insights to grow your business.',
+    icon: <TrendingUp size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'messaging',
+    title: 'Team Messaging',
+    description: 'Communicate with your technicians directly from the app. Share job updates, photos, and important information in real-time.',
+    icon: <MessageSquare size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'complete',
+    title: 'You\'re All Set!',
+    description: 'You\'re ready to start managing your service business! Remember, you can always restart this tour from Settings > Help Center.',
+    icon: <Wrench size={24} color={Colors.success} />,
+    targetRoute: '/',
+  },
+];
+
+export const technicianTourSteps: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome Technician',
+    description: 'This tour will show you how to use the app to manage your daily jobs, communicate with your team, and track your work efficiently.',
+    icon: <Wrench size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'daily-schedule',
+    title: 'Your Daily Schedule',
+    description: 'View all your assigned jobs for today. See job details, customer info, location, and estimated time. Jobs are organized by priority and time.',
+    icon: <Calendar size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'job-details',
+    title: 'Job Management',
+    description: 'Tap on any job to view full details. Update job status (on route, in progress, completed), add photos, notes, and customer signatures.',
+    icon: <Clock size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'customers-info',
+    title: 'Customer Information',
+    description: 'Access customer contact details, service history, and equipment information. Tap the phone icon to call or get directions.',
+    icon: <Users size={24} color={Colors.primary} />,
+    targetRoute: '/customers',
+    actionLabel: 'View Customers',
+  },
+  {
+    id: 'job-updates',
+    title: 'Update Job Status',
+    description: 'Always update your job status so the office knows your location. Use "On Route", "At Job", "Break", or "Returning to Base".',
+    icon: <MapPin size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'messaging',
+    title: 'Team Communication',
+    description: 'Message the office or other technicians. Share job updates, ask questions, or request parts. All communication is logged for reference.',
+    icon: <MessageSquare size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'profile',
+    title: 'Your Profile',
+    description: 'Update your availability status, certifications, and specialties. Keep your skills and certifications up to date.',
+    icon: <Settings size={24} color={Colors.primary} />,
+    targetRoute: '/more',
+  },
+  {
+    id: 'complete',
+    title: 'Ready to Go!',
+    description: 'You\'re ready to start your workday! Remember to update job statuses and communicate with your team. Have a great day!',
+    icon: <Wrench size={24} color={Colors.success} />,
+    targetRoute: '/',
+  },
+];
+
+export const quickTourSteps: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Quick Tour',
+    description: 'Let\'s take a quick look at the main features of your service business manager.',
+    icon: <Wrench size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'tabs',
+    title: 'Navigation Tabs',
+    description: 'Use the bottom tabs to navigate: Schedule, Customers, Invoices, Tracking (owner only), and More settings.',
+    icon: <Grid3x3 size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'add-job',
+    title: 'Create Jobs',
+    description: 'Tap the + button on the schedule tab to create a new service job. Select customer, date, time, and assign a technician.',
+    icon: <Plus size={24} color={Colors.primary} />,
+    targetRoute: '/',
+  },
+  {
+    id: 'complete',
+    title: 'That\'s It!',
+    description: 'You\'re ready to start. Explore the app and discover more features as you go!',
+    icon: <Wrench size={24} color={Colors.success} />,
+    targetRoute: '/',
+  },
+];

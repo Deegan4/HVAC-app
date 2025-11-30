@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -18,11 +18,35 @@ import {
   Book,
   Video,
   ExternalLink,
-  Search
+  Search,
+  Sparkles,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { useAppStore } from '@/hooks/app-store';
+import AppTour from '@/components/AppTour';
+import { ownerTourSteps, technicianTourSteps, quickTourSteps } from '@/constants/tour-flows';
 
 export default function HelpCenterScreen() {
+  const { userRole, resetTour, completeTour } = useAppStore();
+  const [showTour, setShowTour] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<'full' | 'quick'>('full');
+
+  const handleStartTour = (tourType: 'full' | 'quick') => {
+    setSelectedTour(tourType);
+    resetTour();
+    setShowTour(true);
+  };
+
+  const handleCompleteTour = () => {
+    completeTour();
+    setShowTour(false);
+    Alert.alert('Tour Complete!', 'You can restart this tour anytime from Help Center.');
+  };
+
+  const handleSkipTour = () => {
+    setShowTour(false);
+  };
+
   const handleContactSupport = (method: 'phone' | 'email' | 'chat') => {
     switch (method) {
       case 'phone':
@@ -110,6 +134,43 @@ export default function HelpCenterScreen() {
       />
       
       <ScrollView style={styles.scrollView}>
+        {/* App Tour */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>App Tour</Text>
+          <View style={styles.sectionContent}>
+            <TouchableOpacity 
+              style={styles.tourCard}
+              onPress={() => handleStartTour('full')}
+            >
+              <View style={styles.tourIconContainer}>
+                <Sparkles size={24} color={Colors.primary} />
+              </View>
+              <View style={styles.tourContent}>
+                <Text style={styles.tourTitle}>Complete App Tour</Text>
+                <Text style={styles.tourDescription}>
+                  {userRole === 'owner' 
+                    ? 'Learn all features for managing your service business'
+                    : 'Complete guide for technicians'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.tourCard}
+              onPress={() => handleStartTour('quick')}
+            >
+              <View style={styles.tourIconContainer}>
+                <HelpCircle size={24} color={Colors.primary} />
+              </View>
+              <View style={styles.tourContent}>
+                <Text style={styles.tourTitle}>Quick Tour</Text>
+                <Text style={styles.tourDescription}>
+                  5-minute overview of the main features
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Get Help</Text>
@@ -251,6 +312,16 @@ export default function HelpCenterScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <AppTour
+        visible={showTour}
+        steps={selectedTour === 'full' 
+          ? (userRole === 'owner' ? ownerTourSteps : technicianTourSteps)
+          : quickTourSteps
+        }
+        onComplete={handleCompleteTour}
+        onSkip={handleSkipTour}
+      />
     </SafeAreaView>
   );
 }
@@ -394,5 +465,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.primary,
+  },
+  tourCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: 12,
+  },
+  tourIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: `${Colors.primary}20`,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tourContent: {
+    flex: 1,
+  },
+  tourTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  tourDescription: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+    lineHeight: 18,
   },
 });
