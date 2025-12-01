@@ -17,7 +17,7 @@ import { Customer } from '@/types';
 import { useTranslation } from '@/constants/translations';
 
 export default function CustomersScreen() {
-  const { customers, isLoading, language } = useAppStore();
+  const { customers, isLoading, language, canAccess } = useAppStore();
   const t = useTranslation(language);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -103,7 +103,7 @@ export default function CustomersScreen() {
       <Stack.Screen 
         options={{
           title: t.customers,
-          headerRight: () => (
+          headerRight: () => canAccess('canAddEditCustomers') ? (
             <TouchableOpacity
               onPress={() => router.push('/new-customer')}
               style={styles.headerButton}
@@ -111,7 +111,7 @@ export default function CustomersScreen() {
             >
               <Plus size={24} color={Colors.primary} />
             </TouchableOpacity>
-          ),
+          ) : null,
         }} 
       />
 

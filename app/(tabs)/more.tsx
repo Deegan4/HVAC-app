@@ -37,7 +37,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language, canAccess } = useAppStore();
   const t = useTranslation(language);
   const unreadCount = getUnreadCount();
   
@@ -113,19 +113,20 @@ export default function MoreScreen() {
   const menuSections = [
     {
       title: t.communication,
-      items: [
+      items: canAccess('canAccessMessaging') ? [
         { icon: MessageCircle, label: t.teamMessages, onPress: () => router.push('/messaging'), badge: unreadCount },
-      ]
+      ] : []
     },
     {
       title: t.business,
       items: [
         { icon: Building, label: t.companyInfo, onPress: () => router.push('/company-info') },
-        ...(userRole === 'owner' ? [{ icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') }] : []),
-        { icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') },
-        ...(userRole === 'owner' ? [{ icon: FileUp, label: 'Import Apple Notes', onPress: () => router.push('/import-notes') }] : []),
+        ...(canAccess('canManageTeam') ? [{ icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') }] : []),
+        ...(canAccess('canViewPricing') ? [{ icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') }] : []),
+        ...(canAccess('canImportExport') ? [{ icon: FileUp, label: 'Import Apple Notes', onPress: () => router.push('/import-notes') }] : []),
+        ...(userRole === 'owner' ? [{ icon: Shield, label: 'Technician Permissions', onPress: () => router.push('/technician-permissions') }] : []),
         ...(userRole === 'owner' ? [{ icon: Link2, label: t.quickbooksIntegration, onPress: () => router.push('/quickbooks-integration') }] : []),
-        ...(userRole === 'owner' ? [{ icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') }] : []),
+        ...(canAccess('canViewReports') ? [{ icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') }] : []),
         ...(userRole === 'owner' ? [{ icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') }] : []),
       ]
     },

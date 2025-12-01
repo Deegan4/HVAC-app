@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent, TechnicianPermissions } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -29,6 +29,7 @@ interface AppState {
   hasLanguage: boolean;
   hasCompletedOnboarding: boolean;
   profileUpdateTrigger: number;
+  technicianPermissions: TechnicianPermissions;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
@@ -70,6 +71,8 @@ interface AppState {
   updateEvent: (eventId: string, updates: Partial<CalendarEvent>) => void;
   deleteEvent: (eventId: string) => void;
   getEventsByDate: (date: string) => CalendarEvent[];
+  updateTechnicianPermissions: (permissions: Partial<TechnicianPermissions>) => Promise<void>;
+  canAccess: (permission: keyof TechnicianPermissions) => boolean;
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -143,6 +146,30 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     },
   });
 
+  const permissionsQuery = useQuery({
+    queryKey: ['technicianPermissions'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem('technicianPermissions');
+      return stored ? JSON.parse(stored) : {
+        canViewCustomers: true,
+        canAddEditCustomers: false,
+        canDeleteCustomers: false,
+        canViewInvoices: true,
+        canCreateInvoices: false,
+        canEditInvoices: false,
+        canDeleteInvoices: false,
+        canViewAllJobs: true,
+        canEditAllJobs: false,
+        canViewReports: false,
+        canManageTeam: false,
+        canViewPricing: true,
+        canEditPricing: false,
+        canAccessMessaging: true,
+        canImportExport: false,
+      } as TechnicianPermissions;
+    },
+  });
+
   const authQuery = useQuery({
     queryKey: ['auth'],
     queryFn: async () => {
@@ -173,6 +200,23 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
   const jobComments = useMemo(() => jobCommentsQuery.data ?? [], [jobCommentsQuery.data]);
   const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
+  const technicianPermissions = useMemo(() => permissionsQuery.data ?? {
+    canViewCustomers: true,
+    canAddEditCustomers: false,
+    canDeleteCustomers: false,
+    canViewInvoices: true,
+    canCreateInvoices: false,
+    canEditInvoices: false,
+    canDeleteInvoices: false,
+    canViewAllJobs: true,
+    canEditAllJobs: false,
+    canViewReports: false,
+    canManageTeam: false,
+    canViewPricing: true,
+    canEditPricing: false,
+    canAccessMessaging: true,
+    canImportExport: false,
+  } as TechnicianPermissions, [permissionsQuery.data]);
 
   const hasPin = Boolean(authQuery.data?.pin);
   const hasRole = Boolean(authQuery.data?.userRole);
@@ -259,7 +303,18 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
+
+  const permissionsMutation = useMutation({
+    mutationFn: async (newPermissions: TechnicianPermissions) => {
+      await AsyncStorage.setItem('technicianPermissions', JSON.stringify(newPermissions));
+      return newPermissions;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['technicianPermissions'] });
+    },
+  });
   const { mutate: mutateEvents } = eventsMutation;
+  const { mutateAsync: mutatePermissions } = permissionsMutation;
 
   const authMutation = useMutation({
     mutationFn: async (updates: {
@@ -528,6 +583,16 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return events.filter((event: CalendarEvent) => event.date === date);
   }, [events]);
 
+  const updateTechnicianPermissions = useCallback(async (permissions: Partial<TechnicianPermissions>) => {
+    const updated = { ...technicianPermissions, ...permissions };
+    await mutatePermissions(updated);
+  }, [technicianPermissions, mutatePermissions]);
+
+  const canAccess = useCallback((permission: keyof TechnicianPermissions): boolean => {
+    if (userRole === 'owner') return true;
+    return technicianPermissions[permission];
+  }, [userRole, technicianPermissions]);
+
   const isLoading = 
     customersQuery.isLoading || 
     equipmentQuery.isLoading || 
@@ -537,6 +602,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     messagesQuery.isLoading || 
     jobCommentsQuery.isLoading || 
     eventsQuery.isLoading ||
+    permissionsQuery.isLoading ||
     authQuery.isLoading;
 
   return useMemo(() => ({
@@ -560,6 +626,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
+    technicianPermissions,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -601,6 +668,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateEvent,
     deleteEvent,
     getEventsByDate,
+    updateTechnicianPermissions,
+    canAccess,
   }), [
     customers,
     equipment,
@@ -622,6 +691,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
+    technicianPermissions,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -663,6 +733,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     updateEvent,
     deleteEvent,
     getEventsByDate,
+    updateTechnicianPermissions,
+    canAccess,
   ]);
 });
 

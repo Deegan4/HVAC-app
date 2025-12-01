@@ -6,7 +6,7 @@ import { useAppStore } from "@/hooks/app-store";
 import { useTranslation } from "@/constants/translations";
 
 export default function TabLayout() {
-  const { userRole, language } = useAppStore();
+  const { userRole, language, canAccess } = useAppStore();
   const t = useTranslation(language);
   
   return (
@@ -36,7 +36,7 @@ export default function TabLayout() {
         options={{
           title: t.customers,
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
-          href: userRole === 'owner' ? '/customers' : null,
+          href: canAccess('canViewCustomers') ? '/customers' : null,
         }}
       />
       <Tabs.Screen

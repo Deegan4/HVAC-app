@@ -179,3 +179,21 @@ export interface CalendarEvent {
   createdAt: string;
   createdBy: string;
 }
+
+export interface TechnicianPermissions {
+  canViewCustomers: boolean;
+  canAddEditCustomers: boolean;
+  canDeleteCustomers: boolean;
+  canViewInvoices: boolean;
+  canCreateInvoices: boolean;
+  canEditInvoices: boolean;
+  canDeleteInvoices: boolean;
+  canViewAllJobs: boolean;
+  canEditAllJobs: boolean;
+  canViewReports: boolean;
+  canManageTeam: boolean;
+  canViewPricing: boolean;
+  canEditPricing: boolean;
+  canAccessMessaging: boolean;
+  canImportExport: boolean;
+}
