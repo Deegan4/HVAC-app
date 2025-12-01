@@ -36,6 +36,7 @@ export default function TabLayout() {
         options={{
           title: t.customers,
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
+          href: userRole === 'owner' ? '/customers' : null,
         }}
       />
       <Tabs.Screen
