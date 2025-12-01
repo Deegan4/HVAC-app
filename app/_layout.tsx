@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider, useAppStore } from "@/hooks/app-store";
+import { ThemeProvider } from "@/hooks/theme-store";
 import LoadingScreen from "@/components/LoadingScreen";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
@@ -153,11 +154,13 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <AuthenticatedApp />
-          </GestureHandlerRootView>
-        </AppProvider>
+        <ThemeProvider>
+          <AppProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <AuthenticatedApp />
+            </GestureHandlerRootView>
+          </AppProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

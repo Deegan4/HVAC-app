@@ -29,8 +29,8 @@ import {
   Link2,
   FileUp,
 } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { router } from 'expo-router';
 import { useTranslation } from '@/constants/translations';
 import { useFocusEffect } from '@react-navigation/native';
@@ -38,6 +38,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
   const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language, canAccess } = useAppStore();
+  const { colors, mode, toggleTheme } = useTheme();
   const t = useTranslation(language);
   const unreadCount = getUnreadCount();
   
@@ -50,6 +51,7 @@ export default function MoreScreen() {
       : null;
       
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = React.useState(mode === 'dark');
   const [profileData, setProfileData] = useState<any>(null);
 
   // Load profile data to get the updated name
@@ -96,6 +98,15 @@ export default function MoreScreen() {
     }
   }, [profileUpdateTrigger, loadProfileData]);
 
+  useEffect(() => {
+    setDarkModeEnabled(mode === 'dark');
+  }, [mode]);
+
+  const handleDarkModeToggle = async (value: boolean) => {
+    setDarkModeEnabled(value);
+    await toggleTheme();
+  };
+
   const handleLogout = () => {
     Alert.alert(
       t.logout,
@@ -140,8 +151,14 @@ export default function MoreScreen() {
       title: t.account,
       items: [
         { icon: User, label: userRole === 'owner' ? t.ownerProfile : t.profile, onPress: () => router.push('/profile') },
-        { icon: Bell, label: t.notifications, hasSwitch: true },
+        { icon: Bell, label: t.notifications, hasSwitch: true, switchType: 'notifications' as const },
         { icon: Shield, label: t.privacySecurity, onPress: () => router.push('/privacy-security') },
+      ]
+    },
+    {
+      title: 'Appearance',
+      items: [
+        { icon: Bell, label: 'Dark Mode', hasSwitch: true, switchType: 'darkMode' as const },
       ]
     },
     {
@@ -161,21 +178,21 @@ export default function MoreScreen() {
   ].filter(section => section.items.length > 0);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView}>
         {/* User Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <User size={32} color={Colors.text.inverse} />
+        <View style={[styles.profileCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
+            <User size={32} color={colors.text.inverse} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>
+            <Text style={[styles.profileName, { color: colors.text.primary }]}>
               {profileData?.name || currentTech?.name || (userRole === 'owner' ? 'Owner' : '')}
             </Text>
-            <Text style={styles.profileRole}>
+            <Text style={[styles.profileRole, { color: colors.primary }]}>
               {userRole === 'owner' ? 'Owner/Manager' : 'Service Technician'}
             </Text>
-            <Text style={styles.profileEmail}>
+            <Text style={[styles.profileEmail, { color: colors.text.secondary }]}>
               {profileData?.email || currentTech?.email || 'user@olivarefrigeration.com'}
             </Text>
           </View>
@@ -184,36 +201,37 @@ export default function MoreScreen() {
         {/* Menu Sections */}
         {menuSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.sectionContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>{section.title}</Text>
+            <View style={[styles.sectionContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               {section.items.map((item, itemIndex) => (
                 <TouchableOpacity
                   key={itemIndex}
                   style={[
                     styles.menuItem,
+                    { borderBottomColor: colors.border },
                     itemIndex === section.items.length - 1 && styles.lastMenuItem
                   ]}
-                  onPress={item.onPress}
+                  onPress={'onPress' in item ? item.onPress : undefined}
                   disabled={'hasSwitch' in item && item.hasSwitch}
                 >
                   <View style={styles.menuItemLeft}>
-                    <item.icon size={20} color={Colors.text.secondary} />
-                    <Text style={styles.menuItemLabel}>{item.label}</Text>
+                    <item.icon size={20} color={colors.text.secondary} />
+                    <Text style={[styles.menuItemLabel, { color: colors.text.primary }]}>{item.label}</Text>
                     {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{item.badge}</Text>
+                      <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+                        <Text style={[styles.badgeText, { color: colors.text.inverse }]}>{item.badge}</Text>
                       </View>
                     )}
                   </View>
                   {'hasSwitch' in item && item.hasSwitch ? (
                     <Switch
-                      value={notificationsEnabled}
-                      onValueChange={setNotificationsEnabled}
-                      trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                      thumbColor={notificationsEnabled ? Colors.primary : '#f4f3f4'}
+                      value={'switchType' in item && item.switchType === 'darkMode' ? darkModeEnabled : notificationsEnabled}
+                      onValueChange={'switchType' in item && item.switchType === 'darkMode' ? handleDarkModeToggle : setNotificationsEnabled}
+                      trackColor={{ false: colors.border, true: colors.primaryLight }}
+                      thumbColor={('switchType' in item && item.switchType === 'darkMode' ? darkModeEnabled : notificationsEnabled) ? colors.primary : '#f4f3f4'}
                     />
                   ) : (
-                    <ChevronRight size={20} color={Colors.text.light} />
+                    <ChevronRight size={20} color={colors.text.light} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -222,13 +240,13 @@ export default function MoreScreen() {
         ))}
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <LogOut size={20} color={Colors.status.emergency} />
-          <Text style={styles.logoutText}>{t.logout}</Text>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.surface, borderColor: colors.status.emergency }]} onPress={handleLogout}>
+          <LogOut size={20} color={colors.status.emergency} />
+          <Text style={[styles.logoutText, { color: colors.status.emergency }]}>{t.logout}</Text>
         </TouchableOpacity>
 
         {/* App Version */}
-        <Text style={styles.versionText}>
+        <Text style={[styles.versionText, { color: colors.text.light }]}>
           {t.appVersion}
         </Text>
       </ScrollView>
@@ -239,24 +257,20 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
   },
   profileCard: {
-    backgroundColor: Colors.surface,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   avatarContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -267,16 +281,13 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   profileRole: {
     fontSize: 14,
-    color: Colors.primary,
     marginTop: 2,
   },
   profileEmail: {
     fontSize: 13,
-    color: Colors.text.secondary,
     marginTop: 4,
   },
   section: {
@@ -285,16 +296,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600' as const,
-    color: Colors.text.secondary,
     textTransform: 'uppercase' as const,
     marginLeft: 16,
     marginBottom: 8,
   },
   sectionContent: {
-    backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   menuItem: {
     flexDirection: 'row',
@@ -303,7 +311,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   lastMenuItem: {
     borderBottomWidth: 0,
@@ -315,35 +322,29 @@ const styles = StyleSheet.create({
   },
   menuItemLabel: {
     fontSize: 16,
-    color: Colors.text.primary,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.surface,
     marginHorizontal: 16,
     marginTop: 32,
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.status.emergency,
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.status.emergency,
   },
   versionText: {
     textAlign: 'center',
     fontSize: 12,
-    color: Colors.text.light,
     marginTop: 24,
     marginBottom: 40,
   },
   badge: {
-    backgroundColor: Colors.primary,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -355,6 +356,5 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
   },
 });
