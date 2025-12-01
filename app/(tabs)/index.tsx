@@ -16,8 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Plus, Clock, MapPin, AlertCircle, CheckCircle, Wrench, Calendar, List, X } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
 import { useAppStore, useTodaysJobs, useJobStats } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { Job } from '@/types';
 import LoadingScreen from '@/components/LoadingScreen';
 import CalendarView from '@/components/CalendarView';
@@ -25,6 +25,7 @@ import { useTranslation } from '@/constants/translations';
 
 export default function ScheduleScreen() {
   const { jobs, invoices, events, isLoading, getUpcomingJobs, customers, userRole, language, addEvent, currentUserId } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   const todaysJobs = useTodaysJobs();
   const stats = useJobStats();
@@ -43,18 +44,18 @@ export default function ScheduleScreen() {
 
   const getStatusColor = (status: Job['status']) => {
     const statusMap: Record<string, string> = {
-      'scheduled': Colors.status.scheduled,
-      'in-progress': Colors.status.inProgress,
-      'completed': Colors.status.completed,
-      'cancelled': Colors.status.cancelled,
-      'emergency': Colors.status.emergency,
+      'scheduled': colors.status.scheduled,
+      'in-progress': colors.status.inProgress,
+      'completed': colors.status.completed,
+      'cancelled': colors.status.cancelled,
+      'emergency': colors.status.emergency,
     };
-    return statusMap[status] || Colors.text.secondary;
+    return statusMap[status] || colors.text.secondary;
   };
 
   const getPriorityIcon = (priority: Job['priority']) => {
     if (priority === 'emergency') {
-      return <AlertCircle size={16} color={Colors.status.emergency} />;
+      return <AlertCircle size={16} color={colors.status.emergency} />;
     }
     return null;
   };
@@ -74,7 +75,7 @@ export default function ScheduleScreen() {
   const renderJobCard = (job: Job) => (
     <TouchableOpacity
       key={job.id}
-      style={styles.jobCard}
+      style={[styles.jobCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
       onPress={() => router.push({
         pathname: '/job-details',
         params: { jobId: job.id }
@@ -83,33 +84,33 @@ export default function ScheduleScreen() {
     >
       <View style={styles.jobHeader}>
         <View style={styles.jobTimeContainer}>
-          <Clock size={14} color={Colors.text.secondary} />
-          <Text style={styles.jobTime}>{job.scheduledTime}</Text>
+          <Clock size={14} color={colors.text.secondary} />
+          <Text style={[styles.jobTime, { color: colors.text.primary }]}>{job.scheduledTime}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) }]}>
-          <Text style={styles.statusText}>{getStatusText(job.status)}</Text>
+          <Text style={[styles.statusText, { color: colors.text.inverse }]}>{getStatusText(job.status)}</Text>
         </View>
       </View>
 
-      <Text style={styles.customerName}>{job.customerName}</Text>
+      <Text style={[styles.customerName, { color: colors.text.primary }]}>{job.customerName}</Text>
       
       <View style={styles.jobInfo}>
-        <MapPin size={14} color={Colors.text.secondary} />
-        <Text style={styles.addressText} numberOfLines={1}>{job.address}</Text>
+        <MapPin size={14} color={colors.text.secondary} />
+        <Text style={[styles.addressText, { color: colors.text.secondary }]} numberOfLines={1}>{job.address}</Text>
       </View>
 
       <View style={styles.jobFooter}>
         <View style={styles.jobTypeContainer}>
-          <Wrench size={14} color={Colors.text.secondary} />
-          <Text style={styles.jobType}>{job.type}</Text>
+          <Wrench size={14} color={colors.text.secondary} />
+          <Text style={[styles.jobType, { color: colors.text.secondary }]}>{job.type}</Text>
           {getPriorityIcon(job.priority)}
         </View>
         {job.technicianName && (
-          <Text style={styles.technicianName}>{job.technicianName}</Text>
+          <Text style={[styles.technicianName, { color: colors.primary }]}>{job.technicianName}</Text>
         )}
       </View>
 
-      <Text style={styles.jobDescription} numberOfLines={2}>
+      <Text style={[styles.jobDescription, { color: colors.text.secondary }]} numberOfLines={2}>
         {job.description}
       </Text>
     </TouchableOpacity>
@@ -206,10 +207,10 @@ export default function ScheduleScreen() {
 
   const getEventTypeColor = (type: 'meeting' | 'reminder' | 'appointment' | 'other') => {
     const colorMap = {
-      meeting: Colors.primary,
-      reminder: Colors.warning,
-      appointment: Colors.success,
-      other: Colors.text.secondary,
+      meeting: colors.primary,
+      reminder: colors.warning,
+      appointment: colors.success,
+      other: colors.text.secondary,
     };
     return colorMap[type];
   };
@@ -219,104 +220,104 @@ export default function ScheduleScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       {isFirstTimeUser ? (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.welcomeContainer}
         >
           <View style={styles.welcomeContent}>
-            <View style={styles.welcomeIconContainer}>
-              <Wrench size={48} color={Colors.primary} />
+            <View style={[styles.welcomeIconContainer, { backgroundColor: colors.primaryLight }]}>
+              <Wrench size={48} color={colors.primary} />
             </View>
-            <Text style={styles.welcomeTitle}>
+            <Text style={[styles.welcomeTitle, { color: colors.text.primary }]}>
               Welcome {userRole === 'owner' ? 'Owner' : 'Technician'}
             </Text>
-            <Text style={styles.welcomeSubtitle}>
+            <Text style={[styles.welcomeSubtitle, { color: colors.text.secondary }]}>
               Let's get your business set up and running
             </Text>
             
             <View style={styles.quickStartSection}>
-              <Text style={styles.quickStartTitle}>Quick Start Guide</Text>
+              <Text style={[styles.quickStartTitle, { color: colors.text.primary }]}>Quick Start Guide</Text>
               
               <TouchableOpacity
-                style={styles.quickStartCard}
+                style={[styles.quickStartCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
                 onPress={() => router.push('/new-customer')}
               >
-                <View style={styles.quickStartIcon}>
-                  <Plus size={24} color={Colors.primary} />
+                <View style={[styles.quickStartIcon, { backgroundColor: colors.primaryLight }]}>
+                  <Plus size={24} color={colors.primary} />
                 </View>
                 <View style={styles.quickStartContent}>
-                  <Text style={styles.quickStartCardTitle}>Add Your First Customer</Text>
-                  <Text style={styles.quickStartCardDescription}>
+                  <Text style={[styles.quickStartCardTitle, { color: colors.text.primary }]}>Add Your First Customer</Text>
+                  <Text style={[styles.quickStartCardDescription, { color: colors.text.secondary }]}>
                     Start building your customer database
                   </Text>
                 </View>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.quickStartCard}
+                style={[styles.quickStartCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
                 onPress={() => router.push('/new-job')}
               >
-                <View style={styles.quickStartIcon}>
-                  <Calendar size={24} color={Colors.primary} />
+                <View style={[styles.quickStartIcon, { backgroundColor: colors.primaryLight }]}>
+                  <Calendar size={24} color={colors.primary} />
                 </View>
                 <View style={styles.quickStartContent}>
-                  <Text style={styles.quickStartCardTitle}>Schedule Your First Job</Text>
-                  <Text style={styles.quickStartCardDescription}>
+                  <Text style={[styles.quickStartCardTitle, { color: colors.text.primary }]}>Schedule Your First Job</Text>
+                  <Text style={[styles.quickStartCardDescription, { color: colors.text.secondary }]}>
                     Create and manage service appointments
                   </Text>
                 </View>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.quickStartCard}
+                style={[styles.quickStartCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
                 onPress={() => router.push('/company-info')}
               >
-                <View style={styles.quickStartIcon}>
-                  <Wrench size={24} color={Colors.primary} />
+                <View style={[styles.quickStartIcon, { backgroundColor: colors.primaryLight }]}>
+                  <Wrench size={24} color={colors.primary} />
                 </View>
                 <View style={styles.quickStartContent}>
-                  <Text style={styles.quickStartCardTitle}>Set Up Company Info</Text>
-                  <Text style={styles.quickStartCardDescription}>
+                  <Text style={[styles.quickStartCardTitle, { color: colors.text.primary }]}>Set Up Company Info</Text>
+                  <Text style={[styles.quickStartCardDescription, { color: colors.text.secondary }]}>
                     Add your business details and branding
                   </Text>
                 </View>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.quickStartCard}
+                style={[styles.quickStartCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
                 onPress={() => router.push('/team-management')}
               >
-                <View style={styles.quickStartIcon}>
-                  <CheckCircle size={24} color={Colors.primary} />
+                <View style={[styles.quickStartIcon, { backgroundColor: colors.primaryLight }]}>
+                  <CheckCircle size={24} color={colors.primary} />
                 </View>
                 <View style={styles.quickStartContent}>
-                  <Text style={styles.quickStartCardTitle}>Add Team Members</Text>
-                  <Text style={styles.quickStartCardDescription}>
+                  <Text style={[styles.quickStartCardTitle, { color: colors.text.primary }]}>Add Team Members</Text>
+                  <Text style={[styles.quickStartCardDescription, { color: colors.text.secondary }]}>
                     Invite technicians and staff to your workspace
                   </Text>
                 </View>
               </TouchableOpacity>
             </View>
             
-            <View style={styles.tipsSection}>
-              <Text style={styles.tipsTitle}>Pro Tips</Text>
+            <View style={[styles.tipsSection, { backgroundColor: colors.primaryLight }]}>
+              <Text style={[styles.tipsTitle, { color: colors.text.inverse }]}>Pro Tips</Text>
               <View style={styles.tipCard}>
-                <AlertCircle size={16} color={Colors.text.inverse} />
-                <Text style={styles.tipText}>
+                <AlertCircle size={16} color={colors.text.inverse} />
+                <Text style={[styles.tipText, { color: colors.text.inverse }]}>
                   Import your existing customer list from the Customers tab
                 </Text>
               </View>
               <View style={styles.tipCard}>
-                <MapPin size={16} color={Colors.text.inverse} />
-                <Text style={styles.tipText}>
+                <MapPin size={16} color={colors.text.inverse} />
+                <Text style={[styles.tipText, { color: colors.text.inverse }]}>
                   Enable location tracking to optimize technician routes
                 </Text>
               </View>
               <View style={styles.tipCard}>
-                <Clock size={16} color={Colors.text.inverse} />
-                <Text style={styles.tipText}>
+                <Clock size={16} color={colors.text.inverse} />
+                <Text style={[styles.tipText, { color: colors.text.inverse }]}>
                   Set up your service hours in Company Settings
                 </Text>
               </View>
@@ -326,20 +327,20 @@ export default function ScheduleScreen() {
       ) : (
         <>
           {/* View Toggle */}
-          <View style={styles.viewToggle}>
+          <View style={[styles.viewToggle, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
             <TouchableOpacity
-              style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+              style={[styles.toggleButton, viewMode === 'list' && { backgroundColor: colors.primary }]}
               onPress={() => setViewMode('list')}
             >
-              <List size={20} color={viewMode === 'list' ? Colors.text.inverse : Colors.text.secondary} />
-              <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>{t.viewList}</Text>
+              <List size={20} color={viewMode === 'list' ? colors.text.inverse : colors.text.secondary} />
+              <Text style={[styles.toggleText, { color: colors.text.secondary }, viewMode === 'list' && { color: colors.text.inverse }]}>{t.viewList}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
+              style={[styles.toggleButton, viewMode === 'calendar' && { backgroundColor: colors.primary }]}
               onPress={() => setViewMode('calendar')}
             >
-              <Calendar size={20} color={viewMode === 'calendar' ? Colors.text.inverse : Colors.text.secondary} />
-              <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>{t.viewCalendar}</Text>
+              <Calendar size={20} color={viewMode === 'calendar' ? colors.text.inverse : colors.text.secondary} />
+              <Text style={[styles.toggleText, { color: colors.text.secondary }, viewMode === 'calendar' && { color: colors.text.inverse }]}>{t.viewCalendar}</Text>
             </TouchableOpacity>
           </View>
 
@@ -366,34 +367,34 @@ export default function ScheduleScreen() {
             >
             {/* Stats Overview */}
             <View style={styles.statsContainer}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{stats.total}</Text>
-                <Text style={styles.statLabel}>{t.todaysSchedule}</Text>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                <Text style={[styles.statNumber, { color: colors.text.primary }]}>{stats.total}</Text>
+                <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.todaysSchedule}</Text>
               </View>
-              <View style={styles.statCard}>
-                <Text style={[styles.statNumber, { color: Colors.status.completed }]}>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                <Text style={[styles.statNumber, { color: colors.status.completed }]}>
                   {stats.completed}
                 </Text>
-                <Text style={styles.statLabel}>{t.completed}</Text>
+                <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.completed}</Text>
               </View>
-              <View style={styles.statCard}>
-                <Text style={[styles.statNumber, { color: Colors.status.inProgress }]}>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                <Text style={[styles.statNumber, { color: colors.status.inProgress }]}>
                   {stats.inProgress}
                 </Text>
-                <Text style={styles.statLabel}>{t.inProgress}</Text>
+                <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.inProgress}</Text>
               </View>
-              <View style={styles.statCard}>
-                <Text style={[styles.statNumber, { color: Colors.status.emergency }]}>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                <Text style={[styles.statNumber, { color: colors.status.emergency }]}>
                   {stats.emergency}
                 </Text>
-                <Text style={styles.statLabel}>{t.emergency}</Text>
+                <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.emergency}</Text>
               </View>
             </View>
 
             {/* Today's Jobs */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t.todaysSchedule}</Text>
-              <Text style={styles.sectionSubtitle}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{t.todaysSchedule}</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.text.secondary }]}>
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -404,14 +405,14 @@ export default function ScheduleScreen() {
 
             {todaysJobs.length === 0 ? (
               <View style={styles.emptyState}>
-                <Calendar size={48} color={Colors.text.light} />
-                <Text style={styles.emptyStateText}>{t.noJobsToday}</Text>
+                <Calendar size={48} color={colors.text.light} />
+                <Text style={[styles.emptyStateText, { color: colors.text.light }]}>{t.noJobsToday}</Text>
                 <TouchableOpacity
-                  style={styles.emptyStateButton}
+                  style={[styles.emptyStateButton, { backgroundColor: colors.primary }]}
                   onPress={() => router.push('/new-job')}
                 >
-                  <Plus size={20} color={Colors.text.inverse} />
-                  <Text style={styles.emptyStateButtonText}>{t.addNewJob}</Text>
+                  <Plus size={20} color={colors.text.inverse} />
+                  <Text style={[styles.emptyStateButtonText, { color: colors.text.inverse }]}>{t.addNewJob}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -424,7 +425,7 @@ export default function ScheduleScreen() {
             {upcomingJobs.length > 0 && (
               <>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>{t.upcomingJobs}</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{t.upcomingJobs}</Text>
                 </View>
                 <View style={styles.jobsList}>
                   {upcomingJobs.slice(0, 5).map(renderJobCard)}
@@ -437,11 +438,11 @@ export default function ScheduleScreen() {
           {/* Floating Action Button - Only show in list view */}
           {viewMode === 'list' && (
             <TouchableOpacity
-              style={styles.fab}
+              style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.shadow }]}
               onPress={() => router.push('/new-job')}
               testID="new-job-fab"
             >
-              <Plus size={24} color={Colors.text.inverse} />
+              <Plus size={24} color={colors.text.inverse} />
             </TouchableOpacity>
           )}
 
@@ -453,16 +454,16 @@ export default function ScheduleScreen() {
             onRequestClose={() => setShowEventModal(false)}
           >
             <View style={styles.eventModalOverlay}>
-              <View style={styles.eventModalContent}>
-                <View style={styles.eventModalHeader}>
-                  <Text style={styles.eventModalTitle}>Create Event</Text>
+              <View style={[styles.eventModalContent, { backgroundColor: colors.surface }]}>
+                <View style={[styles.eventModalHeader, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.eventModalTitle, { color: colors.text.primary }]}>Create Event</Text>
                   <TouchableOpacity onPress={() => setShowEventModal(false)}>
-                    <X size={24} color={Colors.text.primary} />
+                    <X size={24} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
 
                 <ScrollView style={styles.eventModalForm} showsVerticalScrollIndicator={false}>
-                  <Text style={styles.eventModalDate}>
+                  <Text style={[styles.eventModalDate, { color: colors.primary }]}>
                     {longPressDate?.toLocaleDateString('en-US', { 
                       weekday: 'long',
                       month: 'long', 
@@ -472,18 +473,18 @@ export default function ScheduleScreen() {
                   </Text>
 
                   <View style={styles.eventFormGroup}>
-                    <Text style={styles.eventLabel}>Title *</Text>
+                    <Text style={[styles.eventLabel, { color: colors.text.primary }]}>Title *</Text>
                     <TextInput
-                      style={styles.eventInput}
+                      style={[styles.eventInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text.primary }]}
                       value={eventTitle}
                       onChangeText={setEventTitle}
                       placeholder="Event title"
-                      placeholderTextColor={Colors.text.light}
+                      placeholderTextColor={colors.text.light}
                     />
                   </View>
 
                   <View style={styles.eventFormGroup}>
-                    <Text style={styles.eventLabel}>Type</Text>
+                    <Text style={[styles.eventLabel, { color: colors.text.primary }]}>Type</Text>
                     <View style={styles.eventTypeContainer}>
                       {(['meeting', 'reminder', 'appointment', 'other'] as const).map((type) => (
                         <TouchableOpacity
@@ -516,11 +517,12 @@ export default function ScheduleScreen() {
                       >
                         <View style={[
                           styles.eventCheckboxBox,
-                          eventAllDay && styles.eventCheckboxBoxChecked
+                          { borderColor: colors.border },
+                          eventAllDay && { borderColor: colors.primary, backgroundColor: colors.primaryLight }
                         ]}>
-                          {eventAllDay && <CheckCircle size={16} color={Colors.primary} />}
+                          {eventAllDay && <CheckCircle size={16} color={colors.primary} />}
                         </View>
-                        <Text style={styles.eventCheckboxLabel}>All Day Event</Text>
+                        <Text style={[styles.eventCheckboxLabel, { color: colors.text.primary }]}>All Day Event</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -528,47 +530,47 @@ export default function ScheduleScreen() {
                   {!eventAllDay && (
                     <View style={styles.eventTimeRow}>
                       <View style={[styles.eventFormGroup, { flex: 1 }]}>
-                        <Text style={styles.eventLabel}>Start Time</Text>
+                        <Text style={[styles.eventLabel, { color: colors.text.primary }]}>Start Time</Text>
                         <TextInput
-                          style={styles.eventInput}
+                          style={[styles.eventInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text.primary }]}
                           value={eventStartTime}
                           onChangeText={setEventStartTime}
                           placeholder="09:00"
-                          placeholderTextColor={Colors.text.light}
+                          placeholderTextColor={colors.text.light}
                         />
                       </View>
                       <View style={[styles.eventFormGroup, { flex: 1 }]}>
-                        <Text style={styles.eventLabel}>End Time</Text>
+                        <Text style={[styles.eventLabel, { color: colors.text.primary }]}>End Time</Text>
                         <TextInput
-                          style={styles.eventInput}
+                          style={[styles.eventInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text.primary }]}
                           value={eventEndTime}
                           onChangeText={setEventEndTime}
                           placeholder="10:00"
-                          placeholderTextColor={Colors.text.light}
+                          placeholderTextColor={colors.text.light}
                         />
                       </View>
                     </View>
                   )}
 
                   <View style={styles.eventFormGroup}>
-                    <Text style={styles.eventLabel}>Location</Text>
+                    <Text style={[styles.eventLabel, { color: colors.text.primary }]}>Location</Text>
                     <TextInput
-                      style={styles.eventInput}
+                      style={[styles.eventInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text.primary }]}
                       value={eventLocation}
                       onChangeText={setEventLocation}
                       placeholder="Event location"
-                      placeholderTextColor={Colors.text.light}
+                      placeholderTextColor={colors.text.light}
                     />
                   </View>
 
                   <View style={styles.eventFormGroup}>
-                    <Text style={styles.eventLabel}>Description</Text>
+                    <Text style={[styles.eventLabel, { color: colors.text.primary }]}>Description</Text>
                     <TextInput
-                      style={[styles.eventInput, styles.eventTextArea]}
+                      style={[styles.eventInput, styles.eventTextArea, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text.primary }]}
                       value={eventDescription}
                       onChangeText={setEventDescription}
                       placeholder="Event description"
-                      placeholderTextColor={Colors.text.light}
+                      placeholderTextColor={colors.text.light}
                       multiline
                       numberOfLines={4}
                       textAlignVertical="top"
@@ -576,18 +578,18 @@ export default function ScheduleScreen() {
                   </View>
                 </ScrollView>
 
-                <View style={styles.eventModalActions}>
+                <View style={[styles.eventModalActions, { borderTopColor: colors.border }]}>
                   <TouchableOpacity
-                    style={styles.eventCancelButton}
+                    style={[styles.eventCancelButton, { backgroundColor: colors.background, borderColor: colors.border }]}
                     onPress={() => setShowEventModal(false)}
                   >
-                    <Text style={styles.eventCancelButtonText}>Cancel</Text>
+                    <Text style={[styles.eventCancelButtonText, { color: colors.text.secondary }]}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.eventCreateButton}
+                    style={[styles.eventCreateButton, { backgroundColor: colors.primary }]}
                     onPress={handleCreateEvent}
                   >
-                    <Text style={styles.eventCreateButtonText}>Create Event</Text>
+                    <Text style={[styles.eventCreateButtonText, { color: colors.text.inverse }]}>Create Event</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -602,7 +604,6 @@ export default function ScheduleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -621,14 +622,12 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderRadius: 12,
     alignItems: 'center',
     minHeight: 80,
     justifyContent: 'center',
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -637,12 +636,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     lineHeight: 32,
   },
   statLabel: {
     fontSize: 11,
-    color: Colors.text.secondary,
     marginTop: 4,
     textAlign: 'center' as const,
     lineHeight: 14,
@@ -655,11 +652,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: Colors.text.secondary,
     marginTop: 4,
   },
   jobsList: {
@@ -668,10 +663,8 @@ const styles = StyleSheet.create({
     paddingBottom: 140,
   },
   jobCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -691,7 +684,6 @@ const styles = StyleSheet.create({
   jobTime: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: Colors.text.primary,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -701,13 +693,11 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
     textTransform: 'uppercase' as const,
   },
   customerName: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
   },
   jobInfo: {
@@ -718,7 +708,6 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontSize: 13,
-    color: Colors.text.secondary,
     flex: 1,
   },
   jobFooter: {
@@ -734,17 +723,14 @@ const styles = StyleSheet.create({
   },
   jobType: {
     fontSize: 13,
-    color: Colors.text.secondary,
     textTransform: 'capitalize' as const,
   },
   technicianName: {
     fontSize: 13,
-    color: Colors.primary,
     fontWeight: '500' as const,
   },
   jobDescription: {
     fontSize: 13,
-    color: Colors.text.secondary,
     lineHeight: 18,
   },
   emptyState: {
@@ -754,7 +740,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: Colors.text.light,
     marginTop: 16,
   },
   fab: {
@@ -764,10 +749,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -775,12 +758,10 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 12,
     padding: 4,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -795,16 +776,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  toggleButtonActive: {
-    backgroundColor: Colors.primary,
-  },
   toggleText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text.secondary,
-  },
-  toggleTextActive: {
-    color: Colors.text.inverse,
   },
   welcomeContainer: {
     flexGrow: 1,
@@ -818,7 +792,6 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
@@ -827,13 +800,11 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     textAlign: 'center' as const,
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: Colors.text.secondary,
     textAlign: 'center' as const,
     marginBottom: 32,
   },
@@ -843,16 +814,13 @@ const styles = StyleSheet.create({
   quickStartTitle: {
     fontSize: 20,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 16,
   },
   quickStartCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -862,7 +830,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -874,22 +841,18 @@ const styles = StyleSheet.create({
   quickStartCardTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   quickStartCardDescription: {
     fontSize: 14,
-    color: Colors.text.secondary,
   },
   tipsSection: {
-    backgroundColor: Colors.primaryLight,
     borderRadius: 12,
     padding: 16,
   },
   tipsTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
     marginBottom: 12,
   },
   tipCard: {
@@ -899,7 +862,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: Colors.text.inverse,
     marginLeft: 12,
     flex: 1,
     lineHeight: 20,
@@ -907,7 +869,6 @@ const styles = StyleSheet.create({
   emptyStateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -917,7 +878,6 @@ const styles = StyleSheet.create({
   emptyStateButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
   },
   eventModalOverlay: {
     flex: 1,
@@ -925,7 +885,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   eventModalContent: {
-    backgroundColor: Colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
@@ -943,12 +902,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   eventModalTitle: {
     fontSize: 20,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   eventModalForm: {
     paddingHorizontal: 20,
@@ -957,7 +914,6 @@ const styles = StyleSheet.create({
   eventModalDate: {
     fontSize: 16,
     fontWeight: '500' as const,
-    color: Colors.primary,
     marginBottom: 20,
   },
   eventFormGroup: {
@@ -966,18 +922,14 @@ const styles = StyleSheet.create({
   eventLabel: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
   },
   eventInput: {
-    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text.primary,
   },
   eventTextArea: {
     minHeight: 100,
@@ -993,7 +945,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   eventTypeButtonActive: {
     borderWidth: 2,
@@ -1001,7 +952,6 @@ const styles = StyleSheet.create({
   eventTypeText: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: Colors.text.secondary,
   },
   eventTypeTextActive: {
     fontWeight: '600' as const,
@@ -1020,18 +970,12 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: Colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  eventCheckboxBoxChecked: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
   },
   eventCheckboxLabel: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: Colors.text.primary,
   },
   eventTimeRow: {
     flexDirection: 'row',
@@ -1043,32 +987,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
   },
   eventCancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
   },
   eventCancelButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.secondary,
   },
   eventCreateButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: Colors.primary,
     alignItems: 'center',
   },
   eventCreateButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
   },
 });

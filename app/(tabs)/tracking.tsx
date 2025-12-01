@@ -41,8 +41,8 @@ import {
   Plus,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { Technician, TechnicianStatus, TrackingFilter } from '@/types';
 import EnhancedMapView from '@/components/EnhancedMapView';
 import { useTranslation } from '@/constants/translations';
@@ -51,14 +51,14 @@ const { width, height } = Dimensions.get('window');
 
 
 
-function getStatusColor(status: TechnicianStatus['status'] | 'offline'): string {
+function getStatusColorFromTheme(status: TechnicianStatus['status'] | 'offline', colors: any): string {
   switch (status) {
-    case 'on-route': return Colors.warning;
-    case 'at-job': return Colors.success;
-    case 'break': return Colors.info;
-    case 'returning': return Colors.primary;
-    case 'offline': return Colors.text.secondary;
-    default: return Colors.text.secondary;
+    case 'on-route': return colors.warning;
+    case 'at-job': return colors.success;
+    case 'break': return colors.info;
+    case 'returning': return colors.primary;
+    case 'offline': return colors.text.secondary;
+    default: return colors.text.secondary;
   }
 }
 
@@ -91,8 +91,9 @@ interface TechnicianCardProps {
 }
 
 function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps) {
+  const { colors } = useTheme();
   const StatusIcon = getStatusIcon(technician.status?.status || 'offline');
-  const statusColor = getStatusColor(technician.status?.status || 'offline');
+  const statusColor = getStatusColorFromTheme(technician.status?.status || 'offline', colors);
   const statusLabel = getStatusLabel(technician.status?.status || 'offline');
   const animatedValue = React.useRef(new Animated.Value(0)).current;
   
@@ -134,7 +135,8 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
       <TouchableOpacity
         style={[
           styles.technicianCard,
-          isSelected && styles.selectedCard
+          { backgroundColor: colors.white, borderColor: colors.border },
+          isSelected && { borderWidth: 2, borderColor: colors.primary }
         ]}
         onPress={onPress}
         activeOpacity={0.7}
@@ -146,7 +148,7 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
           
           <View style={styles.cardInfo}>
             <View style={styles.cardMainInfo}>
-              <Text style={styles.technicianName}>{technician.name}</Text>
+              <Text style={[styles.technicianName, { color: colors.text.primary }]}>{technician.name}</Text>
               <View style={styles.statusRow}>
                 <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
                 <Text style={[styles.statusText, { color: statusColor }]}>
@@ -157,8 +159,8 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
             
             {technician.location?.address && (
               <View style={styles.locationRow}>
-                <MapPin size={12} color={Colors.text.secondary} />
-                <Text style={styles.locationText} numberOfLines={1}>
+                <MapPin size={12} color={colors.text.secondary} />
+                <Text style={[styles.locationText, { color: colors.text.secondary }]} numberOfLines={1}>
                   {technician.location.address}
                 </Text>
               </View>
@@ -166,8 +168,8 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
             
             {technician.status?.estimatedArrival && (
               <View style={styles.etaRow}>
-                <Clock size={12} color={Colors.primary} />
-                <Text style={styles.etaText}>
+                <Clock size={12} color={colors.primary} />
+                <Text style={[styles.etaText, { color: colors.primary }]}>
                   ETA {new Date(technician.status.estimatedArrival).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -178,7 +180,7 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
           </View>
           
           <View style={styles.cardActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => {
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.primary + '15' }]} onPress={() => {
               Alert.alert(
                 'Contact ' + technician.name,
                 'How would you like to contact this technician?',
@@ -189,22 +191,22 @@ function TechnicianCard({ technician, onPress, isSelected }: TechnicianCardProps
                 ]
               );
             }}>
-              <MessageCircle size={18} color={Colors.primary} />
+              <MessageCircle size={18} color={colors.primary} />
             </TouchableOpacity>
-            <ChevronRight size={20} color={Colors.text.secondary} />
+            <ChevronRight size={20} color={colors.text.secondary} />
           </View>
         </View>
         
-        <View style={styles.cardMeta}>
+        <View style={[styles.cardMeta, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
           <View style={styles.metaItem}>
-            <Battery size={12} color={Colors.text.secondary} />
-            <Text style={styles.metaText}>85%</Text>
+            <Battery size={12} color={colors.text.secondary} />
+            <Text style={[styles.metaText, { color: colors.text.secondary }]}>85%</Text>
           </View>
           <View style={styles.metaItem}>
-            <Signal size={12} color={Colors.text.secondary} />
-            <Text style={styles.metaText}>Strong</Text>
+            <Signal size={12} color={colors.text.secondary} />
+            <Text style={[styles.metaText, { color: colors.text.secondary }]}>Strong</Text>
           </View>
-          <Text style={styles.lastUpdateText}>
+          <Text style={[styles.lastUpdateText, { color: colors.text.secondary }]}>
             {formatLastUpdate(technician.lastUpdate)}
           </Text>
         </View>
@@ -221,6 +223,7 @@ interface FilterModalProps {
 }
 
 function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalProps) {
+  const { colors } = useTheme();
   if (!visible) return null;
 
   const statusOptions: TechnicianStatus['status'][] = ['on-route', 'at-job', 'break', 'returning', 'offline'];
@@ -244,11 +247,11 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
 
   return (
     <View style={styles.modalOverlay}>
-      <View style={styles.filterModal}>
-        <Text style={styles.modalTitle}>Filter Technicians</Text>
+      <View style={[styles.filterModal, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Filter Technicians</Text>
         
         <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Status</Text>
+          <Text style={[styles.filterLabel, { color: colors.text.primary }]}>Status</Text>
           {statusOptions.map(status => (
             <TouchableOpacity
               key={status}
@@ -257,9 +260,10 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
             >
               <View style={[
                 styles.checkbox,
-                (filter.status || []).includes(status) && styles.checkedBox
+                { borderColor: colors.border },
+                (filter.status || []).includes(status) && { backgroundColor: colors.primary, borderColor: colors.primary }
               ]} />
-              <Text style={styles.filterOptionText}>
+              <Text style={[styles.filterOptionText, { color: colors.text.primary }]}>
                 {status.replace('-', ' ').toUpperCase()}
               </Text>
             </TouchableOpacity>
@@ -267,7 +271,7 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
         </View>
 
         <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Availability</Text>
+          <Text style={[styles.filterLabel, { color: colors.text.primary }]}>Availability</Text>
           {availabilityOptions.map(availability => (
             <TouchableOpacity
               key={availability}
@@ -276,9 +280,10 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
             >
               <View style={[
                 styles.checkbox,
-                (filter.availability || []).includes(availability) && styles.checkedBox
+                { borderColor: colors.border },
+                (filter.availability || []).includes(availability) && { backgroundColor: colors.primary, borderColor: colors.primary }
               ]} />
-              <Text style={styles.filterOptionText}>
+              <Text style={[styles.filterOptionText, { color: colors.text.primary }]}>
                 {availability.toUpperCase()}
               </Text>
             </TouchableOpacity>
@@ -287,16 +292,16 @@ function FilterModal({ visible, filter, onFilterChange, onClose }: FilterModalPr
 
         <View style={styles.modalActions}>
           <TouchableOpacity
-            style={[styles.modalButton, styles.clearButton]}
+            style={[styles.modalButton, styles.clearButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => onFilterChange({})}
           >
-            <Text style={styles.clearButtonText}>Clear All</Text>
+            <Text style={[styles.clearButtonText, { color: colors.text.primary }]}>Clear All</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.modalButton, styles.applyButton]}
+            style={[styles.modalButton, styles.applyButton, { backgroundColor: colors.primary }]}
             onPress={onClose}
           >
-            <Text style={styles.applyButtonText}>Apply</Text>
+            <Text style={[styles.applyButtonText, { color: colors.white }]}>Apply</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -309,6 +314,7 @@ interface AnalyticsViewProps {
 }
 
 function AnalyticsView({ technicians }: AnalyticsViewProps) {
+  const { colors } = useTheme();
   const analytics = useMemo(() => {
     const total = technicians.length;
     const active = technicians.filter(tech => tech.availability !== 'offline').length;
@@ -336,81 +342,81 @@ function AnalyticsView({ technicians }: AnalyticsViewProps) {
   return (
     <ScrollView style={styles.analyticsContainer} showsVerticalScrollIndicator={false}>
       <View style={styles.analyticsGrid}>
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <Activity size={24} color={Colors.primary} />
-            <Text style={styles.analyticsTitle}>Active Technicians</Text>
+            <Activity size={24} color={colors.primary} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>Active Technicians</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.active}/{analytics.total}</Text>
-          <Text style={styles.analyticsSubtext}>Currently working</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.active}/{analytics.total}</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Currently working</Text>
         </View>
         
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <Route size={24} color={Colors.warning} />
-            <Text style={styles.analyticsTitle}>On Route</Text>
+            <Route size={24} color={colors.warning} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>On Route</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.onRoute}</Text>
-          <Text style={styles.analyticsSubtext}>Traveling to jobs</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.onRoute}</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Traveling to jobs</Text>
         </View>
         
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <CheckCircle size={24} color={Colors.success} />
-            <Text style={styles.analyticsTitle}>At Job Sites</Text>
+            <CheckCircle size={24} color={colors.success} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>At Job Sites</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.atJob}</Text>
-          <Text style={styles.analyticsSubtext}>Currently working</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.atJob}</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Currently working</Text>
         </View>
         
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <Timer size={24} color={Colors.info} />
-            <Text style={styles.analyticsTitle}>Avg Response</Text>
+            <Timer size={24} color={colors.info} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>Avg Response</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.avgResponseTime}m</Text>
-          <Text style={styles.analyticsSubtext}>Response time</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.avgResponseTime}m</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Response time</Text>
         </View>
         
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <TrendingUp size={24} color={Colors.success} />
-            <Text style={styles.analyticsTitle}>Efficiency</Text>
+            <TrendingUp size={24} color={colors.success} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>Efficiency</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.efficiency}%</Text>
-          <Text style={styles.analyticsSubtext}>Overall performance</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.efficiency}%</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Overall performance</Text>
         </View>
         
-        <View style={styles.analyticsCard}>
+        <View style={[styles.analyticsCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
           <View style={styles.analyticsHeader}>
-            <BarChart3 size={24} color={Colors.primary} />
-            <Text style={styles.analyticsTitle}>Completion Rate</Text>
+            <BarChart3 size={24} color={colors.primary} />
+            <Text style={[styles.analyticsTitle, { color: colors.text.primary }]}>Completion Rate</Text>
           </View>
-          <Text style={styles.analyticsValue}>{analytics.completionRate}%</Text>
-          <Text style={styles.analyticsSubtext}>Jobs completed today</Text>
+          <Text style={[styles.analyticsValue, { color: colors.text.primary }]}>{analytics.completionRate}%</Text>
+          <Text style={[styles.analyticsSubtext, { color: colors.text.secondary }]}>Jobs completed today</Text>
         </View>
       </View>
       
       <View style={styles.performanceSection}>
-        <Text style={styles.sectionTitle}>Performance Insights</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Performance Insights</Text>
         
-        <View style={styles.insightCard}>
-          <Text style={styles.insightTitle}>Route Optimization</Text>
-          <Text style={styles.insightText}>
+        <View style={[styles.insightCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
+          <Text style={[styles.insightTitle, { color: colors.text.primary }]}>Route Optimization</Text>
+          <Text style={[styles.insightText, { color: colors.text.secondary }]}>
             Technicians could save an average of 12 minutes per job with optimized routing.
           </Text>
         </View>
         
-        <View style={styles.insightCard}>
-          <Text style={styles.insightTitle}>Peak Hours</Text>
-          <Text style={styles.insightText}>
+        <View style={[styles.insightCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
+          <Text style={[styles.insightTitle, { color: colors.text.primary }]}>Peak Hours</Text>
+          <Text style={[styles.insightText, { color: colors.text.secondary }]}>
             Highest activity between 10 AM - 2 PM. Consider scheduling more technicians during these hours.
           </Text>
         </View>
         
-        <View style={styles.insightCard}>
-          <Text style={styles.insightTitle}>Battery Optimization</Text>
-          <Text style={styles.insightText}>
+        <View style={[styles.insightCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
+          <Text style={[styles.insightTitle, { color: colors.text.primary }]}>Battery Optimization</Text>
+          <Text style={[styles.insightText, { color: colors.text.secondary }]}>
             Location tracking is optimized for battery life with 30-second intervals during active jobs.
           </Text>
         </View>
@@ -421,6 +427,7 @@ function AnalyticsView({ technicians }: AnalyticsViewProps) {
 
 export default function TrackingScreen() {
   const { technicians, userRole, language } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -487,11 +494,11 @@ export default function TrackingScreen() {
 
   if (userRole !== 'owner') {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.accessDenied}>
-          <AlertCircle size={48} color={Colors.error} />
-          <Text style={styles.accessDeniedText}>{t.accessDenied}</Text>
-          <Text style={styles.accessDeniedSubtext}>
+          <AlertCircle size={48} color={colors.error} />
+          <Text style={[styles.accessDeniedText, { color: colors.text.primary }]}>{t.accessDenied}</Text>
+          <Text style={[styles.accessDeniedSubtext, { color: colors.text.secondary }]}>
             {t.trackingOwnerOnly}
           </Text>
         </View>
@@ -500,23 +507,23 @@ export default function TrackingScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border, shadowColor: colors.shadow }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>{t.teamTracking}</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{t.teamTracking}</Text>
             {technicians.length > 0 && (
               <View style={styles.headerStats}>
                 <View style={styles.statItem}>
-                  <View style={[styles.statDot, { backgroundColor: Colors.success }]} />
-                  <Text style={styles.statText}>
+                  <View style={[styles.statDot, { backgroundColor: colors.success }]} />
+                  <Text style={[styles.statText, { color: colors.text.secondary }]}>
                     {technicians.filter(t => t.availability !== 'offline').length} {t.active}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
-                  <View style={[styles.statDot, { backgroundColor: Colors.warning }]} />
-                  <Text style={styles.statText}>
+                  <View style={[styles.statDot, { backgroundColor: colors.warning }]} />
+                  <Text style={[styles.statText, { color: colors.text.secondary }]}>
                     {technicians.filter(t => t.status?.status === 'on-route').length} {t.enRoute}
                   </Text>
                 </View>
@@ -524,8 +531,8 @@ export default function TrackingScreen() {
             )}
           </View>
           {technicians.length > 0 && (
-            <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-              <RefreshCw size={18} color={Colors.primary} />
+            <TouchableOpacity style={[styles.refreshButton, { backgroundColor: colors.primary + '10' }]} onPress={onRefresh}>
+              <RefreshCw size={18} color={colors.primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -533,90 +540,90 @@ export default function TrackingScreen() {
       
       {technicians.length === 0 ? (
         <ScrollView contentContainerStyle={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Users size={64} color={Colors.primary} />
+          <View style={[styles.emptyIconContainer, { backgroundColor: colors.primaryLight, shadowColor: colors.primary }]}>
+            <Users size={64} color={colors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>{t.noTechniciansYet}</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>{t.noTechniciansYet}</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
             {t.noTechniciansDescription}
           </Text>
           
           <TouchableOpacity
-            style={styles.addTechnicianButton}
+            style={[styles.addTechnicianButton, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
             onPress={() => router.push('/team-management')}
           >
             <View style={styles.addTechnicianIcon}>
-              <Plus size={24} color={Colors.white} />
+              <Plus size={24} color={colors.white} />
             </View>
             <View style={styles.addTechnicianContent}>
-              <Text style={styles.addTechnicianTitle}>{t.addFirstTechnician}</Text>
+              <Text style={[styles.addTechnicianTitle, { color: colors.white }]}>{t.addFirstTechnician}</Text>
               <Text style={styles.addTechnicianDescription}>
                 {t.setupTeamTracking}
               </Text>
             </View>
           </TouchableOpacity>
           
-          <View style={styles.trackingFeatures}>
-            <Text style={styles.featuresTitle}>{t.whatYouCanTrack}</Text>
+          <View style={[styles.trackingFeatures, { backgroundColor: colors.primaryLight, borderLeftColor: colors.primary }]}>
+            <Text style={[styles.featuresTitle, { color: colors.text.primary }]}>{t.whatYouCanTrack}</Text>
             <View style={styles.featureItem}>
-              <MapPin size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>{t.realTimeLocation}</Text>
+              <MapPin size={20} color={colors.primary} />
+              <Text style={[styles.featureText, { color: colors.text.inverse }]}>{t.realTimeLocation}</Text>
             </View>
             <View style={styles.featureItem}>
-              <Route size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>{t.jobProgressStatus}</Text>
+              <Route size={20} color={colors.primary} />
+              <Text style={[styles.featureText, { color: colors.text.inverse }]}>{t.jobProgressStatus}</Text>
             </View>
             <View style={styles.featureItem}>
-              <Clock size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>{t.estimatedArrival}</Text>
+              <Clock size={20} color={colors.primary} />
+              <Text style={[styles.featureText, { color: colors.text.inverse }]}>{t.estimatedArrival}</Text>
             </View>
             <View style={styles.featureItem}>
-              <BarChart3 size={20} color={Colors.primary} />
-              <Text style={styles.featureText}>{t.performanceAnalytics}</Text>
+              <BarChart3 size={20} color={colors.primary} />
+              <Text style={[styles.featureText, { color: colors.text.inverse }]}>{t.performanceAnalytics}</Text>
             </View>
           </View>
         </ScrollView>
       ) : (
         <>
           {/* Controls */}
-          <View style={styles.controlsSection}>
-            <View style={styles.viewModeContainer}>
+          <View style={[styles.controlsSection, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+            <View style={[styles.viewModeContainer, { backgroundColor: colors.background }]}>
               <TouchableOpacity
-                style={[styles.viewButton, viewMode === 'list' && styles.viewButtonActive]}
+                style={[styles.viewButton, viewMode === 'list' && { backgroundColor: colors.primary }]}
                 onPress={() => setViewMode('list')}
               >
-                <List size={16} color={viewMode === 'list' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'list' && styles.viewButtonTextActive]}>{t.list}</Text>
+                <List size={16} color={viewMode === 'list' ? colors.white : colors.text.secondary} />
+                <Text style={[styles.viewButtonText, { color: colors.text.secondary }, viewMode === 'list' && { color: colors.white }]}>{t.list}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.viewButton, viewMode === 'map' && styles.viewButtonActive]}
+                style={[styles.viewButton, viewMode === 'map' && { backgroundColor: colors.primary }]}
                 onPress={() => setViewMode('map')}
               >
-                <Map size={16} color={viewMode === 'map' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'map' && styles.viewButtonTextActive]}>{t.map}</Text>
+                <Map size={16} color={viewMode === 'map' ? colors.white : colors.text.secondary} />
+                <Text style={[styles.viewButtonText, { color: colors.text.secondary }, viewMode === 'map' && { color: colors.white }]}>{t.map}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.viewButton, viewMode === 'analytics' && styles.viewButtonActive]}
+                style={[styles.viewButton, viewMode === 'analytics' && { backgroundColor: colors.primary }]}
                 onPress={() => setViewMode('analytics')}
               >
-                <BarChart3 size={16} color={viewMode === 'analytics' ? Colors.white : Colors.text.secondary} />
-                <Text style={[styles.viewButtonText, viewMode === 'analytics' && styles.viewButtonTextActive]}>{t.stats}</Text>
+                <BarChart3 size={16} color={viewMode === 'analytics' ? colors.white : colors.text.secondary} />
+                <Text style={[styles.viewButtonText, { color: colors.text.secondary }, viewMode === 'analytics' && { color: colors.white }]}>{t.stats}</Text>
               </TouchableOpacity>
             </View>
             
             <View style={styles.searchFilterRow}>
-              <View style={styles.searchContainer}>
-                <Search size={16} color={Colors.text.secondary} />
+              <View style={[styles.searchContainer, { backgroundColor: colors.background }]}>
+                <Search size={16} color={colors.text.secondary} />
                 <TextInput
-                  style={styles.searchInput}
+                  style={[styles.searchInput, { color: colors.text.primary }]}
                   placeholder={t.searchTechnicians}
-                  placeholderTextColor={Colors.text.secondary}
+                  placeholderTextColor={colors.text.secondary}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
                 {searchQuery.length > 0 && (
                   <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <X size={16} color={Colors.text.secondary} />
+                    <X size={16} color={colors.text.secondary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -624,12 +631,13 @@ export default function TrackingScreen() {
               <TouchableOpacity
                 style={[
                   styles.filterButton,
-                  (filter.status?.length || filter.availability?.length) && styles.filterButtonActive
+                  { backgroundColor: colors.background },
+                  (filter.status?.length || filter.availability?.length) && { backgroundColor: colors.primary }
                 ]}
                 onPress={() => setShowFilters(true)}
               >
                 <Filter size={16} color={
-                  (filter.status?.length || filter.availability?.length) ? Colors.white : Colors.text.secondary
+                  (filter.status?.length || filter.availability?.length) ? colors.white : colors.text.secondary
                 } />
               </TouchableOpacity>
             </View>
@@ -669,15 +677,15 @@ export default function TrackingScreen() {
                   <RefreshControl
                     refreshing={isRefreshing}
                     onRefresh={onRefresh}
-                    colors={[Colors.primary]}
-                    tintColor={Colors.primary}
+                    colors={[colors.primary]}
+                    tintColor={colors.primary}
                   />
                 }
                 ListEmptyComponent={
                   <View style={styles.emptyState}>
-                    <Users size={48} color={Colors.text.secondary} />
-                    <Text style={styles.emptyTitle}>{t.noTechniciansFound}</Text>
-                    <Text style={styles.emptySubtitle}>
+                    <Users size={48} color={colors.text.secondary} />
+                    <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>{t.noTechniciansFound}</Text>
+                    <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
                       {searchQuery ? t.tryAdjustingFilters : t.noTechniciansDescription}
                     </Text>
                   </View>
@@ -701,18 +709,14 @@ export default function TrackingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   
   // Header Styles
   header: {
-    backgroundColor: Colors.surface,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -729,7 +733,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
   },
   headerStats: {
@@ -748,33 +751,28 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: Colors.text.secondary,
     fontWeight: '500' as const,
   },
   refreshButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
   
   // Controls Section
   controlsSection: {
-    backgroundColor: Colors.surface,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   
   // View Mode Container
   viewModeContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 4,
   },
@@ -788,16 +786,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 6,
   },
-  viewButtonActive: {
-    backgroundColor: Colors.primary,
-  },
   viewButtonText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text.secondary,
-  },
-  viewButtonTextActive: {
-    color: Colors.white,
   },
   
   // Search and Filter Row
@@ -811,7 +802,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -820,7 +810,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: Colors.text.primary,
   },
   
   // Filter Button
@@ -828,12 +817,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  filterButtonActive: {
-    backgroundColor: Colors.primary,
   },
   
   // Content Area
@@ -849,16 +834,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   technicianCard: {
-    backgroundColor: Colors.white,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
     overflow: 'hidden',
-  },
-  selectedCard: {
-    borderWidth: 2,
-    borderColor: Colors.primary,
   },
   cardContent: {
     flexDirection: 'row',
@@ -883,7 +862,6 @@ const styles = StyleSheet.create({
   technicianName: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   statusRow: {
     flexDirection: 'row',
@@ -907,7 +885,6 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12,
-    color: Colors.text.secondary,
     flex: 1,
   },
   etaRow: {
@@ -918,7 +895,6 @@ const styles = StyleSheet.create({
   },
   etaText: {
     fontSize: 12,
-    color: Colors.primary,
     fontWeight: '500' as const,
   },
   cardActions: {
@@ -930,7 +906,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -939,9 +914,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: '#F8F9FA',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
     gap: 12,
   },
   metaItem: {
@@ -951,11 +924,9 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 11,
-    color: Colors.text.secondary,
   },
   lastUpdateText: {
     fontSize: 11,
-    color: Colors.text.secondary,
     marginLeft: 'auto' as any,
   },
 
@@ -969,12 +940,10 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 32,
-    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -983,14 +952,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 28,
     fontWeight: '800' as const,
-    color: Colors.text.primary,
     textAlign: 'center' as const,
     marginBottom: 12,
     lineHeight: 34,
   },
   emptySubtitle: {
     fontSize: 17,
-    color: Colors.text.secondary,
     textAlign: 'center' as const,
     marginBottom: 40,
     paddingHorizontal: 16,
@@ -998,11 +965,9 @@ const styles = StyleSheet.create({
   },
   addTechnicianButton: {
     flexDirection: 'row',
-    backgroundColor: Colors.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 32,
-    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1024,7 +989,6 @@ const styles = StyleSheet.create({
   addTechnicianTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: Colors.white,
     marginBottom: 4,
   },
   addTechnicianDescription: {
@@ -1032,16 +996,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
   },
   trackingFeatures: {
-    backgroundColor: Colors.primaryLight,
     borderRadius: 12,
     padding: 20,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
   },
   featuresTitle: {
     fontSize: 16,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 16,
   },
   featureItem: {
@@ -1052,7 +1013,6 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 15,
-    color: Colors.text.inverse,
     flex: 1,
   },
   emptyState: {
@@ -1072,12 +1032,10 @@ const styles = StyleSheet.create({
   accessDeniedText: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginTop: 16,
   },
   accessDeniedSubtext: {
     fontSize: 16,
-    color: Colors.text.secondary,
     marginTop: 8,
     textAlign: 'center' as const,
   },
@@ -1093,7 +1051,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   filterModal: {
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 24,
     margin: 20,
@@ -1103,7 +1060,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 20,
   },
   filterSection: {
@@ -1112,7 +1068,6 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 12,
   },
   filterOption: {
@@ -1126,15 +1081,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  checkedBox: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
   },
   filterOptionText: {
     fontSize: 14,
-    color: Colors.text.primary,
   },
   modalActions: {
     flexDirection: 'row',
@@ -1148,22 +1097,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clearButton: {
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
-  applyButton: {
-    backgroundColor: Colors.primary,
-  },
+  applyButton: {},
   clearButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   applyButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.white,
   },
   analyticsContainer: {
     flex: 1,
@@ -1177,12 +1120,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   analyticsCard: {
-    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     width: (width - 44) / 2,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   analyticsHeader: {
     flexDirection: 'row',
@@ -1193,18 +1134,15 @@ const styles = StyleSheet.create({
   analyticsTitle: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     flex: 1,
   },
   analyticsValue: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   analyticsSubtext: {
     fontSize: 12,
-    color: Colors.text.secondary,
   },
   performanceSection: {
     paddingHorizontal: 16,
@@ -1212,26 +1150,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 16,
   },
   insightCard: {
-    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   insightTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
   },
   insightText: {
     fontSize: 14,
-    color: Colors.text.secondary,
     lineHeight: 20,
   },
 });

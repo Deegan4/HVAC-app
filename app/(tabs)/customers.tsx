@@ -11,13 +11,14 @@ import {
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { Search, Plus, ChevronRight } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { Customer } from '@/types';
 import { useTranslation } from '@/constants/translations';
 
 export default function CustomersScreen() {
   const { customers, isLoading, language, canAccess } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -69,7 +70,7 @@ export default function CustomersScreen() {
 
   const renderCustomerItem = ({ item }: { item: Customer }) => (
     <TouchableOpacity
-      style={styles.customerCard}
+      style={[styles.customerCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
       onPress={() => router.push({
         pathname: '/customer-details',
         params: { customerId: item.id }
@@ -78,8 +79,8 @@ export default function CustomersScreen() {
       activeOpacity={0.7}
     >
       <View style={styles.customerContent}>
-        <Text style={styles.customerName}>{item.name}</Text>
-        <ChevronRight size={22} color={Colors.text.light} />
+        <Text style={[styles.customerName, { color: colors.text.primary }]}>{item.name}</Text>
+        <ChevronRight size={22} color={colors.text.light} />
       </View>
     </TouchableOpacity>
   );
@@ -92,14 +93,14 @@ export default function CustomersScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen 
         options={{
           title: t.customers,
@@ -109,19 +110,19 @@ export default function CustomersScreen() {
               style={styles.headerButton}
               testID="new-customer-button"
             >
-              <Plus size={24} color={Colors.primary} />
+              <Plus size={24} color={colors.primary} />
             </TouchableOpacity>
           ) : null,
         }} 
       />
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={Colors.text.light} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
+          <Search size={20} color={colors.text.light} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder={t.searchCustomers}
-            placeholderTextColor={Colors.text.light}
+            placeholderTextColor={colors.text.light}
             value={searchQuery}
             onChangeText={setSearchQuery}
             testID="customer-search"
@@ -140,13 +141,13 @@ export default function CustomersScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
+            <Text style={[styles.emptyStateText, { color: colors.text.secondary }]}>
               {searchQuery ? 'No customers found' : 'No customers yet'}
             </Text>
           </View>
@@ -160,7 +161,6 @@ export default function CustomersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
   },
   loadingContainer: {
     flex: 1,
@@ -173,12 +173,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#F5F5F7',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 40,
@@ -187,16 +185,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
     fontSize: 16,
-    color: Colors.text.primary,
   },
   listContent: {
     paddingBottom: 20,
   },
 
   customerCard: {
-    backgroundColor: Colors.surface,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E5EA',
   },
   customerContent: {
     flexDirection: 'row',
@@ -209,7 +204,6 @@ const styles = StyleSheet.create({
   customerName: {
     fontSize: 17,
     fontWeight: '400' as const,
-    color: Colors.text.primary,
   },
 
   emptyState: {
@@ -220,6 +214,5 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     fontWeight: '400' as const,
-    color: Colors.text.secondary,
   },
 });

@@ -12,14 +12,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DollarSign, Calendar, User, CheckCircle, Clock, AlertCircle, FileText, Plus, Search, Edit3, Trash2, Share, CreditCard, Receipt, TrendingUp } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
 import { useAppStore, useRevenueStats } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { Invoice, InvoiceItem } from '@/types';
 import { router } from 'expo-router';
 import { useTranslation } from '@/constants/translations';
 
 export default function InvoicesScreen() {
   const { invoices, isLoading, updateInvoiceStatus, deleteInvoice, customers, jobs, language } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   const revenueStats = useRevenueStats();
   const [filter, setFilter] = useState<'all' | Invoice['status']>('all');
@@ -52,11 +53,11 @@ export default function InvoicesScreen() {
   const getStatusIcon = (status: Invoice['status']) => {
     switch (status) {
       case 'paid':
-        return <CheckCircle size={16} color={Colors.status.completed} />;
+        return <CheckCircle size={16} color={colors.status.completed} />;
       case 'sent':
-        return <Clock size={16} color={Colors.status.inProgress} />;
+        return <Clock size={16} color={colors.status.inProgress} />;
       case 'overdue':
-        return <AlertCircle size={16} color={Colors.status.emergency} />;
+        return <AlertCircle size={16} color={colors.status.emergency} />;
       default:
         return null;
     }
@@ -65,15 +66,15 @@ export default function InvoicesScreen() {
   const getStatusColor = (status: Invoice['status']) => {
     switch (status) {
       case 'paid':
-        return Colors.status.completed;
+        return colors.status.completed;
       case 'sent':
-        return Colors.status.inProgress;
+        return colors.status.inProgress;
       case 'overdue':
-        return Colors.status.emergency;
+        return colors.status.emergency;
       case 'draft':
-        return Colors.text.secondary;
+        return colors.text.secondary;
       default:
-        return Colors.text.secondary;
+        return colors.text.secondary;
     }
   };
 
@@ -149,35 +150,35 @@ export default function InvoicesScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       {/* Header with Create Button */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t.invoices}</Text>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{t.invoices}</Text>
         <TouchableOpacity
-          style={styles.createButton}
+          style={[styles.createButton, { backgroundColor: colors.primary }]}
           onPress={handleCreateInvoice}
           testID="create-invoice-button"
         >
-          <Plus size={20} color={Colors.text.inverse} />
-          <Text style={styles.createButtonText}>{t.new}</Text>
+          <Plus size={20} color={colors.text.inverse} />
+          <Text style={[styles.createButtonText, { color: colors.text.inverse }]}>{t.new}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Search size={20} color={Colors.text.secondary} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
+          <Search size={20} color={colors.text.secondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder={t.searchInvoices}
-            placeholderTextColor={Colors.text.light}
+            placeholderTextColor={colors.text.light}
             value={searchQuery}
             onChangeText={setSearchQuery}
             testID="search-input"
@@ -185,19 +186,19 @@ export default function InvoicesScreen() {
         </View>
         {/* Revenue Stats */}
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <DollarSign size={20} color={Colors.primary} />
-            <Text style={styles.statAmount}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+            <DollarSign size={20} color={colors.primary} />
+            <Text style={[styles.statAmount, { color: colors.text.primary }]}>
               ${revenueStats.monthlyTotal.toFixed(2)}
             </Text>
-            <Text style={styles.statLabel}>{t.monthlyTotal}</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.monthlyTotal}</Text>
           </View>
-          <View style={styles.statCard}>
-            <CheckCircle size={20} color={Colors.status.completed} />
-            <Text style={[styles.statAmount, { color: Colors.status.completed }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+            <CheckCircle size={20} color={colors.status.completed} />
+            <Text style={[styles.statAmount, { color: colors.status.completed }]}>
               ${revenueStats.monthlyPaid.toFixed(2)}
             </Text>
-            <Text style={styles.statLabel}>{t.paid}</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{t.paid}</Text>
           </View>
         </View>
 
@@ -212,13 +213,15 @@ export default function InvoicesScreen() {
               key={status}
               style={[
                 styles.filterTab,
-                filter === status && styles.filterTabActive
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                filter === status && { backgroundColor: colors.primary, borderColor: colors.primary }
               ]}
               onPress={() => setFilter(status)}
             >
               <Text style={[
                 styles.filterTabText,
-                filter === status && styles.filterTabTextActive
+                { color: colors.text.secondary },
+                filter === status && { color: colors.text.inverse }
               ]}>
                 {status === 'all' ? t.all : status === 'draft' ? t.draft : status === 'sent' ? t.sent : status === 'paid' ? t.paid : t.overdue}
               </Text>
@@ -231,14 +234,14 @@ export default function InvoicesScreen() {
           {filteredInvoices.map(invoice => (
             <TouchableOpacity
               key={invoice.id}
-              style={styles.invoiceCard}
+              style={[styles.invoiceCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
               onPress={() => handleInvoicePress(invoice)}
               testID={`invoice-card-${invoice.id}`}
             >
               <View style={styles.invoiceHeader}>
                 <View>
-                  <Text style={styles.invoiceNumber}>#{invoice.id}</Text>
-                  <Text style={styles.invoiceDate}>
+                  <Text style={[styles.invoiceNumber, { color: colors.text.primary }]}>#{invoice.id}</Text>
+                  <Text style={[styles.invoiceDate, { color: colors.text.secondary }]}>
                     {new Date(invoice.date).toLocaleDateString()}
                   </Text>
                 </View>
@@ -251,33 +254,33 @@ export default function InvoicesScreen() {
               </View>
 
               <View style={styles.customerInfo}>
-                <User size={14} color={Colors.text.secondary} />
-                <Text style={styles.customerName}>{invoice.customerName}</Text>
+                <User size={14} color={colors.text.secondary} />
+                <Text style={[styles.customerName, { color: colors.text.primary }]}>{invoice.customerName}</Text>
               </View>
 
               <View style={styles.invoiceItems}>
                 {invoice.items.slice(0, 2).map(item => (
-                  <Text key={item.id} style={styles.itemText} numberOfLines={1}>
+                  <Text key={item.id} style={[styles.itemText, { color: colors.text.secondary }]} numberOfLines={1}>
                     • {item.description} (${item.total.toFixed(2)})
                   </Text>
                 ))}
                 {invoice.items.length > 2 && (
-                  <Text style={styles.moreItems}>
+                  <Text style={[styles.moreItems, { color: colors.text.light }]}>
                     +{invoice.items.length - 2} more items
                   </Text>
                 )}
               </View>
 
-              <View style={styles.invoiceFooter}>
+              <View style={[styles.invoiceFooter, { borderTopColor: colors.border }]}>
                 <View>
-                  <Text style={styles.dueLabel}>{t.dueDate}</Text>
-                  <Text style={styles.dueDate}>
+                  <Text style={[styles.dueLabel, { color: colors.text.secondary }]}>{t.dueDate}</Text>
+                  <Text style={[styles.dueDate, { color: colors.text.primary }]}>
                     {new Date(invoice.dueDate).toLocaleDateString()}
                   </Text>
                 </View>
                 <View style={styles.totalContainer}>
-                  <Text style={styles.invoiceTotalLabel}>{t.total}</Text>
-                  <Text style={styles.totalAmount}>
+                  <Text style={[styles.invoiceTotalLabel, { color: colors.text.secondary }]}>{t.total}</Text>
+                  <Text style={[styles.totalAmount, { color: colors.primary }]}>
                     ${invoice.total.toFixed(2)}
                   </Text>
                 </View>
@@ -286,49 +289,49 @@ export default function InvoicesScreen() {
               <View style={styles.invoiceActions}>
                 {invoice.status === 'draft' && (
                   <TouchableOpacity
-                    style={styles.sendButton}
+                    style={[styles.sendButton, { backgroundColor: colors.primary }]}
                     onPress={() => updateInvoiceStatus(invoice.id, 'sent')}
                   >
-                    <Text style={styles.sendButtonText}>{t.sendInvoice}</Text>
+                    <Text style={[styles.sendButtonText, { color: colors.text.inverse }]}>{t.sendInvoice}</Text>
                   </TouchableOpacity>
                 )}
                 
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
-                    style={styles.actionButton}
+                    style={[styles.actionButton, { backgroundColor: colors.background }]}
                     onPress={() => handleEditInvoice(invoice)}
                     testID={`edit-invoice-${invoice.id}`}
                   >
-                    <Edit3 size={16} color={Colors.primary} />
+                    <Edit3 size={16} color={colors.primary} />
                   </TouchableOpacity>
                   
                   <TouchableOpacity
-                    style={styles.actionButton}
+                    style={[styles.actionButton, { backgroundColor: colors.background }]}
                     onPress={() => handleShareInvoice(invoice)}
                     testID={`share-invoice-${invoice.id}`}
                   >
-                    <Share size={16} color={Colors.primary} />
+                    <Share size={16} color={colors.primary} />
                   </TouchableOpacity>
                   
                   {invoice.status !== 'paid' && (
                     <TouchableOpacity
-                      style={styles.actionButton}
+                      style={[styles.actionButton, { backgroundColor: colors.background }]}
                       onPress={() => {
                         setSelectedInvoice(invoice);
                         setShowPaymentModal(true);
                       }}
                       testID={`record-payment-${invoice.id}`}
                     >
-                      <CreditCard size={16} color={Colors.status.completed} />
+                      <CreditCard size={16} color={colors.status.completed} />
                     </TouchableOpacity>
                   )}
                   
                   <TouchableOpacity
-                    style={styles.actionButton}
+                    style={[styles.actionButton, { backgroundColor: colors.background }]}
                     onPress={() => handleDeleteInvoice(invoice.id)}
                     testID={`delete-invoice-${invoice.id}`}
                   >
-                    <Trash2 size={16} color={Colors.status.emergency} />
+                    <Trash2 size={16} color={colors.status.emergency} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -340,67 +343,67 @@ export default function InvoicesScreen() {
           <View style={styles.emptyState}>
             {searchQuery || filter !== 'all' ? (
               <>
-                <FileText size={48} color={Colors.text.light} />
-                <Text style={styles.emptyStateText}>{t.noInvoicesFound}</Text>
-                <Text style={styles.emptyStateSubtext}>
+                <FileText size={48} color={colors.text.light} />
+                <Text style={[styles.emptyStateText, { color: colors.text.light }]}>{t.noInvoicesFound}</Text>
+                <Text style={[styles.emptyStateSubtext, { color: colors.text.light }]}>
                   {t.tryAdjustingSearch}
                 </Text>
               </>
             ) : (
               <>
-                <View style={styles.welcomeIconContainer}>
-                  <Receipt size={48} color={Colors.primary} />
+                <View style={[styles.welcomeIconContainer, { backgroundColor: colors.primaryLight }]}>
+                  <Receipt size={48} color={colors.primary} />
                 </View>
-                <Text style={styles.welcomeTitle}>{t.startInvoicing}</Text>
-                <Text style={styles.welcomeSubtitle}>
+                <Text style={[styles.welcomeTitle, { color: colors.text.primary }]}>{t.startInvoicing}</Text>
+                <Text style={[styles.welcomeSubtitle, { color: colors.text.secondary }]}>
                   {t.createProfessionalInvoices}
                 </Text>
                 
                 <TouchableOpacity
-                  style={styles.getStartedButton}
+                  style={[styles.getStartedButton, { backgroundColor: colors.primary }]}
                   onPress={handleCreateInvoice}
                 >
-                  <Plus size={20} color={Colors.text.inverse} />
-                  <Text style={styles.getStartedButtonText}>{t.createFirstInvoice}</Text>
+                  <Plus size={20} color={colors.text.inverse} />
+                  <Text style={[styles.getStartedButtonText, { color: colors.text.inverse }]}>{t.createFirstInvoice}</Text>
                 </TouchableOpacity>
                 
                 <View style={styles.featuresSection}>
-                  <Text style={styles.featuresTitle}>{t.invoiceFeatures}</Text>
+                  <Text style={[styles.featuresTitle, { color: colors.text.primary }]}>{t.invoiceFeatures}</Text>
                   
-                  <View style={styles.featureItem}>
-                    <TrendingUp size={20} color={Colors.primary} />
+                  <View style={[styles.featureItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                    <TrendingUp size={20} color={colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>{t.trackRevenue}</Text>
-                      <Text style={styles.featureDescription}>
+                      <Text style={[styles.featureTitle, { color: colors.text.primary }]}>{t.trackRevenue}</Text>
+                      <Text style={[styles.featureDescription, { color: colors.text.secondary }]}>
                         {t.monitorMonthlyIncome}
                       </Text>
                     </View>
                   </View>
                   
-                  <View style={styles.featureItem}>
-                    <CreditCard size={20} color={Colors.primary} />
+                  <View style={[styles.featureItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                    <CreditCard size={20} color={colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>{t.paymentRecording}</Text>
-                      <Text style={styles.featureDescription}>
+                      <Text style={[styles.featureTitle, { color: colors.text.primary }]}>{t.paymentRecording}</Text>
+                      <Text style={[styles.featureDescription, { color: colors.text.secondary }]}>
                         {t.trackPartialPayments}
                       </Text>
                     </View>
                   </View>
                   
-                  <View style={styles.featureItem}>
-                    <Share size={20} color={Colors.primary} />
+                  <View style={[styles.featureItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+                    <Share size={20} color={colors.primary} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureTitle}>{t.easySharing}</Text>
-                      <Text style={styles.featureDescription}>
+                      <Text style={[styles.featureTitle, { color: colors.text.primary }]}>{t.easySharing}</Text>
+                      <Text style={[styles.featureDescription, { color: colors.text.secondary }]}>
                         {t.sendInvoicesDirectly}
                       </Text>
                     </View>
                   </View>
                 </View>
                 
-                <View style={styles.tipCard}>
-                  <AlertCircle size={16} color={Colors.primary} />
-                  <Text style={styles.tipText}>
+                <View style={[styles.tipCard, { backgroundColor: colors.primaryLight }]}>
+                  <AlertCircle size={16} color={colors.primary} />
+                  <Text style={[styles.tipText, { color: colors.text.inverse }]}>
                     {t.tipSetupCompanyInfo}
                   </Text>
                 </View>
@@ -417,43 +420,43 @@ export default function InvoicesScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowInvoiceDetails(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
               {t.invoice} #{selectedInvoice?.id}
             </Text>
             <TouchableOpacity
               onPress={() => setShowInvoiceDetails(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>{t.done}</Text>
+              <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t.done}</Text>
             </TouchableOpacity>
           </View>
           
           {selectedInvoice && (
             <ScrollView style={styles.modalContent}>
-              <View style={styles.invoiceDetailsCard}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t.customer}:</Text>
-                  <Text style={styles.detailValue}>{selectedInvoice.customerName}</Text>
+              <View style={[styles.invoiceDetailsCard, { backgroundColor: colors.surface }]}>
+                <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>{t.customer}:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text.primary }]}>{selectedInvoice.customerName}</Text>
                 </View>
                 
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t.date}:</Text>
-                  <Text style={styles.detailValue}>
+                <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>{t.date}:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text.primary }]}>
                     {new Date(selectedInvoice.date).toLocaleDateString()}
                   </Text>
                 </View>
                 
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t.dueDate}:</Text>
-                  <Text style={styles.detailValue}>
+                <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>{t.dueDate}:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text.primary }]}>
                     {new Date(selectedInvoice.dueDate).toLocaleDateString()}
                   </Text>
                 </View>
                 
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t.status}:</Text>
+                <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>{t.status}:</Text>
                   <View style={styles.statusContainer}>
                     {getStatusIcon(selectedInvoice.status)}
                     <Text style={[styles.statusText, { color: getStatusColor(selectedInvoice.status) }]}>
@@ -463,46 +466,46 @@ export default function InvoicesScreen() {
                 </View>
               </View>
               
-              <View style={styles.itemsSection}>
-                <Text style={styles.sectionTitle}>{t.items}</Text>
+              <View style={[styles.itemsSection, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{t.items}</Text>
                 {selectedInvoice.items.map(item => (
-                  <View key={item.id} style={styles.itemRow}>
+                  <View key={item.id} style={[styles.itemRow, { borderBottomColor: colors.border }]}>
                     <View style={styles.itemDetails}>
-                      <Text style={styles.itemDescription}>{item.description}</Text>
-                      <Text style={styles.itemMeta}>
+                      <Text style={[styles.itemDescription, { color: colors.text.primary }]}>{item.description}</Text>
+                      <Text style={[styles.itemMeta, { color: colors.text.secondary }]}>
                         {item.quantity} × ${item.unitPrice.toFixed(2)}
                       </Text>
                     </View>
-                    <Text style={styles.itemTotal}>${item.total.toFixed(2)}</Text>
+                    <Text style={[styles.itemTotal, { color: colors.text.primary }]}>${item.total.toFixed(2)}</Text>
                   </View>
                 ))}
               </View>
               
-              <View style={styles.totalsSection}>
+              <View style={[styles.totalsSection, { backgroundColor: colors.surface }]}>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>{t.subtotal}:</Text>
-                  <Text style={styles.totalValue}>${selectedInvoice.subtotal.toFixed(2)}</Text>
+                  <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>{t.subtotal}:</Text>
+                  <Text style={[styles.totalValue, { color: colors.text.primary }]}>${selectedInvoice.subtotal.toFixed(2)}</Text>
                 </View>
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>{t.tax}:</Text>
-                  <Text style={styles.totalValue}>${selectedInvoice.tax.toFixed(2)}</Text>
+                  <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>{t.tax}:</Text>
+                  <Text style={[styles.totalValue, { color: colors.text.primary }]}>${selectedInvoice.tax.toFixed(2)}</Text>
                 </View>
-                <View style={[styles.totalRow, styles.grandTotalRow]}>
-                  <Text style={styles.grandTotalLabel}>{t.total}:</Text>
-                  <Text style={styles.grandTotalValue}>${selectedInvoice.total.toFixed(2)}</Text>
+                <View style={[styles.totalRow, styles.grandTotalRow, { borderTopColor: colors.border }]}>
+                  <Text style={[styles.grandTotalLabel, { color: colors.text.primary }]}>{t.total}:</Text>
+                  <Text style={[styles.grandTotalValue, { color: colors.primary }]}>${selectedInvoice.total.toFixed(2)}</Text>
                 </View>
                 {selectedInvoice.paidAmount > 0 && (
                   <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>{t.paid}:</Text>
-                    <Text style={[styles.totalValue, { color: Colors.status.completed }]}>
+                    <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>{t.paid}:</Text>
+                    <Text style={[styles.totalValue, { color: colors.status.completed }]}>
                       ${selectedInvoice.paidAmount.toFixed(2)}
                     </Text>
                   </View>
                 )}
                 {selectedInvoice.paidAmount < selectedInvoice.total && (
                   <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>{t.balance}:</Text>
-                    <Text style={[styles.totalValue, { color: Colors.status.emergency }]}>
+                    <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>{t.balance}:</Text>
+                    <Text style={[styles.totalValue, { color: colors.status.emergency }]}>
                       ${(selectedInvoice.total - selectedInvoice.paidAmount).toFixed(2)}
                     </Text>
                   </View>
@@ -510,9 +513,9 @@ export default function InvoicesScreen() {
               </View>
               
               {selectedInvoice.notes && (
-                <View style={styles.notesSection}>
-                  <Text style={styles.sectionTitle}>{t.notes}</Text>
-                  <Text style={styles.notesText}>{selectedInvoice.notes}</Text>
+                <View style={[styles.notesSection, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{t.notes}</Text>
+                  <Text style={[styles.notesText, { color: colors.text.primary }]}>{selectedInvoice.notes}</Text>
                 </View>
               )}
             </ScrollView>
@@ -527,43 +530,45 @@ export default function InvoicesScreen() {
         presentationStyle="formSheet"
         onRequestClose={() => setShowPaymentModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t.recordPayment}</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>{t.recordPayment}</Text>
             <TouchableOpacity
               onPress={() => setShowPaymentModal(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>{t.cancel}</Text>
+              <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t.cancel}</Text>
             </TouchableOpacity>
           </View>
           
           <View style={styles.paymentForm}>
-            <Text style={styles.formLabel}>{t.paymentAmount}</Text>
+            <Text style={[styles.formLabel, { color: colors.text.primary }]}>{t.paymentAmount}</Text>
             <TextInput
-              style={styles.paymentInput}
+              style={[styles.paymentInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text.primary }]}
               placeholder="0.00"
-              placeholderTextColor={Colors.text.light}
+              placeholderTextColor={colors.text.light}
               value={paymentAmount}
               onChangeText={setPaymentAmount}
               keyboardType="decimal-pad"
               testID="payment-amount-input"
             />
             
-            <Text style={styles.formLabel}>{t.paymentMethod}</Text>
+            <Text style={[styles.formLabel, { color: colors.text.primary }]}>{t.paymentMethod}</Text>
             <View style={styles.paymentMethods}>
               {(['cash', 'check', 'card', 'transfer'] as const).map(method => (
                 <TouchableOpacity
                   key={method}
                   style={[
                     styles.paymentMethodButton,
-                    paymentMethod === method && styles.paymentMethodButtonActive
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    paymentMethod === method && { backgroundColor: colors.primary, borderColor: colors.primary }
                   ]}
                   onPress={() => setPaymentMethod(method)}
                 >
                   <Text style={[
                     styles.paymentMethodText,
-                    paymentMethod === method && styles.paymentMethodTextActive
+                    { color: colors.text.secondary },
+                    paymentMethod === method && { color: colors.text.inverse }
                   ]}>
                     {method.charAt(0).toUpperCase() + method.slice(1)}
                   </Text>
@@ -572,25 +577,25 @@ export default function InvoicesScreen() {
             </View>
             
             {selectedInvoice && (
-              <View style={styles.paymentSummary}>
-                <Text style={styles.summaryText}>
+              <View style={[styles.paymentSummary, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.summaryText, { color: colors.text.primary }]}>
                   {t.invoiceTotal}: ${selectedInvoice.total.toFixed(2)}
                 </Text>
-                <Text style={styles.summaryText}>
+                <Text style={[styles.summaryText, { color: colors.text.primary }]}>
                   {t.alreadyPaid}: ${selectedInvoice.paidAmount.toFixed(2)}
                 </Text>
-                <Text style={styles.summaryText}>
+                <Text style={[styles.summaryText, { color: colors.text.primary }]}>
                   {t.remaining}: ${(selectedInvoice.total - selectedInvoice.paidAmount).toFixed(2)}
                 </Text>
               </View>
             )}
             
             <TouchableOpacity
-              style={styles.recordPaymentButton}
+              style={[styles.recordPaymentButton, { backgroundColor: colors.primary }]}
               onPress={handleRecordPayment}
               testID="record-payment-button"
             >
-              <Text style={styles.recordPaymentButtonText}>{t.recordPayment}</Text>
+              <Text style={[styles.recordPaymentButtonText, { color: colors.text.inverse }]}>{t.recordPayment}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -602,7 +607,6 @@ export default function InvoicesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -619,11 +623,9 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -632,12 +634,10 @@ const styles = StyleSheet.create({
   statAmount: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: Colors.text.secondary,
     marginTop: 4,
   },
   filterContainer: {
@@ -649,21 +649,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  filterTabActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
   },
   filterTabText: {
     fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  filterTabTextActive: {
-    color: Colors.text.inverse,
-    fontWeight: '600' as const,
   },
   invoicesList: {
     paddingHorizontal: 16,
@@ -671,10 +660,8 @@ const styles = StyleSheet.create({
     paddingBottom: 140,
   },
   invoiceCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -689,11 +676,9 @@ const styles = StyleSheet.create({
   invoiceNumber: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   invoiceDate: {
     fontSize: 12,
-    color: Colors.text.secondary,
     marginTop: 2,
   },
   statusContainer: {
@@ -713,19 +698,16 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontSize: 14,
-    color: Colors.text.primary,
   },
   invoiceItems: {
     marginBottom: 12,
   },
   itemText: {
     fontSize: 13,
-    color: Colors.text.secondary,
     marginBottom: 4,
   },
   moreItems: {
     fontSize: 13,
-    color: Colors.text.light,
     fontStyle: 'italic' as const,
   },
   invoiceFooter: {
@@ -733,16 +715,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
     paddingTop: 12,
   },
   dueLabel: {
     fontSize: 11,
-    color: Colors.text.secondary,
   },
   dueDate: {
     fontSize: 13,
-    color: Colors.text.primary,
     marginTop: 2,
   },
   totalContainer: {
@@ -750,22 +729,18 @@ const styles = StyleSheet.create({
   },
   invoiceTotalLabel: {
     fontSize: 11,
-    color: Colors.text.secondary,
   },
   totalAmount: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: Colors.primary,
     marginTop: 2,
   },
   sendButton: {
-    backgroundColor: Colors.primary,
     paddingVertical: 10,
     borderRadius: 8,
     marginTop: 12,
   },
   sendButtonText: {
-    color: Colors.text.inverse,
     fontSize: 14,
     fontWeight: '600' as const,
     textAlign: 'center',
@@ -777,7 +752,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: Colors.text.light,
     marginTop: 16,
   },
   header: {
@@ -787,31 +761,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   createButtonText: {
-    color: Colors.text.inverse,
     fontSize: 14,
     fontWeight: '600' as const,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     marginHorizontal: 16,
     marginVertical: 12,
     paddingHorizontal: 12,
@@ -822,7 +791,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: Colors.text.primary,
   },
   invoiceActions: {
     marginTop: 12,
@@ -836,11 +804,9 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 8,
     borderRadius: 6,
-    backgroundColor: Colors.background,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -849,12 +815,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   closeButton: {
     paddingHorizontal: 12,
@@ -862,7 +826,6 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
-    color: Colors.primary,
     fontWeight: '600' as const,
   },
   modalContent: {
@@ -870,7 +833,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   invoiceDetailsCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -881,20 +843,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   detailLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
     fontWeight: '500' as const,
   },
   detailValue: {
     fontSize: 14,
-    color: Colors.text.primary,
     fontWeight: '600' as const,
   },
   itemsSection: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -902,7 +860,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 12,
   },
   itemRow: {
@@ -911,7 +868,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   itemDetails: {
     flex: 1,
@@ -919,21 +875,17 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     fontSize: 14,
-    color: Colors.text.primary,
     fontWeight: '500' as const,
   },
   itemMeta: {
     fontSize: 12,
-    color: Colors.text.secondary,
     marginTop: 2,
   },
   itemTotal: {
     fontSize: 14,
-    color: Colors.text.primary,
     fontWeight: '600' as const,
   },
   totalsSection: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -946,37 +898,30 @@ const styles = StyleSheet.create({
   },
   grandTotalRow: {
     borderTopWidth: 2,
-    borderTopColor: Colors.border,
     paddingTop: 12,
     marginTop: 8,
   },
   totalLabel: {
     fontSize: 14,
-    color: Colors.text.secondary,
   },
   totalValue: {
     fontSize: 14,
-    color: Colors.text.primary,
     fontWeight: '600' as const,
   },
   grandTotalLabel: {
     fontSize: 16,
-    color: Colors.text.primary,
     fontWeight: '700' as const,
   },
   grandTotalValue: {
     fontSize: 18,
-    color: Colors.primary,
     fontWeight: '700' as const,
   },
   notesSection: {
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
   },
   notesText: {
     fontSize: 14,
-    color: Colors.text.primary,
     lineHeight: 20,
   },
   paymentForm: {
@@ -985,19 +930,15 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
     marginTop: 16,
   },
   paymentInput: {
-    backgroundColor: Colors.surface,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text.primary,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   paymentMethods: {
     flexDirection: 'row',
@@ -1008,55 +949,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  paymentMethodButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
   },
   paymentMethodText: {
     fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  paymentMethodTextActive: {
-    color: Colors.text.inverse,
-    fontWeight: '600' as const,
   },
   paymentSummary: {
-    backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
     marginTop: 16,
   },
   summaryText: {
     fontSize: 14,
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   recordPaymentButton: {
-    backgroundColor: Colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     marginTop: 24,
   },
   recordPaymentButtonText: {
-    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600' as const,
     textAlign: 'center' as const,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: Colors.text.light,
     marginTop: 8,
   },
   welcomeIconContainer: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -1064,12 +988,10 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: Colors.text.secondary,
     textAlign: 'center' as const,
     paddingHorizontal: 32,
     marginBottom: 32,
@@ -1077,7 +999,6 @@ const styles = StyleSheet.create({
   getStartedButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 8,
@@ -1087,7 +1008,6 @@ const styles = StyleSheet.create({
   getStartedButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.inverse,
   },
   featuresSection: {
     width: '100%',
@@ -1097,17 +1017,14 @@ const styles = StyleSheet.create({
   featuresTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 16,
     textAlign: 'center' as const,
   },
   featureItem: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1120,17 +1037,14 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   featureDescription: {
     fontSize: 14,
-    color: Colors.text.secondary,
     lineHeight: 20,
   },
   tipCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.primaryLight,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -1138,7 +1052,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: Colors.text.inverse,
     marginLeft: 12,
     flex: 1,
     lineHeight: 20,
