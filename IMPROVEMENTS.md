@@ -150,3 +150,31 @@ When updating a screen:
 - Skeleton loaders use React Native's Animated API for broad compatibility
 - Empty states are fully customizable with any Lucide icon
 - AnimatedButton works with both text and custom components as children
+
+## Completed Scope (Removed from Roadmap)
+- Owner-only PIN setup/auth flows and guardrails
+- Technician permissions console for owner-managed access
+- Apple Notes import pipeline for owner documents
+- Terms & Conditions contact block update (cybertec44@yahoo.com / (239) 839-2112)
+
+## Revised Four-Phase Roadmap (Remaining Work Only)
+
+### Phase 1 – Onboarding & Localization Reliability
+- Fix the language selector so the chosen locale persists through role selection, login, and first-run tutorials
+- Ensure every string in `constants/translations.ts` has full locale coverage and wire any missing keys into onboarding components
+- Persist the preferred language via AsyncStorage + React Query hydration so relaunches stay localized
+
+### Phase 2 – App-Wide Dark Mode Consistency
+- Replace direct `Colors.light` usages with the theme-aware palette returned by `useTheme`
+- Update glass components (cards, buttons, tab bar) to consume theme tokens and provide high-contrast variants
+- Add a regression tour to verify dark mode across all tabs, not just the More tab
+
+### Phase 3 – Technician Workflow Polish & Safeguards
+- Confirm the technician navigation stack excludes customer management views and surfaces only job-critical tooling
+- Enhance job tracking/technician-location screens with clearer status chips, empty states, and loading skeletons
+- Introduce resilient error handling + offline notices tailored for field techs
+
+### Phase 4 – Quality, Observability, and Launch Readiness
+- Instrument onboarding, theme toggling, and technician tracking with analytics plus structured console logging
+- Add automated smoke tests for role-based routing and manual QA scripts covering localization + theming
+- Prepare release artifacts: changelog, support documentation, and monitoring dashboards for post-launch follow up
