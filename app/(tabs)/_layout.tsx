@@ -1,23 +1,24 @@
 import { Tabs } from "expo-router";
 import { Calendar, Users, FileText, Grid3x3, MapPin } from "lucide-react-native";
 import React from "react";
-import { Colors } from "@/constants/colors";
 import { useAppStore } from "@/hooks/app-store";
+import { useTheme } from "@/hooks/theme-store";
 import { useTranslation } from "@/constants/translations";
 
 export default function TabLayout() {
   const { userRole, language, canAccess } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.text.secondary,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text.secondary,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,

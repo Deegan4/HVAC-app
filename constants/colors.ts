@@ -68,4 +68,8 @@ export const DarkColors = {
   shadow: 'rgba(0, 0, 0, 0.3)',
 };
 
-export const Colors = LightColors;
+export let Colors = LightColors;
+
+export function updateColors(mode: 'light' | 'dark') {
+  Colors = mode === 'dark' ? DarkColors : LightColors;
+}
