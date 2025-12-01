@@ -126,9 +126,8 @@ export default function TermsConditionsScreen() {
             If you have any questions about these Terms and Conditions, please contact us at:
           </Text>
           <Text style={styles.contactInfo}>
-            Email: legal@olivarefrigeration.com{'\n'}
-            Phone: (555) 123-4567{'\n'}
-            Address: 123 Main Street, City, State 12345
+            Email: cybertec44@yahoo.com{'\n'}
+            Phone: (239) 839-2112
           </Text>
         </View>
 
