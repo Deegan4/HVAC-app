@@ -29,6 +29,7 @@ import {
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import { Technician } from '@/types';
+import OwnerAuthGuard from '@/utils/OwnerAuthGuard';
 
 export default function TeamManagementScreen() {
   const { technicians, addTechnician, updateTechnician, deleteTechnician, userRole } = useAppStore();
@@ -166,7 +167,8 @@ export default function TeamManagementScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <OwnerAuthGuard>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen 
         options={{
           title: 'Team Management',
@@ -487,6 +489,7 @@ export default function TeamManagementScreen() {
         </Modal>
       </ScrollView>
     </SafeAreaView>
+    </OwnerAuthGuard>
   );
 }
 

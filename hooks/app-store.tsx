@@ -30,6 +30,8 @@ interface AppState {
   hasCompletedOnboarding: boolean;
   profileUpdateTrigger: number;
   technicianPermissions: TechnicianPermissions;
+  hasOwnerPassword: boolean;
+  isOwnerAuthenticated: boolean;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
@@ -53,6 +55,9 @@ interface AppState {
   setUserRole: (role: UserRole) => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
   authenticatePin: (pin: string) => Promise<boolean>;
+  setOwnerPassword: (password: string) => Promise<void>;
+  authenticateOwnerPassword: (password: string) => Promise<boolean>;
+  logoutOwner: () => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
@@ -173,12 +178,14 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const authQuery = useQuery({
     queryKey: ['auth'],
     queryFn: async () => {
-      const [pin, role, onboarding, lang, authenticated] = await Promise.all([
+      const [pin, role, onboarding, lang, authenticated, ownerPassword, ownerAuth] = await Promise.all([
         AsyncStorage.getItem('userPin'),
         AsyncStorage.getItem('userRole'),
         AsyncStorage.getItem('hasCompletedOnboarding'),
         AsyncStorage.getItem('language'),
         AsyncStorage.getItem('isAuthenticated'),
+        AsyncStorage.getItem('ownerPassword'),
+        AsyncStorage.getItem('isOwnerAuthenticated'),
       ]);
 
       return {
@@ -187,6 +194,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         hasCompletedOnboarding: onboarding === 'true',
         language: lang as Language | null,
         isAuthenticated: authenticated === 'true',
+        ownerPassword,
+        isOwnerAuthenticated: ownerAuth === 'true',
         profileUpdateTrigger: 0,
       };
     },
@@ -226,6 +235,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const language = authQuery.data?.language ?? 'en';
   const isAuthenticated = authQuery.data?.isAuthenticated ?? false;
   const profileUpdateTrigger = authQuery.data?.profileUpdateTrigger ?? 0;
+  const hasOwnerPassword = Boolean(authQuery.data?.ownerPassword);
+  const isOwnerAuthenticated = authQuery.data?.isOwnerAuthenticated ?? false;
 
   const jobsMutation = useMutation({
     mutationFn: async (newJobs: Job[]) => {
@@ -323,6 +334,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       hasCompletedOnboarding?: boolean;
       language?: Language;
       isAuthenticated?: boolean;
+      ownerPassword?: string;
+      isOwnerAuthenticated?: boolean;
       profileUpdateTrigger?: number;
     }) => {
       console.log('authMutation - mutationFn called with:', updates);
@@ -341,6 +354,12 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       }
       if (updates.isAuthenticated !== undefined) {
         promises.push(AsyncStorage.setItem('isAuthenticated', updates.isAuthenticated ? 'true' : 'false'));
+      }
+      if (updates.ownerPassword !== undefined) {
+        promises.push(AsyncStorage.setItem('ownerPassword', updates.ownerPassword));
+      }
+      if (updates.isOwnerAuthenticated !== undefined) {
+        promises.push(AsyncStorage.setItem('isOwnerAuthenticated', updates.isOwnerAuthenticated ? 'true' : 'false'));
       }
       await Promise.all(promises);
       console.log('authMutation - AsyncStorage updated');
@@ -404,8 +423,26 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return false;
   }, [authQuery.data?.pin, mutateAuth]);
 
+  const setOwnerPassword = useCallback(async (password: string) => {
+    console.log('setOwnerPassword - starting');
+    await mutateAuth({ ownerPassword: password, isOwnerAuthenticated: true });
+    console.log('setOwnerPassword - mutateAuth completed');
+  }, [mutateAuth]);
+
+  const authenticateOwnerPassword = useCallback(async (password: string): Promise<boolean> => {
+    if (authQuery.data?.ownerPassword === password) {
+      await mutateAuth({ isOwnerAuthenticated: true });
+      return true;
+    }
+    return false;
+  }, [authQuery.data?.ownerPassword, mutateAuth]);
+
+  const logoutOwner = useCallback(async () => {
+    await mutateAuth({ isOwnerAuthenticated: false });
+  }, [mutateAuth]);
+
   const logout = useCallback(async () => {
-    await mutateAuth({ isAuthenticated: false });
+    await mutateAuth({ isAuthenticated: false, isOwnerAuthenticated: false });
   }, [mutateAuth]);
 
   const triggerProfileUpdate = useCallback(async () => {
@@ -627,6 +664,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasCompletedOnboarding,
     profileUpdateTrigger,
     technicianPermissions,
+    hasOwnerPassword,
+    isOwnerAuthenticated,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -645,6 +684,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     setLanguage,
     authenticatePin,
+    setOwnerPassword,
+    authenticateOwnerPassword,
+    logoutOwner,
     logout,
     completeOnboarding,
     importCustomers,
@@ -692,6 +734,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     hasCompletedOnboarding,
     profileUpdateTrigger,
     technicianPermissions,
+    hasOwnerPassword,
+    isOwnerAuthenticated,
     addJob,
     updateJobStatus,
     addCustomer,
@@ -710,6 +754,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     setUserRole,
     setLanguage,
     authenticatePin,
+    setOwnerPassword,
+    authenticateOwnerPassword,
+    logoutOwner,
     logout,
     completeOnboarding,
     importCustomers,
