@@ -27,6 +27,7 @@ import {
   Phone,
   MessageCircle,
   Link2,
+  FileUp,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
@@ -122,6 +123,7 @@ export default function MoreScreen() {
         { icon: Building, label: t.companyInfo, onPress: () => router.push('/company-info') },
         ...(userRole === 'owner' ? [{ icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') }] : []),
         { icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') },
+        ...(userRole === 'owner' ? [{ icon: FileUp, label: 'Import Apple Notes', onPress: () => router.push('/import-notes') }] : []),
         ...(userRole === 'owner' ? [{ icon: Link2, label: t.quickbooksIntegration, onPress: () => router.push('/quickbooks-integration') }] : []),
         ...(userRole === 'owner' ? [{ icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') }] : []),
         ...(userRole === 'owner' ? [{ icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') }] : []),
