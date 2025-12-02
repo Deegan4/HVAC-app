@@ -178,7 +178,7 @@ export default function MoreScreen() {
   ].filter(section => section.items.length > 0);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ScrollView style={styles.scrollView}>
         {/* User Profile Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
