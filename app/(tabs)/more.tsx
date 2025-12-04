@@ -28,6 +28,7 @@ import {
   MessageCircle,
   Link2,
   FileUp,
+  CreditCard,
 } from 'lucide-react-native';
 import { useAppStore } from '@/hooks/app-store';
 import { useTheme } from '@/hooks/theme-store';
@@ -153,6 +154,7 @@ export default function MoreScreen() {
         { icon: User, label: userRole === 'owner' ? t.ownerProfile : t.profile, onPress: () => router.push('/profile') },
         { icon: Bell, label: t.notifications, hasSwitch: true, switchType: 'notifications' as const },
         { icon: Shield, label: t.privacySecurity, onPress: () => router.push('/privacy-security') },
+        ...(userRole === 'owner' ? [{ icon: CreditCard, label: 'Subscription Plans', onPress: () => router.push('/subscription-plans') }] : []),
       ]
     },
     {
