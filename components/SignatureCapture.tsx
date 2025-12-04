@@ -26,30 +26,45 @@ export default function SignatureCapture({ onCapture, onCancel }: SignatureCaptu
   const [currentPath, setCurrentPath] = useState<string>('');
   const pathRef = useRef<string>('');
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
 
-    onPanResponderGrant: (evt) => {
-      const { locationX, locationY } = evt.nativeEvent;
-      const newPath = `M${locationX.toFixed(2)},${locationY.toFixed(2)}`;
-      pathRef.current = newPath;
-      setCurrentPath(newPath);
-    },
+      onPanResponderGrant: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        if (locationX === undefined || locationY === undefined) return;
+        const newPath = `M${locationX.toFixed(2)},${locationY.toFixed(2)}`;
+        pathRef.current = newPath;
+        setCurrentPath(newPath);
+      },
 
-    onPanResponderMove: (evt) => {
-      const { locationX, locationY } = evt.nativeEvent;
-      const newPath = `${pathRef.current} L${locationX.toFixed(2)},${locationY.toFixed(2)}`;
-      pathRef.current = newPath;
-      setCurrentPath(newPath);
-    },
+      onPanResponderMove: (evt) => {
+        const { locationX, locationY } = evt.nativeEvent;
+        if (locationX === undefined || locationY === undefined) return;
+        const newPath = `${pathRef.current} L${locationX.toFixed(2)},${locationY.toFixed(2)}`;
+        pathRef.current = newPath;
+        setCurrentPath(newPath);
+      },
 
-    onPanResponderRelease: () => {
-      setPaths(prevPaths => [...prevPaths, pathRef.current]);
-      setCurrentPath('');
-      pathRef.current = '';
-    },
-  });
+      onPanResponderRelease: () => {
+        if (pathRef.current) {
+          setPaths(prevPaths => [...prevPaths, pathRef.current]);
+          setCurrentPath('');
+          pathRef.current = '';
+        }
+      },
+
+      onPanResponderTerminate: () => {
+        if (pathRef.current) {
+          setPaths(prevPaths => [...prevPaths, pathRef.current]);
+          setCurrentPath('');
+          pathRef.current = '';
+        }
+      },
+    })
+  ).current;
 
   const clearSignature = () => {
     setPaths([]);
@@ -104,6 +119,7 @@ export default function SignatureCapture({ onCapture, onCancel }: SignatureCaptu
         <View 
           style={styles.signatureArea}
           {...panResponder.panHandlers}
+          collapsable={false}
         >
           <Svg
             width={signatureWidth}
