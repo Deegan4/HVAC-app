@@ -19,7 +19,7 @@ export const translations = {
     success: 'Success',
     
     // Onboarding
-    welcomeTitle: 'Welcome to Oliva Refrigeration',
+    welcomeTitle: 'Welcome to HandyHero',
     welcomeDescription: 'Your complete HVAC business management solution',
     welcomeFeature1: 'Streamline operations and boost efficiency',
     welcomeFeature2: 'Manage jobs, customers, and invoices in one place',
@@ -76,7 +76,7 @@ export const translations = {
     offlineFeature4: 'Reliable in any condition',
     
     readyTitle: 'Ready to Transform Your Business?',
-    readyDescription: 'Join successful HVAC companies using Oliva',
+    readyDescription: 'Join successful HVAC companies using HandyHero',
     readyFeature1: 'Increase efficiency by up to 40%',
     readyFeature2: 'Reduce paperwork and admin time',
     readyFeature3: 'Improve customer satisfaction',
@@ -236,7 +236,7 @@ export const translations = {
     serviceSettings: 'Service Settings',
     locationStatus: 'Location & Status',
     logoutConfirm: 'Are you sure you want to logout?',
-    appVersion: 'Oliva Refrigeration v1.0.0',
+    appVersion: 'HandyHero v1.0.0',
   },
   es: {
     // Common
@@ -256,7 +256,7 @@ export const translations = {
     success: 'Éxito',
     
     // Onboarding
-    welcomeTitle: 'Bienvenido a Oliva Refrigeration',
+    welcomeTitle: 'Bienvenido a HandyHero',
     welcomeDescription: 'Su solución completa de gestión de negocios HVAC',
     welcomeFeature1: 'Optimice operaciones y aumente la eficiencia',
     welcomeFeature2: 'Gestione trabajos, clientes y facturas en un solo lugar',
@@ -313,7 +313,7 @@ export const translations = {
     offlineFeature4: 'Confiable en cualquier condición',
     
     readyTitle: '¿Listo para Transformar su Negocio?',
-    readyDescription: 'Únase a empresas HVAC exitosas que usan Oliva',
+    readyDescription: 'Únase a empresas HVAC exitosas que usan HandyHero',
     readyFeature1: 'Aumente la eficiencia hasta en un 40%',
     readyFeature2: 'Reduzca el papeleo y el tiempo administrativo',
     readyFeature3: 'Mejore la satisfacción del cliente',
@@ -473,7 +473,7 @@ export const translations = {
     serviceSettings: 'Configuración de Servicio',
     locationStatus: 'Ubicación y Estado',
     logoutConfirm: '¿Está seguro de que desea cerrar sesión?',
-    appVersion: 'Oliva Refrigeration v1.0.0',
+    appVersion: 'HandyHero v1.0.0',
   },
 };
 
