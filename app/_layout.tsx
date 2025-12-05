@@ -53,7 +53,7 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, hasLanguage, userRole, language, setPin, setUserRole, setLanguage, authenticatePin } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, hasLanguage, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, isLoading } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
   console.log('AuthenticatedApp state:', { 
@@ -62,8 +62,13 @@ function AuthenticatedApp() {
     hasPin, 
     isAuthenticated,
     userRole,
-    language
+    language,
+    isLoading
   });
+  
+  if (isLoading) {
+    return null;
+  }
   
   // First show language selection
   if (!hasLanguage) {

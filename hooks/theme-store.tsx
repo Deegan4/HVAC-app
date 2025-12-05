@@ -22,6 +22,7 @@ export const [ThemeProvider, useTheme] = createContextHook<ThemeState>(() => {
       const stored = await AsyncStorage.getItem('theme');
       return (stored as ThemeMode) || 'light';
     },
+    staleTime: Infinity,
   });
 
   const themeMutation = useMutation({

@@ -93,6 +93,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('customers');
       return stored ? JSON.parse(stored) : mockCustomers;
     },
+    staleTime: Infinity,
   });
 
   const equipmentQuery = useQuery({
@@ -101,6 +102,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('equipment');
       return stored ? JSON.parse(stored) : mockEquipment;
     },
+    staleTime: Infinity,
   });
 
   const jobsQuery = useQuery({
@@ -109,6 +111,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('jobs');
       return stored ? JSON.parse(stored) : mockJobs;
     },
+    staleTime: Infinity,
   });
 
   const invoicesQuery = useQuery({
@@ -117,6 +120,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('invoices');
       return stored ? JSON.parse(stored) : mockInvoices;
     },
+    staleTime: Infinity,
   });
 
   const techniciansQuery = useQuery({
@@ -125,6 +129,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('technicians');
       return stored ? JSON.parse(stored) : mockTechnicians;
     },
+    staleTime: Infinity,
   });
 
   const messagesQuery = useQuery({
@@ -133,6 +138,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('messages');
       return stored ? JSON.parse(stored) : [] as Message[];
     },
+    staleTime: Infinity,
   });
 
   const jobCommentsQuery = useQuery({
@@ -141,6 +147,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('jobComments');
       return stored ? JSON.parse(stored) : [] as JobComment[];
     },
+    staleTime: Infinity,
   });
 
   const eventsQuery = useQuery({
@@ -149,6 +156,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       const stored = await AsyncStorage.getItem('events');
       return stored ? JSON.parse(stored) : [] as CalendarEvent[];
     },
+    staleTime: Infinity,
   });
 
   const permissionsQuery = useQuery({
@@ -173,6 +181,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         canImportExport: false,
       } as TechnicianPermissions;
     },
+    staleTime: Infinity,
   });
 
   const authQuery = useQuery({
@@ -199,6 +208,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         profileUpdateTrigger: 0,
       };
     },
+    staleTime: Infinity,
   });
 
   const customers = useMemo(() => customersQuery.data ?? mockCustomers, [customersQuery.data]);
