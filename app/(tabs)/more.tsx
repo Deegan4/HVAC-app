@@ -194,9 +194,11 @@ export default function MoreScreen() {
             <Text style={[styles.profileRole, { color: colors.primary }]}>
               {userRole === 'owner' ? 'Owner/Manager' : 'Service Technician'}
             </Text>
-            <Text style={[styles.profileEmail, { color: colors.text.secondary }]}>
-              {profileData?.email || currentTech?.email || 'user@olivarefrigeration.com'}
-            </Text>
+            {(profileData?.email || currentTech?.email) && (
+              <Text style={[styles.profileEmail, { color: colors.text.secondary }]}>
+                {profileData?.email || currentTech?.email}
+              </Text>
+            )}
           </View>
         </View>
 
