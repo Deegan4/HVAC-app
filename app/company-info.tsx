@@ -53,16 +53,16 @@ export default function CompanyInfoScreen() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: 'Oliva Refrigeration',
-    email: 'info@olivarefrigeration.com',
-    phone: '(555) 123-4567',
-    address: '123 Main Street, City, State 12345',
-    website: 'www.olivarefrigeration.com',
-    license: 'HVAC-2024-001',
-    taxId: '12-3456789',
-    businessHours: 'Mon-Fri 8AM-6PM, Sat 9AM-4PM',
-    emergencyPhone: '(555) 999-HVAC',
-    description: 'Professional HVAC and refrigeration services for commercial and residential clients.',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    website: '',
+    license: '',
+    taxId: '',
+    businessHours: '',
+    emergencyPhone: '',
+    description: '',
   });
   const [originalInfo, setOriginalInfo] = useState<CompanyInfo>(companyInfo);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
