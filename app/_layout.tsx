@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider, useAppStore } from "@/hooks/app-store";
 import { ThemeProvider } from "@/hooks/theme-store";
-import LoadingScreen from "@/components/LoadingScreen";
+
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
@@ -119,24 +119,13 @@ function AuthenticatedApp() {
 }
 
 export default function RootLayout() {
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const initializeApp = async () => {
-      // Show the spinning snowflake for at least 2 seconds
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Hide the splash screen and show the app
       await SplashScreen.hideAsync();
-      setIsLoading(false);
     };
 
     initializeApp();
   }, []);
-
-  if (isLoading) {
-    return <LoadingScreen message="Welcome to Oliva Refrigeration" size={72} />;
-  }
 
   return (
     <ErrorBoundary>
