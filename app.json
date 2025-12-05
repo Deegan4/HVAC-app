@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Oliva Refrigeration",
-    "slug": "oliva-refrigeration-service-app",
+    "name": "HandyHero",
+    "slug": "handyhero-service-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.oliva-refrigeration-service-app",
+      "bundleIdentifier": "app.handyhero-service-app",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
@@ -40,7 +40,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.oliva-refrigeration-service-app",
+      "package": "app.handyhero-service-app",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
