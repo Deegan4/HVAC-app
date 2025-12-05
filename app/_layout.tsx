@@ -9,7 +9,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
-import OnboardingScreen from "@/components/OnboardingScreen";
+
 import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -53,12 +53,11 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, hasLanguage, hasCompletedOnboarding, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, completeOnboarding } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, hasLanguage, userRole, language, setPin, setUserRole, setLanguage, authenticatePin } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   
   console.log('AuthenticatedApp state:', { 
     hasLanguage, 
-    hasCompletedOnboarding, 
     hasRole, 
     hasPin, 
     isAuthenticated,
@@ -73,18 +72,6 @@ function AuthenticatedApp() {
         onLanguageSelected={async (language: Language) => {
           console.log('_layout - onLanguageSelected called with:', language);
           await setLanguage(language);
-        }}
-      />
-    );
-  }
-  
-  // Then show onboarding
-  if (!hasCompletedOnboarding) {
-    console.log('Showing onboarding with language:', language);
-    return (
-      <OnboardingScreen 
-        onComplete={async () => {
-          await completeOnboarding();
         }}
       />
     );
