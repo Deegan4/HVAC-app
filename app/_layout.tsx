@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider, useAppStore } from "@/hooks/app-store";
 import { ThemeProvider } from "@/hooks/theme-store";
@@ -12,8 +11,6 @@ import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen"
 
 import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
-
-SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
@@ -66,9 +63,7 @@ function AuthenticatedApp() {
     isLoading
   });
   
-  if (isLoading) {
-    return null;
-  }
+
   
   // First show language selection
   if (!hasLanguage) {
@@ -124,14 +119,6 @@ function AuthenticatedApp() {
 }
 
 export default function RootLayout() {
-  useEffect(() => {
-    const initializeApp = async () => {
-      await SplashScreen.hideAsync();
-    };
-
-    initializeApp();
-  }, []);
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
