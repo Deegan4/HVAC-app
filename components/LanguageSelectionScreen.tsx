@@ -54,7 +54,7 @@ export default function LanguageSelectionScreen({ onLanguageSelected }: Language
         <View style={styles.content}>
           <View style={styles.header}>
             <SpinningSnowflake size={80} color={Colors.primary} duration={3000} />
-            <Text style={styles.title}>Oliva Refrigeration</Text>
+            <Text style={styles.title}>HandyHero</Text>
             <View style={styles.iconContainer}>
               <Globe size={32} color="#ffffff" />
             </View>

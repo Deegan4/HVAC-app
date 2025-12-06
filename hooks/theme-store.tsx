@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { LightColors, DarkColors, updateColors } from '@/constants/colors';
 
 export type ThemeMode = 'light' | 'dark';
@@ -36,11 +36,12 @@ export const [ThemeProvider, useTheme] = createContextHook<ThemeState>(() => {
   });
   const { mutateAsync: mutateTheme } = themeMutation;
 
-  const mode = useMemo(() => {
-    const currentMode = themeQuery.data ?? 'light';
-    updateColors(currentMode);
-    return currentMode;
-  }, [themeQuery.data]);
+  const mode = useMemo(() => themeQuery.data ?? 'light', [themeQuery.data]);
+  
+  useEffect(() => {
+    updateColors(mode);
+  }, [mode]);
+  
   const colors = useMemo(() => mode === 'dark' ? DarkColors : LightColors, [mode]);
 
   const setTheme = useCallback(async (newMode: ThemeMode) => {

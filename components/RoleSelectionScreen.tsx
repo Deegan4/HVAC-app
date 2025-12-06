@@ -61,7 +61,7 @@ export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScr
           {/* Header */}
           <View style={styles.header}>
             <SpinningSnowflake size={64} color={Colors.primary} />
-            <Text style={styles.title}>Oliva Refrigeration</Text>
+            <Text style={styles.title}>HandyHero</Text>
             <Text style={styles.subtitle}>
               {t.selectRole}
             </Text>
