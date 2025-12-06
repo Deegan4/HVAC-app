@@ -52,6 +52,13 @@ function RootLayoutNav() {
 function AuthenticatedApp() {
   const { isAuthenticated, hasPin, hasRole, hasLanguage, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, isLoading } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  
+  React.useEffect(() => {
+    if (!isLoading) {
+      setIsReady(true);
+    }
+  }, [isLoading]);
   
   console.log('AuthenticatedApp state:', { 
     hasLanguage, 
@@ -60,18 +67,22 @@ function AuthenticatedApp() {
     isAuthenticated,
     userRole,
     language,
-    isLoading
+    isLoading,
+    isReady
   });
   
-
+  // Wait until data is loaded before making auth decisions
+  if (!isReady) {
+    return null;
+  }
   
   // First show language selection
   if (!hasLanguage) {
     return (
       <LanguageSelectionScreen 
-        onLanguageSelected={async (language: Language) => {
-          console.log('_layout - onLanguageSelected called with:', language);
-          await setLanguage(language);
+        onLanguageSelected={async (lang: Language) => {
+          console.log('_layout - onLanguageSelected called with:', lang);
+          await setLanguage(lang);
         }}
       />
     );
