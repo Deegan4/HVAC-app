@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/theme-store";
 import { useTranslation } from "@/constants/translations";
 
 export default function TabLayout() {
-  const { userRole, language, canAccess } = useAppStore();
+  const { language } = useAppStore();
   const { colors } = useTheme();
   const t = useTranslation(language);
   
@@ -37,7 +37,6 @@ export default function TabLayout() {
         options={{
           title: t.customers,
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
-          href: canAccess('canViewCustomers') ? '/customers' : null,
         }}
       />
       <Tabs.Screen
@@ -52,7 +51,6 @@ export default function TabLayout() {
         options={{
           title: t.tracking,
           tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
-          href: userRole === 'owner' ? '/tracking' : null,
         }}
       />
       <Tabs.Screen
