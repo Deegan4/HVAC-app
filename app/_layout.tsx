@@ -9,7 +9,7 @@ import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
 
-import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
+
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -50,7 +50,7 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, hasLanguage, userRole, language, setPin, setUserRole, setLanguage, authenticatePin, isLoading } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, userRole, language, setPin, setUserRole, authenticatePin, isLoading } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isReady, setIsReady] = useState(false);
   
@@ -61,7 +61,6 @@ function AuthenticatedApp() {
   }, [isLoading]);
   
   console.log('AuthenticatedApp state:', { 
-    hasLanguage, 
     hasRole, 
     hasPin, 
     isAuthenticated,
@@ -76,19 +75,7 @@ function AuthenticatedApp() {
     return null;
   }
   
-  // First show language selection
-  if (!hasLanguage) {
-    return (
-      <LanguageSelectionScreen 
-        onLanguageSelected={async (lang: Language) => {
-          console.log('_layout - onLanguageSelected called with:', lang);
-          await setLanguage(lang);
-        }}
-      />
-    );
-  }
-  
-  // Then check if user has selected a role
+  // Check if user has selected a role
   if (!hasRole) {
     return (
       <RoleSelectionScreen 

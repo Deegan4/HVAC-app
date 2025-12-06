@@ -6,7 +6,6 @@ import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, Locati
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
-import { Language } from '@/components/LanguageSelectionScreen';
 
 interface AppState {
   customers: Customer[];
@@ -21,12 +20,12 @@ interface AppState {
   currentUserId: string;
   currentUserName: string;
   userRole: UserRole | null;
-  language: Language;
+  language: 'en';
   isLoading: boolean;
   isAuthenticated: boolean;
   hasPin: boolean;
   hasRole: boolean;
-  hasLanguage: boolean;
+
   hasCompletedOnboarding: boolean;
   profileUpdateTrigger: number;
   technicianPermissions: TechnicianPermissions;
@@ -53,7 +52,7 @@ interface AppState {
   getInvoicesByCustomer: (customerId: string) => Invoice[];
   setPin: (pin: string) => Promise<void>;
   setUserRole: (role: UserRole) => Promise<void>;
-  setLanguage: (language: Language) => Promise<void>;
+
   authenticatePin: (pin: string) => Promise<boolean>;
   setOwnerPassword: (password: string) => Promise<void>;
   authenticateOwnerPassword: (password: string) => Promise<boolean>;
@@ -201,7 +200,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
         pin,
         userRole: role as UserRole | null,
         hasCompletedOnboarding: onboarding === 'true',
-        language: lang as Language | null,
+        language: lang || 'en',
         isAuthenticated: authenticated === 'true',
         ownerPassword,
         isOwnerAuthenticated: ownerAuth === 'true',
@@ -239,10 +238,9 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
 
   const hasPin = Boolean(authQuery.data?.pin);
   const hasRole = Boolean(authQuery.data?.userRole);
-  const hasLanguage = authQuery.data?.language !== null && authQuery.data?.language !== undefined;
   const hasCompletedOnboarding = authQuery.data?.hasCompletedOnboarding ?? false;
   const userRole = authQuery.data?.userRole ?? null;
-  const language = authQuery.data?.language ?? 'en';
+  const language = 'en' as const;
   const isAuthenticated = authQuery.data?.isAuthenticated ?? false;
   const profileUpdateTrigger = authQuery.data?.profileUpdateTrigger ?? 0;
   const hasOwnerPassword = Boolean(authQuery.data?.ownerPassword);
@@ -342,7 +340,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       pin?: string;
       userRole?: UserRole;
       hasCompletedOnboarding?: boolean;
-      language?: Language;
+      language?: string;
       isAuthenticated?: boolean;
       ownerPassword?: string;
       isOwnerAuthenticated?: boolean;
@@ -419,10 +417,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
 
   const setUserRole = useCallback(async (role: UserRole) => {
     await mutateAuth({ userRole: role });
-  }, [mutateAuth]);
-
-  const setLanguage = useCallback(async (lang: Language) => {
-    await mutateAuth({ language: lang });
   }, [mutateAuth]);
 
   const authenticatePin = useCallback(async (pin: string): Promise<boolean> => {
@@ -670,7 +664,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
-    hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
     technicianPermissions,
@@ -692,7 +685,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getInvoicesByCustomer,
     setPin,
     setUserRole,
-    setLanguage,
+
     authenticatePin,
     setOwnerPassword,
     authenticateOwnerPassword,
@@ -740,7 +733,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     isAuthenticated,
     hasPin,
     hasRole,
-    hasLanguage,
     hasCompletedOnboarding,
     profileUpdateTrigger,
     technicianPermissions,
@@ -762,7 +754,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getInvoicesByCustomer,
     setPin,
     setUserRole,
-    setLanguage,
+
     authenticatePin,
     setOwnerPassword,
     authenticateOwnerPassword,
