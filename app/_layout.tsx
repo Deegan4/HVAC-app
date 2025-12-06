@@ -81,6 +81,7 @@ function AuthenticatedApp() {
   if (!hasRole) {
     return (
       <RoleSelectionScreen 
+        language={language}
         onRoleSelected={async (role: UserRole) => {
           setSelectedRole(role);
           await setUserRole(role);

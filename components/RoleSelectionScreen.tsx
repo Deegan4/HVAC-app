@@ -11,17 +11,17 @@ import { Colors } from '@/constants/colors';
 import SpinningSnowflake from './SpinningSnowflake';
 import SnowingBackground from './SnowingBackground';
 import { User, Settings } from 'lucide-react-native';
-import { useAppStore } from '@/hooks/app-store';
 import { useTranslation } from '@/constants/translations';
+import { Language } from '@/components/LanguageSelectionScreen';
 
 export type UserRole = 'owner' | 'technician';
 
 interface RoleSelectionScreenProps {
   onRoleSelected: (role: UserRole) => void;
+  language?: Language;
 }
 
-export default function RoleSelectionScreen({ onRoleSelected }: RoleSelectionScreenProps) {
-  const { language } = useAppStore();
+export default function RoleSelectionScreen({ onRoleSelected, language = 'en' }: RoleSelectionScreenProps) {
   const t = useTranslation(language);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
