@@ -13,6 +13,7 @@ import { Stack, router } from 'expo-router';
 import { Building, Mail, Phone, MapPin, Save, Edit3, Globe, FileText, AlertCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMountedRef } from '@/hooks/use-mounted-ref';
 
 interface CompanyInfo {
   name: string;
@@ -34,12 +35,14 @@ interface ValidationErrors {
 const REQUIRED_FIELDS = ['name', 'email', 'phone', 'address', 'license'];
 
 export default function CompanyInfoScreen() {
-  const [userRole, setUserRole] = React.useState<string | null>(null);
+  const mountedRef = useMountedRef();
   
   React.useEffect(() => {
     const checkRole = async () => {
       const role = await AsyncStorage.getItem('userRole');
-      setUserRole(role);
+      if (!mountedRef.current) {
+        return;
+      }
       if (role === 'technician') {
         Alert.alert(
           'Access Denied',
@@ -49,7 +52,7 @@ export default function CompanyInfoScreen() {
       }
     };
     checkRole();
-  }, []);
+  }, [mountedRef]);
   
   const [isEditing, setIsEditing] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
@@ -72,6 +75,9 @@ export default function CompanyInfoScreen() {
   const loadCompanyInfo = useCallback(async () => {
     try {
       const saved = await AsyncStorage.getItem('companyInfo');
+      if (!mountedRef.current) {
+        return;
+      }
       if (saved) {
         const parsedInfo = JSON.parse(saved);
         setCompanyInfo(parsedInfo);
@@ -80,7 +86,7 @@ export default function CompanyInfoScreen() {
     } catch (error) {
       console.log('Error loading company info:', error);
     }
-  }, []);
+  }, [mountedRef]);
 
   useEffect(() => {
     loadCompanyInfo();
@@ -152,16 +158,23 @@ export default function CompanyInfoScreen() {
       }, {} as CompanyInfo);
       
       await AsyncStorage.setItem('companyInfo', JSON.stringify(trimmedInfo));
+      if (!mountedRef.current) {
+        return;
+      }
       setCompanyInfo(trimmedInfo);
       setOriginalInfo(trimmedInfo);
       setValidationErrors({});
       Alert.alert('Success', 'Company information updated successfully!');
       setIsEditing(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to save company information. Please try again.');
+      if (mountedRef.current) {
+        Alert.alert('Error', 'Failed to save company information. Please try again.');
+      }
       console.log('Error saving company info:', error);
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 

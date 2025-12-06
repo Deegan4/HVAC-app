@@ -32,10 +32,10 @@ import {
 } from 'lucide-react-native';
 import { useAppStore } from '@/hooks/app-store';
 import { useTheme } from '@/hooks/theme-store';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from '@/constants/translations';
-import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMountedRef } from '@/hooks/use-mounted-ref';
 
 export default function MoreScreen() {
   const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language, canAccess } = useAppStore();
@@ -54,13 +54,26 @@ export default function MoreScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(mode === 'dark');
   const [profileData, setProfileData] = useState<any>(null);
+  const mountedRef = useMountedRef();
 
   // Load profile data to get the updated name
   const loadProfileData = useCallback(async () => {
     try {
       const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
       console.log('Loading profile data for more tab, profileId:', profileId);
+      if (!profileId) {
+        if (mountedRef.current) {
+          setProfileData(null);
+        }
+        return;
+      }
+
       const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
+
+      if (!mountedRef.current) {
+        return;
+      }
+
       if (savedProfile) {
         const parsed = JSON.parse(savedProfile);
         console.log('Loaded profile data:', parsed);
@@ -70,9 +83,12 @@ export default function MoreScreen() {
         setProfileData(null);
       }
     } catch (error) {
+      if (mountedRef.current) {
+        setProfileData(null);
+      }
       console.log('Error loading profile data:', error);
     }
-  }, [currentTech?.id, userRole]);
+  }, [currentTech?.id, mountedRef, userRole]);
 
   // Load profile data on mount
   useEffect(() => {

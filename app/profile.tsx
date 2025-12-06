@@ -16,6 +16,7 @@ import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { useMountedRef } from '@/hooks/use-mounted-ref';
 
 interface ProfileFieldProps {
   isEditing: boolean;
@@ -62,6 +63,7 @@ export default function ProfileScreen() {
       : null;
   const [isEditing, setIsEditing] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const mountedRef = useMountedRef();
   
   const defaultProfile = useMemo(() => ({
     name: currentTech?.name || '',
@@ -81,8 +83,24 @@ export default function ProfileScreen() {
     try {
       const profileId = userRole === 'owner' ? 'owner' : currentTech?.id;
       console.log('Loading profile data for:', profileId);
-      const savedProfile = await AsyncStorage.getItem(`profile_${profileId}`);
-      const savedPhoto = await AsyncStorage.getItem(`profilePhoto_${profileId}`);
+
+      if (!profileId) {
+        if (mountedRef.current) {
+          setProfile(defaultProfile);
+          setOriginalProfile(defaultProfile);
+          setProfilePhoto(null);
+        }
+        return;
+      }
+
+      const [savedProfile, savedPhoto] = await Promise.all([
+        AsyncStorage.getItem(`profile_${profileId}`),
+        AsyncStorage.getItem(`profilePhoto_${profileId}`),
+      ]);
+
+      if (!mountedRef.current) {
+        return;
+      }
       
       if (savedProfile) {
         const parsedProfile = JSON.parse(savedProfile);
@@ -98,11 +116,17 @@ export default function ProfileScreen() {
       if (savedPhoto) {
         console.log('Loaded saved photo');
         setProfilePhoto(savedPhoto);
+      } else {
+        setProfilePhoto(null);
       }
     } catch (error) {
+      if (mountedRef.current) {
+        setProfile(defaultProfile);
+        setOriginalProfile(defaultProfile);
+      }
       console.log('Error loading profile data:', error);
     }
-  }, [currentTech?.id, defaultProfile, userRole]);
+  }, [currentTech?.id, defaultProfile, mountedRef, userRole]);
 
   useEffect(() => {
     loadProfileData();
