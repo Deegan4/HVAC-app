@@ -37,14 +37,14 @@ const PLANS: Plan[] = [
     discountedPrice: 25,
     priceSubtext: 'first month',
     features: [
-      { text: 'Scheduling and dispatching', included: true },
-      { text: 'Quotes and proposals', included: true },
-      { text: 'Invoices and payments', included: true },
-      { text: 'Online booking', included: true },
-      { text: 'Review management', included: true },
-      { text: 'Job cost tracking', included: true },
-      { text: 'Price book', included: true },
-      { text: 'Customer communication', included: true },
+      { text: 'Customer management', included: true },
+      { text: 'Job scheduling & dispatching', included: true },
+      { text: 'Invoice creation & tracking', included: true },
+      { text: 'Price book management', included: true },
+      { text: 'Equipment tracking', included: true },
+      { text: 'Service history logs', included: true },
+      { text: 'Photo & signature capture', included: true },
+      { text: 'Mobile app access', included: true },
     ],
   },
   {
@@ -56,32 +56,35 @@ const PLANS: Plan[] = [
     priceSubtext: 'first month',
     featuresHeader: 'All Basic features, plus:',
     features: [
-      { text: 'QuickBooks online and desktop', included: true },
-      { text: 'Postcards and email marketing', included: true },
-      { text: 'Customer equipment tracking', included: true },
-      { text: 'Premium review management', included: true },
-      { text: 'Visual price book', included: true },
-      { text: 'Employee GPS tracking', included: true },
-      { text: 'Checklists', included: true },
+      { text: 'Team management & permissions', included: true },
+      { text: 'Real-time GPS tracking', included: true },
+      { text: 'Team messaging system', included: true },
+      { text: 'QuickBooks integration', included: true },
+      { text: 'Reports & analytics', included: true },
+      { text: 'Calendar & scheduling tools', included: true },
+      { text: 'Multi-technician support', included: true },
     ],
   },
   {
     id: 'max',
     name: 'MAX',
-    userCount: '1-8+ users',
+    userCount: 'Unlimited users',
     originalPrice: 329,
     discountedPrice: 99,
     priceSubtext: 'per month for 3 months',
     recommended: true,
     featuresHeader: 'All Essential features, plus:',
     features: [
-      { text: 'Advanced custom reporting', included: true },
-      { text: 'Dedicated onboarding specialist', included: true },
-      { text: 'Escalated phone support', included: true },
+      { text: 'AI-powered answering service', included: true },
+      { text: 'Advanced performance analytics', included: true },
+      { text: 'Custom service settings', included: true },
+      { text: 'Import/Export data tools', included: true },
+      { text: 'Priority support', included: true },
+      { text: 'Advanced reporting suite', included: true },
     ],
     addOns: [
-      'Sales Proposal Tool',
-      'Recurring Service Plans',
+      'Custom branding',
+      'API access',
     ],
   },
 ];
@@ -118,12 +121,11 @@ export default function SubscriptionPlansScreen() {
       >
         <View style={styles.header}>
           <Text style={[styles.headerText, { color: colors.text.primary }]}>
-            For Heating & Air Conditioning companies with 2-5 employees, we{' '}
-            <Text style={styles.boldText}>recommend the MAX plan</Text>
+            Choose the plan that fits your business needs.{' '}
+            <Text style={styles.boldText}>Most popular: MAX plan</Text>
           </Text>
           <Text style={[styles.subheaderText, { color: colors.text.secondary }]}>
-            Plan selection limited by current team size. To access all plans,{' '}
-            <Text style={[styles.linkText, { color: colors.primary }]}>manage team members</Text>
+            All plans include core features. Upgrade anytime as your business grows.
           </Text>
         </View>
 
