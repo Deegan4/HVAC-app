@@ -239,15 +239,6 @@ export default function SubscriptionPlansScreen() {
             );
           })}
         </View>
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerWebsite, { color: colors.text.primary }]}>
-            pro.housecallpro.com
-          </Text>
-          <Text style={[styles.footerCurrency, { color: colors.text.secondary }]}>
-            All prices in USD ($)
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -404,16 +395,5 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     marginTop: 8,
   },
-  footer: {
-    alignItems: 'center',
-    marginTop: 32,
-    gap: 4,
-  },
-  footerWebsite: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  footerCurrency: {
-    fontSize: 14,
-  },
+
 });
