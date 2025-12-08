@@ -21,7 +21,6 @@ import {
   FileText,
   BarChart3,
   Wrench,
-  Bug,
   DollarSign,
   MapPin,
   Phone,
@@ -185,12 +184,6 @@ export default function MoreScreen() {
         ...(userRole === 'owner' ? [{ icon: Phone, label: t.aiAnsweringService, onPress: () => router.push('/ai-answering-service') }] : []),
         { icon: HelpCircle, label: t.helpCenter, onPress: () => router.push('/help-center') },
         { icon: FileText, label: t.termsConditions, onPress: () => router.push('/terms-conditions') },
-      ]
-    },
-    {
-      title: t.developer,
-      items: [
-        { icon: Bug, label: t.debugTools, onPress: () => router.push('/debug') },
       ]
     }
   ].filter(section => section.items.length > 0);
