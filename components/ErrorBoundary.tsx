@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { AlertCircle } from 'lucide-react-native';
+import { AlertCircle, RefreshCw } from 'lucide-react-native';
 
 interface Props {
   children: ReactNode;
@@ -31,39 +31,72 @@ class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null });
   };
 
+  getErrorMessage = (error: Error): string => {
+    const errorLower = error.message.toLowerCase();
+    
+    if (errorLower.includes('network') || errorLower.includes('fetch')) {
+      return 'Unable to connect. Please check your internet connection and try again.';
+    }
+    if (errorLower.includes('timeout')) {
+      return 'The request took too long. Please try again.';
+    }
+    if (errorLower.includes('permission')) {
+      return 'This action requires additional permissions. Please check your app settings.';
+    }
+    if (errorLower.includes('storage') || errorLower.includes('asyncstorage')) {
+      return 'Unable to save your data. Please free up some storage space and try again.';
+    }
+    if (errorLower.includes('auth')) {
+      return 'Session expired. Please log in again.';
+    }
+    
+    return 'We encountered an unexpected error. Please try again or restart the app.';
+  };
+
   render() {
     if (this.state.hasError && this.state.error) {
       if (this.props.fallback) {
         return this.props.fallback(this.state.error, this.resetError);
       }
 
+      const errorMessage = this.getErrorMessage(this.state.error);
+
       return (
         <View style={styles.container}>
           <View style={styles.content}>
-            <AlertCircle size={64} color="#EF4444" style={styles.icon} />
-            <Text style={styles.title}>Something went wrong</Text>
-            <Text style={styles.message}>
-              We&apos;re sorry, but the app encountered an unexpected error.
-            </Text>
+            <View style={styles.iconContainer}>
+              <AlertCircle size={72} color="#EF4444" />
+            </View>
+            <Text style={styles.title}>Oops! Something went wrong</Text>
+            <Text style={styles.message}>{errorMessage}</Text>
             
-            <ScrollView style={styles.errorContainer}>
-              <Text style={styles.errorTitle}>Error Details:</Text>
-              <Text style={styles.errorText}>{this.state.error.message}</Text>
-              {__DEV__ && this.state.error.stack && (
-                <>
-                  <Text style={styles.errorTitle}>Stack Trace:</Text>
-                  <Text style={styles.errorStack}>{this.state.error.stack}</Text>
-                </>
-              )}
-            </ScrollView>
+            {__DEV__ && (
+              <ScrollView style={styles.errorContainer}>
+                <Text style={styles.errorTitle}>Debug Info:</Text>
+                <Text style={styles.errorText}>{this.state.error.message}</Text>
+                {this.state.error.stack && (
+                  <>
+                    <Text style={styles.errorTitle}>Stack Trace:</Text>
+                    <Text style={styles.errorStack}>{this.state.error.stack}</Text>
+                  </>
+                )}
+              </ScrollView>
+            )}
 
-            <TouchableOpacity 
-              style={styles.button} 
-              onPress={this.resetError}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.buttonText}>Try Again</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.button} 
+                onPress={this.resetError}
+                activeOpacity={0.7}
+              >
+                <RefreshCw size={18} color="#FFFFFF" />
+                <Text style={styles.buttonText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.supportText}>
+              If this problem persists, please contact support.
+            </Text>
           </View>
         </View>
       );
@@ -79,68 +112,100 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   content: {
     alignItems: 'center',
-    maxWidth: 500,
+    maxWidth: 400,
     width: '100%',
   },
-  icon: {
-    marginBottom: 24,
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
     fontSize: 24,
     fontWeight: '700' as const,
     color: '#1F2937',
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   message: {
     fontSize: 16,
     color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
+    textAlign: 'center' as const,
+    marginBottom: 32,
     lineHeight: 24,
+    paddingHorizontal: 16,
   },
   errorContainer: {
     width: '100%',
-    maxHeight: 200,
+    maxHeight: 150,
     backgroundColor: '#FEF2F2',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
   errorTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600' as const,
     color: '#991B1B',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#DC2626',
     marginBottom: 12,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   errorStack: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#DC2626',
     fontFamily: 'monospace',
-    lineHeight: 18,
+    lineHeight: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#0066CC',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     borderRadius: 12,
-    minWidth: 200,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  secondaryButton: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600' as const,
-    textAlign: 'center',
+  },
+  secondaryButtonText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+  supportText: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center' as const,
   },
 });
 

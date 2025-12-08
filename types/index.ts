@@ -197,3 +197,40 @@ export interface TechnicianPermissions {
   canAccessMessaging: boolean;
   canImportExport: boolean;
 }
+
+export type SubscriptionPlan = 'basic' | 'essentials' | 'max' | null;
+
+export interface Subscription {
+  plan: SubscriptionPlan;
+  status: 'active' | 'trial' | 'expired' | 'cancelled';
+  startDate: string;
+  endDate?: string;
+  trialEndsAt?: string;
+  maxUsers: number;
+  features: SubscriptionFeatures;
+}
+
+export interface SubscriptionFeatures {
+  customerManagement: boolean;
+  jobScheduling: boolean;
+  invoicing: boolean;
+  priceBook: boolean;
+  equipmentTracking: boolean;
+  serviceHistory: boolean;
+  photoSignature: boolean;
+  mobileAccess: boolean;
+  teamManagement: boolean;
+  gpsTracking: boolean;
+  teamMessaging: boolean;
+  quickbooksIntegration: boolean;
+  reportsAnalytics: boolean;
+  calendarTools: boolean;
+  multiTechnician: boolean;
+  aiAnsweringService: boolean;
+  advancedAnalytics: boolean;
+  customServiceSettings: boolean;
+  importExport: boolean;
+  prioritySupport: boolean;
+  customBranding: boolean;
+  apiAccess: boolean;
+}

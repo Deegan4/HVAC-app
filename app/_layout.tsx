@@ -8,8 +8,7 @@ import { ThemeProvider } from "@/hooks/theme-store";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
-
-
+import OnboardingTutorial from "@/components/OnboardingTutorial";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -50,7 +49,7 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, userRole, language, setPin, setUserRole, authenticatePin, isLoading } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, userRole, language, setPin, setUserRole, authenticatePin, isLoading, hasCompletedOnboarding, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isReady, setIsReady] = useState(false);
   
@@ -109,6 +108,17 @@ function AuthenticatedApp() {
       <PinAuthScreen 
         onAuthenticate={async (pin: string) => {
           return await authenticatePin(pin);
+        }}
+      />
+    );
+  }
+
+  // Show onboarding for first-time users
+  if (!hasCompletedOnboarding) {
+    return (
+      <OnboardingTutorial
+        onComplete={async () => {
+          await completeOnboarding();
         }}
       />
     );
