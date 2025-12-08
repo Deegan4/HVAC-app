@@ -37,7 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMountedRef } from '@/hooks/use-mounted-ref';
 
 export default function MoreScreen() {
-  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language, canAccess } = useAppStore();
+  const { technicians, currentTechnicianId, logout, userRole, profileUpdateTrigger, getUnreadCount, language, canAccess, subscription } = useAppStore();
   const { colors, mode, toggleTheme } = useTheme();
   const t = useTranslation(language);
   const unreadCount = getUnreadCount();
@@ -191,6 +191,32 @@ export default function MoreScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView}>
+        {/* Subscription Banner */}
+        {userRole === 'owner' && subscription && (
+          <TouchableOpacity
+            style={[
+              styles.subscriptionBanner,
+              {
+                backgroundColor: subscription.status === 'trial' ? colors.primary + '10' : colors.success + '10',
+                borderColor: subscription.status === 'trial' ? colors.primary : colors.success,
+              },
+            ]}
+            onPress={() => router.push('/subscription-plans')}
+          >
+            <View style={styles.subscriptionInfo}>
+              <Text style={[styles.subscriptionPlan, { color: colors.text.primary }]}>
+                {subscription.plan?.toUpperCase()} Plan
+              </Text>
+              <Text style={[styles.subscriptionStatus, { color: subscription.status === 'trial' ? colors.primary : colors.success }]}>
+                {subscription.status === 'trial' 
+                  ? `Trial ends ${new Date(subscription.trialEndsAt || '').toLocaleDateString()}`
+                  : 'Active'}
+              </Text>
+            </View>
+            <ChevronRight size={18} color={colors.text.secondary} />
+          </TouchableOpacity>
+        )}
+
         {/* User Profile Card */}
         <View style={[styles.profileCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
@@ -369,5 +395,27 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '600' as const,
+  },
+  subscriptionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  subscriptionInfo: {
+    flex: 1,
+  },
+  subscriptionPlan: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+  },
+  subscriptionStatus: {
+    fontSize: 13,
+    marginTop: 2,
   },
 });

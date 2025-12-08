@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent, TechnicianPermissions } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent, TechnicianPermissions, Subscription, SubscriptionPlan, SubscriptionFeatures } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -31,6 +31,7 @@ interface AppState {
   technicianPermissions: TechnicianPermissions;
   hasOwnerPassword: boolean;
   isOwnerAuthenticated: boolean;
+  subscription: Subscription | null;
   addJob: (job: Omit<Job, 'id'>) => void;
   updateJobStatus: (jobId: string, status: Job['status']) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'equipment' | 'serviceHistory'>) => void;
@@ -77,6 +78,9 @@ interface AppState {
   getEventsByDate: (date: string) => CalendarEvent[];
   updateTechnicianPermissions: (permissions: Partial<TechnicianPermissions>) => Promise<void>;
   canAccess: (permission: keyof TechnicianPermissions) => boolean;
+  setSubscription: (plan: SubscriptionPlan) => Promise<void>;
+  hasFeature: (feature: keyof SubscriptionFeatures) => boolean;
+  getSubscriptionStatus: () => Subscription['status'] | null;
 }
 
 export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
@@ -158,6 +162,15 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     staleTime: Infinity,
   });
 
+  const subscriptionQuery = useQuery({
+    queryKey: ['subscription'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem('subscription');
+      return stored ? JSON.parse(stored) as Subscription : null;
+    },
+    staleTime: Infinity,
+  });
+
   const permissionsQuery = useQuery({
     queryKey: ['technicianPermissions'],
     queryFn: async () => {
@@ -218,6 +231,8 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
   const jobComments = useMemo(() => jobCommentsQuery.data ?? [], [jobCommentsQuery.data]);
   const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
+  const subscription = useMemo(() => subscriptionQuery.data ?? null, [subscriptionQuery.data]);
+
   const technicianPermissions = useMemo(() => permissionsQuery.data ?? {
     canViewCustomers: true,
     canAddEditCustomers: false,
@@ -334,6 +349,21 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   });
   const { mutate: mutateEvents } = eventsMutation;
   const { mutateAsync: mutatePermissions } = permissionsMutation;
+
+  const subscriptionMutation = useMutation({
+    mutationFn: async (newSubscription: Subscription | null) => {
+      if (newSubscription) {
+        await AsyncStorage.setItem('subscription', JSON.stringify(newSubscription));
+      } else {
+        await AsyncStorage.removeItem('subscription');
+      }
+      return newSubscription;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    },
+  });
+  const { mutateAsync: mutateSubscription } = subscriptionMutation;
 
   const authMutation = useMutation({
     mutationFn: async (updates: {
@@ -634,6 +664,97 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     return technicianPermissions[permission];
   }, [userRole, technicianPermissions]);
 
+  const getSubscriptionFeatures = useCallback((plan: SubscriptionPlan): SubscriptionFeatures => {
+    const basicFeatures: SubscriptionFeatures = {
+      customerManagement: true,
+      jobScheduling: true,
+      invoicing: true,
+      priceBook: true,
+      equipmentTracking: true,
+      serviceHistory: true,
+      photoSignature: true,
+      mobileAccess: true,
+      teamManagement: false,
+      gpsTracking: false,
+      teamMessaging: false,
+      quickbooksIntegration: false,
+      reportsAnalytics: false,
+      calendarTools: false,
+      multiTechnician: false,
+      aiAnsweringService: false,
+      advancedAnalytics: false,
+      customServiceSettings: false,
+      importExport: false,
+      prioritySupport: false,
+      customBranding: false,
+      apiAccess: false,
+    };
+
+    const essentialsFeatures: SubscriptionFeatures = {
+      ...basicFeatures,
+      teamManagement: true,
+      gpsTracking: true,
+      teamMessaging: true,
+      quickbooksIntegration: true,
+      reportsAnalytics: true,
+      calendarTools: true,
+      multiTechnician: true,
+    };
+
+    const maxFeatures: SubscriptionFeatures = {
+      ...essentialsFeatures,
+      aiAnsweringService: true,
+      advancedAnalytics: true,
+      customServiceSettings: true,
+      importExport: true,
+      prioritySupport: true,
+      customBranding: true,
+      apiAccess: true,
+    };
+
+    switch (plan) {
+      case 'basic':
+        return basicFeatures;
+      case 'essentials':
+        return essentialsFeatures;
+      case 'max':
+        return maxFeatures;
+      default:
+        return basicFeatures;
+    }
+  }, []);
+
+  const setSubscription = useCallback(async (plan: SubscriptionPlan) => {
+    console.log('setSubscription - setting plan:', plan);
+    if (!plan) {
+      await mutateSubscription(null);
+      return;
+    }
+
+    const newSubscription: Subscription = {
+      plan,
+      status: 'trial',
+      startDate: new Date().toISOString(),
+      trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      maxUsers: plan === 'basic' ? 1 : plan === 'essentials' ? 5 : -1,
+      features: getSubscriptionFeatures(plan),
+    };
+    await mutateSubscription(newSubscription);
+    console.log('setSubscription - completed');
+  }, [mutateSubscription, getSubscriptionFeatures]);
+
+  const hasFeature = useCallback((feature: keyof SubscriptionFeatures): boolean => {
+    if (!subscription) return true;
+    if (subscription.status === 'expired' || subscription.status === 'cancelled') {
+      return false;
+    }
+    return subscription.features[feature];
+  }, [subscription]);
+
+  const getSubscriptionStatus = useCallback((): Subscription['status'] | null => {
+    return subscription?.status ?? null;
+  }, [subscription]);
+
   const isLoading = 
     customersQuery.isLoading || 
     equipmentQuery.isLoading || 
@@ -644,6 +765,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     jobCommentsQuery.isLoading || 
     eventsQuery.isLoading ||
     permissionsQuery.isLoading ||
+    subscriptionQuery.isLoading ||
     authQuery.isLoading;
 
   return useMemo(() => ({
@@ -715,6 +837,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getEventsByDate,
     updateTechnicianPermissions,
     canAccess,
+    subscription,
+    setSubscription,
+    hasFeature,
+    getSubscriptionStatus,
   }), [
     customers,
     equipment,
@@ -784,6 +910,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getEventsByDate,
     updateTechnicianPermissions,
     canAccess,
+    subscription,
+    setSubscription,
+    hasFeature,
+    getSubscriptionStatus,
   ]);
 });
 

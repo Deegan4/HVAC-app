@@ -5,10 +5,16 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { Check, Star, ChevronLeft } from 'lucide-react-native';
+import { Check, Star, ChevronLeft, CheckCircle } from 'lucide-react-native';
 import { useTheme } from '@/hooks/theme-store';
+import { useAppStore } from '@/hooks/app-store';
+import { SubscriptionPlan } from '@/types';
+import { useMutation } from '@tanstack/react-query';
+import { HapticFeedback } from '@/utils/HapticFeedback';
 
 interface PlanFeature {
   text: string;
@@ -91,12 +97,55 @@ const PLANS: Plan[] = [
 
 export default function SubscriptionPlansScreen() {
   const { colors } = useTheme();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const { subscription, setSubscription } = useAppStore();
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(subscription?.plan ?? null);
 
-  const handleSelectPlan = (planId: string) => {
+  const subscribeMutation = useMutation({
+    mutationFn: async (planId: SubscriptionPlan) => {
+      await setSubscription(planId);
+      return planId;
+    },
+    onSuccess: (planId) => {
+      HapticFeedback.success();
+      const planName = PLANS.find(p => p.id === planId)?.name ?? 'Plan';
+      Alert.alert(
+        '🎉 Subscription Activated!',
+        `You are now subscribed to the ${planName} plan. Your 30-day free trial has started.`,
+        [
+          {
+            text: 'Start Using App',
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    },
+    onError: () => {
+      HapticFeedback.error();
+      Alert.alert(
+        'Subscription Failed',
+        'There was an error activating your subscription. Please try again.',
+        [{ text: 'OK' }]
+      );
+    },
+  });
+
+  const handleSubscribe = (planId: string) => {
     setSelectedPlan(planId);
-    console.log('Selected plan:', planId);
+    HapticFeedback.medium();
+    Alert.alert(
+      'Confirm Subscription',
+      `Start your 30-day free trial of the ${PLANS.find(p => p.id === planId)?.name} plan?\n\nYou won\'t be charged until your trial ends.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start Free Trial',
+          onPress: () => subscribeMutation.mutate(planId as SubscriptionPlan),
+        },
+      ]
+    );
   };
+
+  const isCurrentPlan = (planId: string) => subscription?.plan === planId;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -184,22 +233,37 @@ export default function SubscriptionPlansScreen() {
                   </Text>
                 </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.selectButton,
-                    { 
-                      backgroundColor: isSelected || plan.recommended ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => handleSelectPlan(plan.id)}
-                >
-                  <Text style={[
-                    styles.selectButtonText,
-                    { color: isSelected || plan.recommended ? '#FFFFFF' : colors.text.secondary }
-                  ]}>
-                    Select plan
-                  </Text>
-                </TouchableOpacity>
+                {isCurrentPlan(plan.id) ? (
+                  <View style={[styles.currentPlanButton, { backgroundColor: colors.success + '20', borderColor: colors.success }]}>
+                    <CheckCircle size={18} color={colors.success} />
+                    <Text style={[styles.currentPlanText, { color: colors.success }]}>
+                      Current Plan
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.selectButton,
+                      { 
+                        backgroundColor: isSelected || plan.recommended ? colors.primary : colors.border,
+                      },
+                      subscribeMutation.isPending && { opacity: 0.7 },
+                    ]}
+                    onPress={() => handleSubscribe(plan.id)}
+                    disabled={subscribeMutation.isPending}
+                  >
+                    {subscribeMutation.isPending && selectedPlan === plan.id ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={[
+                        styles.selectButtonText,
+                        { color: isSelected || plan.recommended ? '#FFFFFF' : colors.text.secondary }
+                      ]}>
+                        {isSelected ? 'Start Free Trial' : 'Select Plan'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
 
                 <View style={styles.featuresContainer}>
                   <Text style={[styles.featuresTitle, { color: colors.text.primary }]}>
@@ -397,5 +461,18 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     marginTop: 8,
   },
-
+  currentPlanButton: {
+    flexDirection: 'row',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    gap: 8,
+  },
+  currentPlanText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
 });
