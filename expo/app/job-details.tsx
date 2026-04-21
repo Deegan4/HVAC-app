@@ -128,7 +128,7 @@ export default function JobDetailsScreen() {
     if (newStatus === 'completed' && (!jobPhoto || !jobSignature)) {
       Alert.alert(
         'Missing Requirements',
-        'Please capture a photo and customer signature before completing the job.',
+        'Please capture a photo and customer signature before completing the project.',
         [{ text: 'OK' }]
       );
       return;
@@ -136,7 +136,7 @@ export default function JobDetailsScreen() {
 
     Alert.alert(
       'Update Status',
-      `Change job status to ${newStatus}?`,
+      `Change project status to ${newStatus}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -149,7 +149,7 @@ export default function JobDetailsScreen() {
               }
             } catch (error) {
               console.error('Error updating job status:', error);
-              Alert.alert('Error', 'Failed to update job status. Changes saved offline.');
+              Alert.alert('Error', 'Failed to update project status. Changes saved offline.');
             }
           }
         }
@@ -293,7 +293,7 @@ export default function JobDetailsScreen() {
         {/* Technician */}
         {job.technicianName && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Assigned Technician</Text>
+            <Text style={styles.sectionTitle}>Assigned Crew Member</Text>
             <View style={styles.card}>
               <View style={styles.technicianRow}>
                 <View style={styles.techAvatar}>
@@ -308,7 +308,7 @@ export default function JobDetailsScreen() {
         {/* Photo and Signature Section */}
         {job.status === 'inProgress' && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Job Documentation</Text>
+            <Text style={styles.sectionTitle}>Project Documentation</Text>
             <View style={styles.card}>
               <View style={styles.documentationRow}>
                 <TouchableOpacity
@@ -431,7 +431,7 @@ export default function JobDetailsScreen() {
                 onPress={() => handleStatusChange('inProgress')}
               >
                 <PlayCircle size={20} color={Colors.text.inverse} />
-                <Text style={styles.actionButtonText}>Start Job</Text>
+                <Text style={styles.actionButtonText}>Start Project</Text>
               </TouchableOpacity>
             )}
             {job.status === 'inProgress' && (
@@ -445,7 +445,7 @@ export default function JobDetailsScreen() {
                 disabled={!jobPhoto || !jobSignature}
               >
                 <CheckCircle size={20} color={Colors.text.inverse} />
-                <Text style={styles.actionButtonText}>Complete Job</Text>
+                <Text style={styles.actionButtonText}>Complete Project</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -453,7 +453,7 @@ export default function JobDetailsScreen() {
               onPress={() => handleStatusChange('cancelled')}
             >
               <XCircle size={20} color={Colors.text.inverse} />
-              <Text style={styles.actionButtonText}>Cancel Job</Text>
+              <Text style={styles.actionButtonText}>Cancel Project</Text>
             </TouchableOpacity>
           </View>
         )}

@@ -69,7 +69,7 @@ export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
 
     try {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to access HandyHero',
+        promptMessage: 'Authenticate to access AGCC',
         fallbackLabel: 'Use PIN instead',
         cancelLabel: 'Cancel',
         disableDeviceFallback: false,
@@ -215,7 +215,7 @@ export default function PinAuthScreen({ onAuthenticate }: PinAuthScreenProps) {
             <SpinningSnowflake size={64} color={Colors.primary} />
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
-              Enter your PIN to access HandyHero
+              Enter your PIN to access AGCC
             </Text>
           </View>
 

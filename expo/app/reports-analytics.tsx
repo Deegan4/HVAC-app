@@ -147,7 +147,7 @@ export default function ReportsAnalyticsScreen() {
             />
             <MetricCard
               icon={Wrench}
-              title="Jobs"
+              title="Projects"
               value={jobStats.total.toString()}
               subtitle={`${jobStats.completed} completed`}
               color={Colors.primary}
@@ -171,7 +171,7 @@ export default function ReportsAnalyticsScreen() {
 
         {/* Job Status Chart */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Status Breakdown</Text>
+          <Text style={styles.sectionTitle}>Project Status Breakdown</Text>
           <View style={styles.chartContainer}>
             {jobStatusData.map((item, index) => (
               <ChartBar
@@ -228,7 +228,7 @@ export default function ReportsAnalyticsScreen() {
               <View style={styles.insightContent}>
                 <Text style={styles.insightTitle}>Revenue Growth</Text>
                 <Text style={styles.insightDescription}>
-                  Up 15% from last month with strong performance in maintenance services
+                  Up 15% from last month with strong performance in general contracting services
                 </Text>
               </View>
             </View>

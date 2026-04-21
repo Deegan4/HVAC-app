@@ -15,7 +15,7 @@ export interface Customer {
 export interface Equipment {
   id: string;
   customerId: string;
-  type: 'AC' | 'Furnace' | 'Refrigerator' | 'Freezer' | 'HVAC' | 'Water Heater' | 'Other';
+  type: 'Kitchen' | 'Bathroom' | 'Roof' | 'Foundation' | 'Electrical' | 'Plumbing' | 'Other';
   brand: string;
   model: string;
   serialNumber: string;
@@ -34,7 +34,7 @@ export interface Job {
   scheduledTime: string;
   status: 'scheduled' | 'in-progress' | 'inProgress' | 'completed' | 'cancelled' | 'emergency';
   priority: 'low' | 'normal' | 'high' | 'emergency';
-  type: 'repair' | 'maintenance' | 'installation' | 'inspection';
+  type: 'repair' | 'maintenance' | 'installation' | 'inspection' | 'construction' | 'consulting';
   description: string;
   technicianId?: string;
   technicianName?: string;
@@ -84,39 +84,7 @@ export interface Technician {
   certifications?: string[];
   availability: 'available' | 'busy' | 'offline';
   currentJobId?: string;
-  location?: TechnicianLocation;
-  status?: TechnicianStatus;
   lastUpdate?: string;
-}
-
-export interface TechnicianLocation {
-  latitude: number;
-  longitude: number;
-  address?: string;
-  accuracy?: number;
-  timestamp: string;
-}
-
-export interface TechnicianStatus {
-  status: 'on-route' | 'at-job' | 'break' | 'returning' | 'offline';
-  currentJobId?: string;
-  estimatedArrival?: string;
-  nextJobId?: string;
-  message?: string;
-}
-
-export interface LocationUpdate {
-  technicianId: string;
-  location: TechnicianLocation;
-  status: TechnicianStatus;
-  timestamp: string;
-}
-
-export interface TrackingFilter {
-  status?: TechnicianStatus['status'][];
-  availability?: Technician['availability'][];
-  searchQuery?: string;
-  showOnlyActive?: boolean;
 }
 
 export interface Message {
@@ -220,7 +188,6 @@ export interface SubscriptionFeatures {
   photoSignature: boolean;
   mobileAccess: boolean;
   teamManagement: boolean;
-  gpsTracking: boolean;
   teamMessaging: boolean;
   quickbooksIntegration: boolean;
   reportsAnalytics: boolean;

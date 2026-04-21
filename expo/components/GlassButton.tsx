@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, Platform, View } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Colors } from '@/constants/colors';
+import { useTheme } from '@/hooks/theme-store';
 
 interface GlassButtonProps {
   title: string;
@@ -13,15 +13,18 @@ interface GlassButtonProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export default function GlassButton({ 
-  title, 
-  onPress, 
+export default function GlassButton({
+  title,
+  onPress,
   icon,
   style,
   textStyle,
   variant = 'primary',
   size = 'medium'
 }: GlassButtonProps) {
+  const { colors, mode } = useTheme();
+  const isDark = mode === 'dark';
+
   const sizeStyles = {
     small: { paddingVertical: 8, paddingHorizontal: 16 },
     medium: { paddingVertical: 12, paddingHorizontal: 20 },
@@ -29,34 +32,39 @@ export default function GlassButton({
   };
 
   const variantColors = {
-    primary: Colors.primary,
-    secondary: Colors.secondary,
-    accent: Colors.accent,
+    primary: colors.primary,
+    secondary: colors.secondary,
+    accent: colors.accent,
   };
 
   if (Platform.OS === 'web') {
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={onPress}
         style={[
           styles.webButton,
+          isDark && styles.webButtonDark,
           sizeStyles[size],
           { backgroundColor: `${variantColors[variant]}CC` },
           style
         ]}
       >
         {icon && <View style={styles.iconContainer}><View>{icon}</View></View>}
-        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+        <Text style={[styles.buttonText, { color: colors.text.inverse }, textStyle]}>{title}</Text>
       </TouchableOpacity>
     );
   }
 
   return (
     <TouchableOpacity onPress={onPress} style={[styles.buttonWrapper, style]}>
-      <BlurView intensity={60} tint="light" style={[styles.button, sizeStyles[size]]}>
+      <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={[
+        styles.button,
+        isDark && styles.buttonDark,
+        sizeStyles[size],
+      ]}>
         <View style={[styles.buttonOverlay, { backgroundColor: `${variantColors[variant]}99` }]}>
           {icon && <View style={styles.iconContainer}><View>{icon}</View></View>}
-          <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+          <Text style={[styles.buttonText, { color: colors.text.inverse }, textStyle]}>{title}</Text>
         </View>
       </BlurView>
     </TouchableOpacity>
@@ -74,6 +82,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
+  buttonDark: {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
   buttonOverlay: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -84,7 +95,6 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   buttonText: {
-    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600' as const,
   },
@@ -100,5 +110,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  webButtonDark: {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

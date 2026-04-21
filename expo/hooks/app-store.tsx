@@ -2,7 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
-import { Customer, Equipment, Job, Invoice, Technician, TechnicianStatus, LocationUpdate, Message, JobComment, CalendarEvent, TechnicianPermissions, Subscription, SubscriptionPlan, SubscriptionFeatures } from '@/types';
+import { Customer, Equipment, Job, Invoice, Technician, Message, JobComment, CalendarEvent, TechnicianPermissions, Subscription, SubscriptionPlan, SubscriptionFeatures } from '@/types';
 import { mockCustomers, mockEquipment, mockJobs, mockInvoices, mockTechnicians } from '@/mocks/data';
 import OfflineStorageManager from '@/utils/OfflineStorageManager';
 import { UserRole } from '@/components/RoleSelectionScreen';
@@ -20,7 +20,7 @@ interface AppState {
   currentUserId: string;
   currentUserName: string;
   userRole: UserRole | null;
-  language: 'en';
+  language: 'en' | 'es';
   isLoading: boolean;
   isAuthenticated: boolean;
   hasPin: boolean;
@@ -51,6 +51,7 @@ interface AppState {
   getCustomerById: (id: string) => Customer | undefined;
   getEquipmentByCustomer: (customerId: string) => Equipment[];
   getInvoicesByCustomer: (customerId: string) => Invoice[];
+  setLanguage: (language: 'en' | 'es') => Promise<void>;
   setPin: (pin: string) => Promise<void>;
   setUserRole: (role: UserRole) => Promise<void>;
 
@@ -60,10 +61,6 @@ interface AppState {
   logoutOwner: () => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
-  updateTechnicianLocation: (technicianId: string, locationUpdate: LocationUpdate) => void;
-  updateTechnicianStatus: (technicianId: string, status: TechnicianStatus) => void;
-  getTechniciansByStatus: (status: TechnicianStatus['status']) => Technician[];
-  getActiveTechnicians: () => Technician[];
   triggerProfileUpdate: () => Promise<void>;
   sendMessage: (message: Omit<Message, 'id' | 'timestamp' | 'read'>) => void;
   markMessageAsRead: (messageId: string) => void;
@@ -255,7 +252,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const hasRole = Boolean(authQuery.data?.userRole);
   const hasCompletedOnboarding = authQuery.data?.hasCompletedOnboarding ?? false;
   const userRole = authQuery.data?.userRole ?? null;
-  const language = 'en' as const;
+  const language = (authQuery.data?.language ?? 'en') as 'en' | 'es';
   const isAuthenticated = authQuery.data?.isAuthenticated ?? false;
   const profileUpdateTrigger = authQuery.data?.profileUpdateTrigger ?? 0;
   const hasOwnerPassword = Boolean(authQuery.data?.ownerPassword);
@@ -439,6 +436,10 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     mutateJobs(updatedJobs);
   }, [jobs, mutateJobs, offlineStorage]);
 
+  const setLanguage = useCallback(async (lang: 'en' | 'es') => {
+    await mutateAuth({ language: lang });
+  }, [mutateAuth]);
+
   const setPin = useCallback(async (pin: string) => {
     console.log('setPin - starting');
     await mutateAuth({ pin, isAuthenticated: true });
@@ -486,22 +487,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
   const completeOnboarding = useCallback(async () => {
     await mutateAuth({ hasCompletedOnboarding: true });
   }, [mutateAuth]);
-
-  const updateTechnicianLocation = useCallback((technicianId: string, locationUpdate: LocationUpdate) => {
-    console.log('Updating technician location:', technicianId, locationUpdate);
-  }, []);
-
-  const updateTechnicianStatus = useCallback((technicianId: string, status: TechnicianStatus) => {
-    console.log('Updating technician status:', technicianId, status);
-  }, []);
-
-  const getTechniciansByStatus = useCallback((status: TechnicianStatus['status']) => {
-    return technicians.filter((tech: Technician) => tech.status?.status === status);
-  }, [technicians]);
-
-  const getActiveTechnicians = useCallback(() => {
-    return technicians.filter((tech: Technician) => tech.availability !== 'offline');
-  }, [technicians]);
 
   const addTechnician = useCallback((technician: Omit<Technician, 'id'>) => {
     const newTechnician: Technician = { ...technician, id: `tech${Date.now()}` } as Technician;
@@ -675,7 +660,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
       photoSignature: true,
       mobileAccess: true,
       teamManagement: false,
-      gpsTracking: false,
       teamMessaging: false,
       quickbooksIntegration: false,
       reportsAnalytics: false,
@@ -693,7 +677,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     const essentialsFeatures: SubscriptionFeatures = {
       ...basicFeatures,
       teamManagement: true,
-      gpsTracking: true,
       teamMessaging: true,
       quickbooksIntegration: true,
       reportsAnalytics: true,
@@ -805,6 +788,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getCustomerById,
     getEquipmentByCustomer,
     getInvoicesByCustomer,
+    setLanguage,
     setPin,
     setUserRole,
 
@@ -816,10 +800,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     completeOnboarding,
     importCustomers,
     exportCustomers,
-    updateTechnicianLocation,
-    updateTechnicianStatus,
-    getTechniciansByStatus,
-    getActiveTechnicians,
     addTechnician,
     updateTechnician,
     deleteTechnician,
@@ -878,6 +858,7 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     getCustomerById,
     getEquipmentByCustomer,
     getInvoicesByCustomer,
+    setLanguage,
     setPin,
     setUserRole,
 
@@ -889,10 +870,6 @@ export const [AppProvider, useAppStore] = createContextHook<AppState>(() => {
     completeOnboarding,
     importCustomers,
     exportCustomers,
-    updateTechnicianLocation,
-    updateTechnicianStatus,
-    getTechniciansByStatus,
-    getActiveTechnicians,
     addTechnician,
     updateTechnician,
     deleteTechnician,

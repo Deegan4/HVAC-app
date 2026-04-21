@@ -65,8 +65,8 @@ export default function AIAnsweringServiceScreen() {
   const [serviceEnabled, setServiceEnabled] = useState(true);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'analytics' | 'settings'>('overview');
-  const [phoneNumber, setPhoneNumber] = useState('1-800-COOLING');
-  const [greetingMessage, setGreetingMessage] = useState('Thank you for calling Oliva Refrigeration. How may I assist you today?');
+  const [phoneNumber, setPhoneNumber] = useState('239-722-0762');
+  const [greetingMessage, setGreetingMessage] = useState('Thank you for calling All General Contractors and Consulting. How may I assist you today?');
   const [businessHours, setBusinessHours] = useState<BusinessHours>({
     enabled: true,
     days: {

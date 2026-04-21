@@ -17,120 +17,112 @@ export const translations = {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
-    
+
     // Onboarding
-    welcomeTitle: 'Welcome to HandyHero',
-    welcomeDescription: 'Your complete HVAC business management solution',
+    welcomeTitle: 'Welcome to AGCC',
+    welcomeDescription: 'Your complete contractor management solution',
     welcomeFeature1: 'Streamline operations and boost efficiency',
-    welcomeFeature2: 'Manage jobs, customers, and invoices in one place',
-    welcomeFeature3: 'Real-time tracking and updates',
-    welcomeFeature4: 'Built for success and growth',
-    
-    jobManagementTitle: 'Smart Job Management',
-    jobManagementDescription: 'Never miss a job or appointment',
-    jobManagementFeature1: 'Schedule and dispatch jobs instantly',
-    jobManagementFeature2: 'Track job status in real-time',
-    jobManagementFeature3: 'Priority-based job organization',
+    welcomeFeature2: 'Manage projects, clients, and invoices in one place',
+    welcomeFeature3: 'Real-time crew updates and communication',
+    welcomeFeature4: 'Built for contractor success',
+
+    jobManagementTitle: 'Smart Project Management',
+    jobManagementDescription: 'Never miss a project or deadline',
+    jobManagementFeature1: 'Schedule and assign projects instantly',
+    jobManagementFeature2: 'Track project status in real-time',
+    jobManagementFeature3: 'Priority-based project organization',
     jobManagementFeature4: 'Automated reminders and notifications',
-    
-    customerExcellenceTitle: 'Customer Excellence',
+
+    customerExcellenceTitle: 'Client Excellence',
     customerExcellenceDescription: 'Build lasting relationships',
-    customerExcellenceFeature1: 'Complete customer profiles and history',
-    customerExcellenceFeature2: 'Equipment tracking and maintenance logs',
-    customerExcellenceFeature3: 'Quick access to customer information',
-    customerExcellenceFeature4: 'Service history at your fingertips',
-    
+    customerExcellenceFeature1: 'Complete client profiles and history',
+    customerExcellenceFeature2: 'Property tracking and inspection logs',
+    customerExcellenceFeature3: 'Quick access to client information',
+    customerExcellenceFeature4: 'Project history at your fingertips',
+
     invoicingTitle: 'Effortless Invoicing',
     invoicingDescription: 'Get paid faster',
     invoicingFeature1: 'Create professional invoices on-site',
     invoicingFeature2: 'Digital signatures for instant approval',
     invoicingFeature3: 'Track payments and outstanding balances',
     invoicingFeature4: 'Automated payment reminders',
-    
-    trackingTitle: 'Live Technician Tracking',
-    trackingDescription: 'Know where your team is',
-    trackingFeature1: 'Real-time GPS location tracking',
-    trackingFeature2: 'Optimize routes and reduce travel time',
-    trackingFeature3: 'Monitor technician availability',
-    trackingFeature4: 'Improve response times',
-    
+
     analyticsTitle: 'Powerful Analytics',
     analyticsDescription: 'Make data-driven decisions',
     analyticsFeature1: 'Revenue and performance insights',
-    analyticsFeature2: 'Job completion metrics',
-    analyticsFeature3: 'Customer satisfaction tracking',
+    analyticsFeature2: 'Project completion metrics',
+    analyticsFeature3: 'Client satisfaction tracking',
     analyticsFeature4: 'Identify growth opportunities',
-    
+
     collaborationTitle: 'Team Collaboration',
-    collaborationDescription: 'Stay connected with your team',
+    collaborationDescription: 'Stay connected with your crew',
     collaborationFeature1: 'In-app messaging between office and field',
-    collaborationFeature2: 'Job notes and comments',
+    collaborationFeature2: 'Project notes and comments',
     collaborationFeature3: 'Photo sharing for documentation',
     collaborationFeature4: 'Instant communication',
-    
+
     offlineTitle: 'Offline Capabilities',
     offlineDescription: 'Work anywhere, anytime',
     offlineFeature1: 'Full offline functionality',
     offlineFeature2: 'Automatic sync when online',
     offlineFeature3: 'Never lose data',
-    offlineFeature4: 'Reliable in any condition',
-    
+    offlineFeature4: 'Reliable anywhere, on any job site',
+
     readyTitle: 'Ready to Transform Your Business?',
-    readyDescription: 'Join successful HVAC companies using HandyHero',
+    readyDescription: 'Join successful contractors using AGCC',
     readyFeature1: 'Increase efficiency by up to 40%',
     readyFeature2: 'Reduce paperwork and admin time',
-    readyFeature3: 'Improve customer satisfaction',
+    readyFeature3: 'Improve client satisfaction',
     readyFeature4: 'Grow your revenue',
-    
+
     progressText: 'of',
-    
+
     // Language Selection
     selectLanguage: 'Select your preferred language',
     languageChangeNote: 'You can change the language later in settings',
-    
+
     // Role Selection
     selectRole: 'Welcome! Please select your role to get started',
     chooseYourRole: 'Choose Your Role',
     ownerManager: 'Owner/Manager',
     ownerDescription: 'Full access to all features, reports, and settings',
-    technician: 'Technician',
-    technicianDescription: 'Access to jobs, customers, and field operations',
+    technician: 'Crew Member',
+    technicianDescription: 'Access to projects, clients, and field operations',
     roleChangeNote: 'You can change your role later in settings',
     roleRequired: 'Role Required',
     pleaseSelectRole: 'Please select your role to continue.',
-    
+
     // Tabs
     home: 'Home',
-    customers: 'Customers',
+    customers: 'Clients',
     invoices: 'Invoices',
-    tracking: 'Tracking',
     more: 'More',
-    
+
     // Home Screen
     todaysSchedule: "Today's Schedule",
-    upcomingJobs: 'Upcoming Jobs',
+    upcomingJobs: 'Upcoming Projects',
     viewCalendar: 'View Calendar',
     viewList: 'View List',
-    noJobsToday: 'No jobs scheduled for today',
-    noJobsDescription: 'Your schedule is clear. Add a new job to get started.',
-    addNewJob: 'Add New Job',
-    jobsCompleted: 'Jobs Completed',
-    jobsInProgress: 'Jobs In Progress',
-    jobsScheduled: 'Jobs Scheduled',
-    emergencyJobs: 'Emergency Jobs',
+    noJobsToday: 'No projects scheduled for today',
+    noJobsDescription: 'Your schedule is clear. Add a new project to get started.',
+    addNewJob: 'Add New Project',
+    jobsCompleted: 'Projects Completed',
+    jobsInProgress: 'Projects In Progress',
+    jobsScheduled: 'Projects Scheduled',
+    emergencyJobs: 'Emergency Projects',
     scheduled: 'Scheduled',
     inProgress: 'In Progress',
     completed: 'Completed',
     cancelled: 'Cancelled',
     emergency: 'Emergency',
-    
+
     // Customer Screen
-    allCustomers: 'All Customers',
-    searchCustomers: 'Search customers...',
-    addNewCustomer: 'Add New Customer',
-    noCustomers: 'No customers yet',
-    noCustomersDescription: 'Start building your customer base by adding your first customer.',
-    
+    allCustomers: 'All Clients',
+    searchCustomers: 'Search clients...',
+    addNewCustomer: 'Add New Client',
+    noCustomers: 'No clients yet',
+    noCustomersDescription: 'Start building your client base by adding your first client.',
+
     // Invoice Screen
     allInvoices: 'All Invoices',
     searchInvoices: 'Search invoices...',
@@ -142,12 +134,12 @@ export const translations = {
     overdue: 'Overdue',
     draft: 'Draft',
     sent: 'Sent',
-    
+
     // More Screen
     settings: 'Settings',
     profile: 'Profile',
     companyInfo: 'Company Information',
-    teamManagement: 'Team Management',
+    teamManagement: 'Crew Management',
     priceBook: 'Price Book',
     quickbooksIntegration: 'QuickBooks Integration',
     reportsAnalytics: 'Reports & Analytics',
@@ -155,7 +147,7 @@ export const translations = {
     privacySecurity: 'Privacy & Security',
     termsConditions: 'Terms & Conditions',
     logout: 'Logout',
-    
+
     // Invoice Screen - Additional
     new: 'New',
     all: 'All',
@@ -179,10 +171,10 @@ export const translations = {
     paymentRecording: 'Payment Recording',
     trackPartialPayments: 'Track partial payments and outstanding balances',
     easySharing: 'Easy Sharing',
-    sendInvoicesDirectly: 'Send invoices directly to customers via email or text',
+    sendInvoicesDirectly: 'Send invoices directly to clients via email or text',
     tipSetupCompanyInfo: 'Tip: Set up your company info first to automatically include it on invoices',
     done: 'Done',
-    customer: 'Customer',
+    customer: 'Client',
     date: 'Date',
     dueDate: 'Due Date',
     status: 'Status',
@@ -199,32 +191,10 @@ export const translations = {
     alreadyPaid: 'Already Paid',
     remaining: 'Remaining',
     sendInvoice: 'Send Invoice',
-    
-    // Tracking Screen
-    teamTracking: 'Team Tracking',
-    active: 'Active',
-    enRoute: 'En Route',
-    accessDenied: 'Access Denied',
-    trackingOwnerOnly: 'Technician tracking is only available for owners',
-    noTechniciansYet: 'No Technicians Added Yet',
-    noTechniciansDescription: 'Add technicians to your team to start tracking their locations and job progress in real-time',
-    addFirstTechnician: 'Add Your First Technician',
-    setupTeamTracking: 'Set up your team to enable tracking',
-    whatYouCanTrack: 'What you can track:',
-    realTimeLocation: 'Real-time location updates',
-    jobProgressStatus: 'Job progress and status',
-    estimatedArrival: 'Estimated arrival times',
-    performanceAnalytics: 'Performance analytics',
-    list: 'List',
-    map: 'Map',
-    stats: 'Stats',
-    searchTechnicians: 'Search technicians...',
-    noTechniciansFound: 'No technicians found',
-    tryAdjustingFilters: 'Try adjusting your search',
-    
+
     // More Screen - Additional
     communication: 'Communication',
-    teamMessages: 'Team Messages',
+    teamMessages: 'Crew Messages',
     business: 'Business',
     account: 'Account',
     support: 'Support',
@@ -233,10 +203,9 @@ export const translations = {
     notifications: 'Notifications',
     aiAnsweringService: 'AI Answering Service',
     debugTools: 'Debug Tools',
-    serviceSettings: 'Service Settings',
-    locationStatus: 'Location & Status',
+    serviceSettings: 'Project Settings',
     logoutConfirm: 'Are you sure you want to logout?',
-    appVersion: 'HandyHero v1.0.0',
+    appVersion: 'AGCC v1.0.0',
   },
   es: {
     // Common
@@ -254,120 +223,112 @@ export const translations = {
     loading: 'Cargando...',
     error: 'Error',
     success: 'Éxito',
-    
+
     // Onboarding
-    welcomeTitle: 'Bienvenido a HandyHero',
-    welcomeDescription: 'Su solución completa de gestión de negocios HVAC',
+    welcomeTitle: 'Bienvenido a AGCC',
+    welcomeDescription: 'Su solución completa de gestión de contratistas',
     welcomeFeature1: 'Optimice operaciones y aumente la eficiencia',
-    welcomeFeature2: 'Gestione trabajos, clientes y facturas en un solo lugar',
-    welcomeFeature3: 'Seguimiento y actualizaciones en tiempo real',
-    welcomeFeature4: 'Construido para el éxito y el crecimiento',
-    
-    jobManagementTitle: 'Gestión Inteligente de Trabajos',
-    jobManagementDescription: 'Nunca pierda un trabajo o cita',
-    jobManagementFeature1: 'Programe y despache trabajos al instante',
-    jobManagementFeature2: 'Rastree el estado del trabajo en tiempo real',
-    jobManagementFeature3: 'Organización de trabajos basada en prioridades',
+    welcomeFeature2: 'Gestione proyectos, clientes y facturas en un solo lugar',
+    welcomeFeature3: 'Actualizaciones y comunicación en tiempo real',
+    welcomeFeature4: 'Construido para el éxito de contratistas',
+
+    jobManagementTitle: 'Gestión Inteligente de Proyectos',
+    jobManagementDescription: 'Nunca pierda un proyecto o fecha límite',
+    jobManagementFeature1: 'Programe y asigne proyectos al instante',
+    jobManagementFeature2: 'Rastree el estado del proyecto en tiempo real',
+    jobManagementFeature3: 'Organización de proyectos basada en prioridades',
     jobManagementFeature4: 'Recordatorios y notificaciones automáticas',
-    
-    customerExcellenceTitle: 'Excelencia en el Cliente',
+
+    customerExcellenceTitle: 'Excelencia con el Cliente',
     customerExcellenceDescription: 'Construya relaciones duraderas',
     customerExcellenceFeature1: 'Perfiles completos de clientes e historial',
-    customerExcellenceFeature2: 'Seguimiento de equipos y registros de mantenimiento',
+    customerExcellenceFeature2: 'Seguimiento de propiedades y registros de inspección',
     customerExcellenceFeature3: 'Acceso rápido a información del cliente',
-    customerExcellenceFeature4: 'Historial de servicio al alcance de su mano',
-    
+    customerExcellenceFeature4: 'Historial de proyectos al alcance de su mano',
+
     invoicingTitle: 'Facturación Sin Esfuerzo',
     invoicingDescription: 'Reciba pagos más rápido',
     invoicingFeature1: 'Cree facturas profesionales en el sitio',
     invoicingFeature2: 'Firmas digitales para aprobación instantánea',
     invoicingFeature3: 'Rastree pagos y saldos pendientes',
     invoicingFeature4: 'Recordatorios de pago automáticos',
-    
-    trackingTitle: 'Seguimiento de Técnicos en Vivo',
-    trackingDescription: 'Sepa dónde está su equipo',
-    trackingFeature1: 'Seguimiento de ubicación GPS en tiempo real',
-    trackingFeature2: 'Optimice rutas y reduzca el tiempo de viaje',
-    trackingFeature3: 'Monitoree la disponibilidad de técnicos',
-    trackingFeature4: 'Mejore los tiempos de respuesta',
-    
+
     analyticsTitle: 'Análisis Potentes',
     analyticsDescription: 'Tome decisiones basadas en datos',
     analyticsFeature1: 'Información sobre ingresos y rendimiento',
-    analyticsFeature2: 'Métricas de finalización de trabajos',
+    analyticsFeature2: 'Métricas de finalización de proyectos',
     analyticsFeature3: 'Seguimiento de satisfacción del cliente',
     analyticsFeature4: 'Identifique oportunidades de crecimiento',
-    
+
     collaborationTitle: 'Colaboración en Equipo',
     collaborationDescription: 'Manténgase conectado con su equipo',
     collaborationFeature1: 'Mensajería en la aplicación entre oficina y campo',
-    collaborationFeature2: 'Notas y comentarios de trabajos',
+    collaborationFeature2: 'Notas y comentarios de proyectos',
     collaborationFeature3: 'Compartir fotos para documentación',
     collaborationFeature4: 'Comunicación instantánea',
-    
+
     offlineTitle: 'Capacidades Sin Conexión',
     offlineDescription: 'Trabaje en cualquier lugar, en cualquier momento',
     offlineFeature1: 'Funcionalidad completa sin conexión',
     offlineFeature2: 'Sincronización automática cuando esté en línea',
     offlineFeature3: 'Nunca pierda datos',
-    offlineFeature4: 'Confiable en cualquier condición',
-    
+    offlineFeature4: 'Confiable en cualquier lugar, en cualquier obra',
+
     readyTitle: '¿Listo para Transformar su Negocio?',
-    readyDescription: 'Únase a empresas HVAC exitosas que usan HandyHero',
+    readyDescription: 'Únase a contratistas exitosos que usan AGCC',
     readyFeature1: 'Aumente la eficiencia hasta en un 40%',
     readyFeature2: 'Reduzca el papeleo y el tiempo administrativo',
     readyFeature3: 'Mejore la satisfacción del cliente',
     readyFeature4: 'Aumente sus ingresos',
-    
+
     progressText: 'de',
-    
+
     // Language Selection
     selectLanguage: 'Seleccione su idioma preferido',
     languageChangeNote: 'Puede cambiar el idioma más tarde en la configuración',
-    
+
     // Role Selection
     selectRole: '¡Bienvenido! Por favor seleccione su rol para comenzar',
     chooseYourRole: 'Elija su Rol',
     ownerManager: 'Propietario/Gerente',
     ownerDescription: 'Acceso completo a todas las funciones, informes y configuraciones',
-    technician: 'Técnico',
-    technicianDescription: 'Acceso a trabajos, clientes y operaciones de campo',
+    technician: 'Miembro del Equipo',
+    technicianDescription: 'Acceso a proyectos, clientes y operaciones de campo',
     roleChangeNote: 'Puede cambiar su rol más tarde en la configuración',
     roleRequired: 'Rol Requerido',
     pleaseSelectRole: 'Por favor seleccione su rol para continuar.',
-    
+
     // Tabs
     home: 'Inicio',
     customers: 'Clientes',
     invoices: 'Facturas',
-    tracking: 'Seguimiento',
     more: 'Más',
-    
+
     // Home Screen
     todaysSchedule: 'Horario de Hoy',
-    upcomingJobs: 'Trabajos Próximos',
+    upcomingJobs: 'Proyectos Próximos',
     viewCalendar: 'Ver Calendario',
     viewList: 'Ver Lista',
-    noJobsToday: 'No hay trabajos programados para hoy',
-    noJobsDescription: 'Su horario está despejado. Agregue un nuevo trabajo para comenzar.',
-    addNewJob: 'Agregar Nuevo Trabajo',
-    jobsCompleted: 'Trabajos Completados',
-    jobsInProgress: 'Trabajos en Progreso',
-    jobsScheduled: 'Trabajos Programados',
-    emergencyJobs: 'Trabajos de Emergencia',
+    noJobsToday: 'No hay proyectos programados para hoy',
+    noJobsDescription: 'Su horario está despejado. Agregue un nuevo proyecto para comenzar.',
+    addNewJob: 'Agregar Nuevo Proyecto',
+    jobsCompleted: 'Proyectos Completados',
+    jobsInProgress: 'Proyectos en Progreso',
+    jobsScheduled: 'Proyectos Programados',
+    emergencyJobs: 'Proyectos de Emergencia',
     scheduled: 'Programado',
     inProgress: 'En Progreso',
     completed: 'Completado',
     cancelled: 'Cancelado',
     emergency: 'Emergencia',
-    
+
     // Customer Screen
     allCustomers: 'Todos los Clientes',
     searchCustomers: 'Buscar clientes...',
     addNewCustomer: 'Agregar Nuevo Cliente',
     noCustomers: 'Aún no hay clientes',
     noCustomersDescription: 'Comience a construir su base de clientes agregando su primer cliente.',
-    
+
     // Invoice Screen
     allInvoices: 'Todas las Facturas',
     searchInvoices: 'Buscar facturas...',
@@ -379,12 +340,12 @@ export const translations = {
     overdue: 'Vencido',
     draft: 'Borrador',
     sent: 'Enviado',
-    
+
     // More Screen
     settings: 'Configuración',
     profile: 'Perfil',
     companyInfo: 'Información de la Empresa',
-    teamManagement: 'Gestión de Equipo',
+    teamManagement: 'Gestión del Equipo',
     priceBook: 'Lista de Precios',
     quickbooksIntegration: 'Integración de QuickBooks',
     reportsAnalytics: 'Informes y Análisis',
@@ -392,7 +353,7 @@ export const translations = {
     privacySecurity: 'Privacidad y Seguridad',
     termsConditions: 'Términos y Condiciones',
     logout: 'Cerrar Sesión',
-    
+
     // Invoice Screen - Additional
     new: 'Nuevo',
     all: 'Todos',
@@ -436,29 +397,7 @@ export const translations = {
     alreadyPaid: 'Ya Pagado',
     remaining: 'Restante',
     sendInvoice: 'Enviar Factura',
-    
-    // Tracking Screen
-    teamTracking: 'Seguimiento de Equipo',
-    active: 'Activo',
-    enRoute: 'En Ruta',
-    accessDenied: 'Acceso Denegado',
-    trackingOwnerOnly: 'El seguimiento de técnicos solo está disponible para propietarios',
-    noTechniciansYet: 'Aún No Se Han Agregado Técnicos',
-    noTechniciansDescription: 'Agregue técnicos a su equipo para comenzar a rastrear sus ubicaciones y progreso de trabajos en tiempo real',
-    addFirstTechnician: 'Agregue su Primer Técnico',
-    setupTeamTracking: 'Configure su equipo para habilitar el seguimiento',
-    whatYouCanTrack: 'Lo que puede rastrear:',
-    realTimeLocation: 'Actualizaciones de ubicación en tiempo real',
-    jobProgressStatus: 'Progreso y estado del trabajo',
-    estimatedArrival: 'Tiempos de llegada estimados',
-    performanceAnalytics: 'Análisis de rendimiento',
-    list: 'Lista',
-    map: 'Mapa',
-    stats: 'Estadísticas',
-    searchTechnicians: 'Buscar técnicos...',
-    noTechniciansFound: 'No se encontraron técnicos',
-    tryAdjustingFilters: 'Intente ajustar su búsqueda',
-    
+
     // More Screen - Additional
     communication: 'Comunicación',
     teamMessages: 'Mensajes del Equipo',
@@ -470,10 +409,9 @@ export const translations = {
     notifications: 'Notificaciones',
     aiAnsweringService: 'Servicio de Respuesta AI',
     debugTools: 'Herramientas de Depuración',
-    serviceSettings: 'Configuración de Servicio',
-    locationStatus: 'Ubicación y Estado',
+    serviceSettings: 'Configuración de Proyectos',
     logoutConfirm: '¿Está seguro de que desea cerrar sesión?',
-    appVersion: 'HandyHero v1.0.0',
+    appVersion: 'AGCC v1.0.0',
   },
 };
 

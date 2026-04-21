@@ -1,6 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Colors } from '@/constants/colors';
 
 interface Props {
   children: ReactNode;
@@ -65,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <View style={styles.content}>
             <View style={styles.iconContainer}>
-              <AlertCircle size={72} color="#EF4444" />
+              <AlertCircle size={72} color={Colors.error} />
             </View>
             <Text style={styles.title}>Oops! Something went wrong</Text>
             <Text style={styles.message}>{errorMessage}</Text>
@@ -89,7 +90,7 @@ class ErrorBoundary extends Component<Props, State> {
                 onPress={this.resetError}
                 activeOpacity={0.7}
               >
-                <RefreshCw size={18} color="#FFFFFF" />
+                <RefreshCw size={18} color={Colors.text.inverse} />
                 <Text style={styles.buttonText}>Try Again</Text>
               </TouchableOpacity>
             </View>
@@ -109,7 +110,7 @@ class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.error + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 32,
@@ -131,13 +132,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#1F2937',
+    color: Colors.text.primary,
     marginBottom: 12,
     textAlign: 'center' as const,
   },
   message: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.text.secondary,
     textAlign: 'center' as const,
     marginBottom: 32,
     lineHeight: 24,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   errorContainer: {
     width: '100%',
     maxHeight: 150,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.error + '10',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -154,18 +155,18 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 13,
     fontWeight: '600' as const,
-    color: '#991B1B',
+    color: Colors.error,
     marginBottom: 6,
   },
   errorText: {
     fontSize: 13,
-    color: '#DC2626',
+    color: Colors.error,
     marginBottom: 12,
     lineHeight: 18,
   },
   errorStack: {
     fontSize: 11,
-    color: '#DC2626',
+    color: Colors.error,
     fontFamily: 'monospace',
     lineHeight: 16,
   },
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#0066CC',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   secondaryButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.background,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
@@ -193,18 +194,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600' as const,
   },
   secondaryButtonText: {
-    color: '#374151',
+    color: Colors.text.primary,
     fontSize: 16,
     fontWeight: '600' as const,
   },
   supportText: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: Colors.text.light,
     textAlign: 'center' as const,
   },
 });

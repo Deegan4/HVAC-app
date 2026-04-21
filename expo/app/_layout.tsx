@@ -8,38 +8,41 @@ import { ThemeProvider } from "@/hooks/theme-store";
 import PinSetupScreen from "@/components/PinSetupScreen";
 import PinAuthScreen from "@/components/PinAuthScreen";
 import RoleSelectionScreen, { UserRole } from "@/components/RoleSelectionScreen";
+import LanguageSelectionScreen, { Language } from "@/components/LanguageSelectionScreen";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { useTheme } from "@/hooks/theme-store";
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const { colors } = useTheme();
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="job-details" options={{ 
+      <Stack.Screen name="job-details" options={{
         title: "Job Details",
         presentation: "modal",
-        headerStyle: { backgroundColor: '#0066CC' },
-        headerTintColor: '#FFFFFF',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.text.inverse,
       }} />
-      <Stack.Screen name="new-job" options={{ 
+      <Stack.Screen name="new-job" options={{
         title: "New Job",
         presentation: "modal",
-        headerStyle: { backgroundColor: '#0066CC' },
-        headerTintColor: '#FFFFFF',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.text.inverse,
       }} />
-      <Stack.Screen name="customer-details" options={{ 
+      <Stack.Screen name="customer-details" options={{
         title: "Customer Details",
-        headerStyle: { backgroundColor: '#0066CC' },
-        headerTintColor: '#FFFFFF',
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.text.inverse,
       }} />
-      <Stack.Screen name="camera" options={{ 
+      <Stack.Screen name="camera" options={{
         title: "Camera",
         presentation: "fullScreenModal",
         headerShown: false,
       }} />
-      <Stack.Screen name="signature" options={{ 
+      <Stack.Screen name="signature" options={{
         title: "Signature",
         presentation: "fullScreenModal",
         headerShown: false,
@@ -49,7 +52,7 @@ function RootLayoutNav() {
 }
 
 function AuthenticatedApp() {
-  const { isAuthenticated, hasPin, hasRole, userRole, language, setPin, setUserRole, authenticatePin, isLoading, hasCompletedOnboarding, completeOnboarding } = useAppStore();
+  const { isAuthenticated, hasPin, hasRole, userRole, language, setLanguage, setPin, setUserRole, authenticatePin, isLoading, hasCompletedOnboarding, completeOnboarding } = useAppStore();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isReady, setIsReady] = useState(false);
   
@@ -74,10 +77,21 @@ function AuthenticatedApp() {
     return null;
   }
   
+  // First check if user has selected a language
+  if (language === 'en' && !hasRole) {
+    return (
+      <LanguageSelectionScreen
+        onLanguageSelected={async (lang: Language) => {
+          await setLanguage(lang);
+        }}
+      />
+    );
+  }
+
   // Check if user has selected a role
   if (!hasRole) {
     return (
-      <RoleSelectionScreen 
+      <RoleSelectionScreen
         language={language}
         onRoleSelected={async (role: UserRole) => {
           setSelectedRole(role);
@@ -117,6 +131,7 @@ function AuthenticatedApp() {
   if (!hasCompletedOnboarding) {
     return (
       <OnboardingTutorial
+        language={language}
         onComplete={async () => {
           await completeOnboarding();
         }}

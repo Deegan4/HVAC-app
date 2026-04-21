@@ -22,7 +22,6 @@ import {
   BarChart3,
   Wrench,
   DollarSign,
-  MapPin,
   Phone,
   MessageCircle,
   Link2,
@@ -151,17 +150,11 @@ export default function MoreScreen() {
         ...(canAccess('canManageTeam') ? [{ icon: Users, label: t.teamManagement, onPress: () => router.push('/team-management') }] : []),
         ...(canAccess('canViewPricing') ? [{ icon: DollarSign, label: t.priceBook, onPress: () => router.push('/price-book') }] : []),
         ...(canAccess('canImportExport') ? [{ icon: FileUp, label: 'Import Apple Notes', onPress: () => router.push('/import-notes') }] : []),
-        ...(userRole === 'owner' ? [{ icon: Shield, label: 'Technician Permissions', onPress: () => router.push('/technician-permissions') }] : []),
+        ...(userRole === 'owner' ? [{ icon: Shield, label: 'Crew Permissions', onPress: () => router.push('/technician-permissions') }] : []),
         ...(userRole === 'owner' ? [{ icon: Link2, label: t.quickbooksIntegration, onPress: () => router.push('/quickbooks-integration') }] : []),
         ...(canAccess('canViewReports') ? [{ icon: BarChart3, label: t.reportsAnalytics, onPress: () => router.push('/reports-analytics') }] : []),
         ...(userRole === 'owner' ? [{ icon: Wrench, label: t.serviceSettings, onPress: () => router.push('/service-settings') }] : []),
       ]
-    },
-    {
-      title: t.technician,
-      items: userRole === 'technician' ? [
-        { icon: MapPin, label: t.locationStatus, onPress: () => router.push('/technician-location') },
-      ] : []
     },
     {
       title: t.account,
@@ -227,7 +220,7 @@ export default function MoreScreen() {
               {profileData?.name || currentTech?.name || (userRole === 'owner' ? 'Owner' : '')}
             </Text>
             <Text style={[styles.profileRole, { color: colors.primary }]}>
-              {userRole === 'owner' ? 'Owner/Manager' : 'Service Technician'}
+              {userRole === 'owner' ? 'Owner/Manager' : 'Crew Member'}
             </Text>
             {(profileData?.email || currentTech?.email) && (
               <Text style={[styles.profileEmail, { color: colors.text.secondary }]}>

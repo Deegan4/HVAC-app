@@ -346,7 +346,7 @@ export default function ProfileScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <Text style={styles.photoLabel}>{profile.name || 'Service Technician'}</Text>
+          <Text style={styles.photoLabel}>{profile.name || 'Crew Member'}</Text>
           <Text style={styles.photoSubLabel}>{currentTech?.availability || 'Available'}</Text>
         </View>
 
@@ -417,7 +417,7 @@ export default function ProfileScreen() {
             <View style={styles.statItem}>
               <Award size={20} color={Colors.primary} style={styles.statIcon} />
               <Text style={styles.statNumber}>{stats.jobsCompleted}</Text>
-              <Text style={styles.statLabel}>Jobs Completed</Text>
+              <Text style={styles.statLabel}>Projects Completed</Text>
             </View>
             <View style={styles.statItem}>
               <Star size={20} color={Colors.primary} style={styles.statIcon} />
@@ -462,7 +462,7 @@ export default function ProfileScreen() {
             ) : (
               <View style={styles.activityItem}>
                 <Text style={styles.activityTitle}>No recent activity</Text>
-                <Text style={styles.activitySubtitle}>Complete some jobs to see your activity here</Text>
+                <Text style={styles.activitySubtitle}>Complete some projects to see your activity here</Text>
               </View>
             )}
           </View>

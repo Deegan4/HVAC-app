@@ -61,7 +61,7 @@ export default function RoleSelectionScreen({ onRoleSelected, language = 'en' }:
           {/* Header */}
           <View style={styles.header}>
             <SpinningSnowflake size={64} color={Colors.primary} />
-            <Text style={styles.title}>HandyHero</Text>
+            <Text style={styles.title}>AGCC</Text>
             <Text style={styles.subtitle}>
               {t.selectRole}
             </Text>

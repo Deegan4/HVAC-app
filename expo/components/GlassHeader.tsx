@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/colors';
+import { useTheme } from '@/hooks/theme-store';
 
 interface GlassHeaderProps {
   title: string;
@@ -19,26 +19,34 @@ interface GlassHeaderProps {
 
 export default function GlassHeader({ title, subtitle, leftAction, rightAction }: GlassHeaderProps) {
   const insets = useSafeAreaInsets();
+  const { colors, mode } = useTheme();
+  const isDark = mode === 'dark';
 
   const renderContent = () => (
     <View style={[styles.content, { paddingTop: insets.top + 12 }]}>
       <View style={styles.row}>
         <View style={styles.leftSection}>
           {leftAction && (
-            <TouchableOpacity onPress={leftAction.onPress} style={styles.actionButton}>
+            <TouchableOpacity onPress={leftAction.onPress} style={[
+              styles.actionButton,
+              isDark && styles.actionButtonDark,
+            ]}>
               <View>{leftAction.icon}</View>
             </TouchableOpacity>
           )}
         </View>
-        
+
         <View style={styles.centerSection}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+          <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>{title}</Text>
+          {subtitle && <Text style={[styles.subtitle, { color: colors.text.secondary }]} numberOfLines={1}>{subtitle}</Text>}
         </View>
-        
+
         <View style={styles.rightSection}>
           {rightAction && (
-            <TouchableOpacity onPress={rightAction.onPress} style={styles.actionButton}>
+            <TouchableOpacity onPress={rightAction.onPress} style={[
+              styles.actionButton,
+              isDark && styles.actionButtonDark,
+            ]}>
               <View>{rightAction.icon}</View>
             </TouchableOpacity>
           )}
@@ -49,15 +57,18 @@ export default function GlassHeader({ title, subtitle, leftAction, rightAction }
 
   if (Platform.OS === 'web') {
     return (
-      <View style={styles.webContainer}>
+      <View style={[styles.webContainer, isDark && styles.webContainerDark]}>
         {renderContent()}
       </View>
     );
   }
 
   return (
-    <BlurView intensity={90} tint="light" style={styles.container}>
-      <View style={styles.overlay}>
+    <BlurView intensity={90} tint={isDark ? 'dark' : 'light'} style={[
+      styles.container,
+      isDark && styles.containerDark,
+    ]}>
+      <View style={[styles.overlay, isDark && styles.overlayDark]}>
         {renderContent()}
       </View>
     </BlurView>
@@ -69,8 +80,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
+  containerDark: {
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
   overlay: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  overlayDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
   },
   content: {
     paddingHorizontal: 16,
@@ -102,14 +119,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionButtonDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
   title: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
   },
   subtitle: {
     fontSize: 13,
-    color: Colors.text.secondary,
     marginTop: 2,
   },
   webContainer: {
@@ -120,5 +138,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
+  },
+  webContainerDark: {
+    backgroundColor: 'rgba(30, 35, 45, 0.7)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    shadowColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

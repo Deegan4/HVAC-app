@@ -26,10 +26,10 @@ export default function HelpCenterScreen() {
   const handleContactSupport = (method: 'phone' | 'email' | 'chat') => {
     switch (method) {
       case 'phone':
-        Linking.openURL('tel:+12398392112');
+        Linking.openURL('tel:+12397220762');
         break;
       case 'email':
-        Linking.openURL('mailto:support@olivarefrigeration.com');
+        Linking.openURL('mailto:support@agcc.com');
         break;
       case 'chat':
         Alert.alert('Live Chat', 'Live chat feature would be implemented here.');
@@ -47,20 +47,20 @@ export default function HelpCenterScreen() {
 
   const faqItems = [
     {
-      question: 'How do I schedule a new job?',
-      answer: 'Tap the + button on the home screen and fill in the job details including customer, date, and service type.'
+      question: 'How do I schedule a new project?',
+      answer: 'Tap the + button on the home screen and fill in the project details including customer, date, and service type.'
     },
     {
-      question: 'How do I update job status?',
-      answer: 'Open the job details and tap the status button to change from scheduled to in-progress to completed.'
+      question: 'How do I update project status?',
+      answer: 'Open the project details and tap the status button to change from scheduled to in-progress to completed.'
     },
     {
       question: 'How do I create an invoice?',
-      answer: 'After completing a job, tap "Create Invoice" in the job details to generate an invoice with labor and parts.'
+      answer: 'After completing a project, tap "Create Invoice" in the project details to generate an invoice with labor and materials.'
     },
     {
       question: 'How do I add a new customer?',
-      answer: 'Go to the Customers tab and tap the + button to add customer information and equipment details.'
+      answer: 'Go to the Customers tab and tap the + button to add customer information and structure details.'
     },
     {
       question: 'How do I reset my PIN?',
@@ -135,13 +135,13 @@ export default function HelpCenterScreen() {
             <ContactOption
               icon={Phone}
               title="Call Support"
-              subtitle="(239) 839-2112 • Available 24/7"
+              subtitle="(239) 722-0762 • Available 24/7"
               onPress={() => handleContactSupport('phone')}
             />
             <ContactOption
               icon={Mail}
               title="Email Support"
-              subtitle="support@olivarefrigeration.com"
+              subtitle="support@agcc.com"
               onPress={() => handleContactSupport('email')}
             />
             <ContactOption
@@ -165,8 +165,8 @@ export default function HelpCenterScreen() {
             />
             <GuideItem
               icon={Book}
-              title="Job Management"
-              description="How to create, update, and complete jobs"
+              title="Project Management"
+              description="How to create, update, and complete projects"
               onPress={() => handleOpenGuide('Job Management')}
             />
             <GuideItem
@@ -196,8 +196,8 @@ export default function HelpCenterScreen() {
             />
             <GuideItem
               icon={Video}
-              title="Creating Your First Job"
-              description="Step-by-step job creation tutorial"
+              title="Creating Your First Project"
+              description="Step-by-step project creation tutorial"
               onPress={() => handleOpenVideo('Creating Your First Job')}
             />
             <GuideItem
@@ -246,7 +246,7 @@ export default function HelpCenterScreen() {
             </View>
             <View style={styles.appInfoRow}>
               <Text style={styles.appInfoLabel}>Developed By</Text>
-              <Text style={styles.appInfoValue}>Kollin Croyle</Text>
+              <Text style={styles.appInfoValue}>AGCC</Text>
             </View>
           </View>
         </View>

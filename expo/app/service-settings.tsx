@@ -38,8 +38,6 @@ interface ServiceSettings {
   paymentTerms: string;
   lateFee: number;
   serviceRadius: number;
-  gpsTracking: boolean;
-  routeOptimization: boolean;
 }
 
 export default function ServiceSettingsScreen() {
@@ -55,8 +53,6 @@ export default function ServiceSettingsScreen() {
     paymentTerms: 'Net 30',
     lateFee: 25,
     serviceRadius: 25,
-    gpsTracking: true,
-    routeOptimization: true,
   });
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -142,7 +138,7 @@ export default function ServiceSettingsScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen 
         options={{
-          title: 'Service Settings',
+          title: 'Project Settings',
         }}
       />
       
@@ -152,7 +148,7 @@ export default function ServiceSettingsScreen() {
           <Text style={styles.sectionTitle}>Default Settings</Text>
           <View style={styles.sectionContent}>
             <SettingRow
-              label="Default Job Duration"
+              label="Default Project Duration"
               value={`${settings.defaultDuration} minutes`}
               onPress={() => handleEditField('defaultDuration', settings.defaultDuration)}
             />
@@ -171,7 +167,7 @@ export default function ServiceSettingsScreen() {
 
         {/* Job Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Settings</Text>
+          <Text style={styles.sectionTitle}>Project Settings</Text>
           <View style={styles.sectionContent}>
             <SettingRow
               label="Auto-scheduling"
@@ -192,7 +188,7 @@ export default function ServiceSettingsScreen() {
               onSwitchChange={(value) => saveSettings({ ...settings, allowPhotos: value })}
             />
             <SettingRow
-              label="Send Job Notifications"
+              label="Send Project Notifications"
               hasSwitch
               switchValue={settings.sendNotifications}
               onSwitchChange={(value) => saveSettings({ ...settings, sendNotifications: value })}
@@ -201,29 +197,6 @@ export default function ServiceSettingsScreen() {
         </View>
 
         {/* Location Settings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location & Routing</Text>
-          <View style={styles.sectionContent}>
-            <SettingRow
-              label="Service Area Radius"
-              value={`${settings.serviceRadius} miles`}
-              onPress={() => handleEditField('serviceRadius', settings.serviceRadius)}
-            />
-            <SettingRow
-              label="GPS Tracking"
-              hasSwitch
-              switchValue={settings.gpsTracking}
-              onSwitchChange={(value) => saveSettings({ ...settings, gpsTracking: value })}
-            />
-            <SettingRow
-              label="Route Optimization"
-              hasSwitch
-              switchValue={settings.routeOptimization}
-              onSwitchChange={(value) => saveSettings({ ...settings, routeOptimization: value })}
-            />
-          </View>
-        </View>
-
         {/* Pricing Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pricing & Billing</Text>

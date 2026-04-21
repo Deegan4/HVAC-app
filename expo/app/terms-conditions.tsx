@@ -25,7 +25,7 @@ export default function TermsConditionsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
           <Text style={styles.paragraph}>
-            By downloading, installing, or using the Oliva Refrigeration mobile application, 
+            By downloading, installing, or using the AGCC mobile application, 
             you agree to be bound by these Terms and Conditions. If you do not agree to these 
             terms, please do not use the application.
           </Text>
@@ -34,8 +34,8 @@ export default function TermsConditionsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Description of Service</Text>
           <Text style={styles.paragraph}>
-            The Oliva Refrigeration app is a field service management tool designed for 
-            HVAC and refrigeration technicians. The app provides features including job 
+            The AGCC app is a field service management tool designed for
+            general contracting professionals. The app provides features including project
             scheduling, customer management, invoicing, and service tracking.
           </Text>
         </View>
@@ -61,8 +61,7 @@ export default function TermsConditionsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>5. Acceptable Use</Text>
           <Text style={styles.paragraph}>
-            You agree to use the app only for lawful business purposes related to HVAC 
-            and refrigeration services. You will not use the app to store or transmit 
+            You agree to use the app only for lawful business purposes related to general contracting services. You will not use the app to store or transmit 
             any unlawful, harmful, or inappropriate content.
           </Text>
         </View>
@@ -71,7 +70,7 @@ export default function TermsConditionsScreen() {
           <Text style={styles.sectionTitle}>6. Intellectual Property</Text>
           <Text style={styles.paragraph}>
             The app and its original content, features, and functionality are owned by 
-            Oliva Refrigeration and are protected by international copyright, trademark, 
+            AGCC and are protected by international copyright, trademark, 
             patent, trade secret, and other intellectual property laws.
           </Text>
         </View>
@@ -79,7 +78,7 @@ export default function TermsConditionsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>7. Limitation of Liability</Text>
           <Text style={styles.paragraph}>
-            In no event shall Oliva Refrigeration be liable for any indirect, incidental, 
+            In no event shall AGCC be liable for any indirect, incidental, 
             special, consequential, or punitive damages, including without limitation, 
             loss of profits, data, use, goodwill, or other intangible losses.
           </Text>
@@ -115,7 +114,7 @@ export default function TermsConditionsScreen() {
           <Text style={styles.sectionTitle}>11. Governing Law</Text>
           <Text style={styles.paragraph}>
             These Terms shall be governed by and construed in accordance with the laws 
-            of the jurisdiction in which Oliva Refrigeration operates, without regard 
+            of the jurisdiction in which AGCC operates, without regard 
             to its conflict of law provisions.
           </Text>
         </View>
@@ -126,14 +125,14 @@ export default function TermsConditionsScreen() {
             If you have any questions about these Terms and Conditions, please contact us at:
           </Text>
           <Text style={styles.contactInfo}>
-            Email: cybertec44@yahoo.com{'\n'}
-            Phone: (239) 839-2112
+            Email: legal@agcc.com{'\n'}
+            Phone: (239) 722-0762
           </Text>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By using the Oliva Refrigeration app, you acknowledge that you have read, 
+            By using the AGCC app, you acknowledge that you have read, 
             understood, and agree to be bound by these Terms and Conditions.
           </Text>
         </View>

@@ -5,16 +5,17 @@ import {
   View,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
   RefreshControl,
   SectionList,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { Search, Plus, ChevronRight } from 'lucide-react-native';
+import { Search, Plus, ChevronRight, Users } from 'lucide-react-native';
 import { useAppStore } from '@/hooks/app-store';
 import { useTheme } from '@/hooks/theme-store';
 import { Customer } from '@/types';
 import { useTranslation } from '@/constants/translations';
+import { SkeletonList, SkeletonCustomerItem } from '@/components/SkeletonLoader';
+import EmptyState from '@/components/EmptyState';
 
 export default function CustomersScreen() {
   const { customers, isLoading, language, canAccess } = useAppStore();
@@ -94,7 +95,7 @@ export default function CustomersScreen() {
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <SkeletonList count={8} CardComponent={SkeletonCustomerItem} />
       </View>
     );
   }
@@ -146,11 +147,13 @@ export default function CustomersScreen() {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyStateText, { color: colors.text.secondary }]}>
-              {searchQuery ? 'No customers found' : 'No customers yet'}
-            </Text>
-          </View>
+          <EmptyState
+            icon={Users}
+            title={searchQuery ? t.noCustomers : t.noCustomers}
+            description={searchQuery ? t.searchCustomers : t.noCustomersDescription}
+            actionLabel={!searchQuery && canAccess('canAddEditCustomers') ? t.addNewCustomer : undefined}
+            onAction={!searchQuery && canAccess('canAddEditCustomers') ? () => router.push('/new-customer') : undefined}
+          />
         }
         ItemSeparatorComponent={null}
       />

@@ -170,7 +170,7 @@ export default function MessagingScreen() {
               <View>
                 <Text style={styles.chatHeaderName}>{selectedParticipantInfo.name}</Text>
                 <Text style={styles.chatHeaderRole}>
-                  {selectedParticipantInfo.role === 'technician' ? 'Technician' : 'Owner'}
+                  {selectedParticipantInfo.role === 'technician' ? 'Crew Member' : 'Owner'}
                 </Text>
               </View>
             </View>

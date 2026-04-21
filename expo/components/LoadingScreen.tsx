@@ -89,7 +89,7 @@ export default function LoadingScreen({
         </Animated.View>
       </Animated.View>
 
-      <Text style={[styles.appName, { color: colors.text.primary }]}>HANDYHERO</Text>
+      <Text style={[styles.appName, { color: colors.text.primary }]}>AGCC</Text>
       <Text style={[styles.message, { color: colors.text.secondary }]}>{message}</Text>
       
       <View style={styles.dotsContainer}>

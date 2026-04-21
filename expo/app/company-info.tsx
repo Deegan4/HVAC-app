@@ -56,16 +56,16 @@ export default function CompanyInfoScreen() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    name: 'AGCC',
+    email: 'info@agcc.com',
+    phone: '(239) 722-0762',
+    address: 'SW Florida',
     website: '',
-    license: '',
+    license: 'CBC1253967',
     taxId: '',
     businessHours: '',
     emergencyPhone: '',
-    description: '',
+    description: 'General contracting services including renovations, new builds, repairs, and remodels.',
   });
   const [originalInfo, setOriginalInfo] = useState<CompanyInfo>(companyInfo);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});

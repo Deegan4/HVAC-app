@@ -5,7 +5,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   TextInput,
   Alert,
   Modal,
@@ -17,6 +16,7 @@ import { useTheme } from '@/hooks/theme-store';
 import { Invoice, InvoiceItem } from '@/types';
 import { router } from 'expo-router';
 import { useTranslation } from '@/constants/translations';
+import { SkeletonList, SkeletonInvoiceCard } from '@/components/SkeletonLoader';
 
 export default function InvoicesScreen() {
   const { invoices, isLoading, updateInvoiceStatus, deleteInvoice, customers, jobs, language } = useAppStore();
@@ -151,7 +151,7 @@ export default function InvoicesScreen() {
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <SkeletonList count={5} CardComponent={SkeletonInvoiceCard} />
       </View>
     );
   }

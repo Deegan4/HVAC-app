@@ -1,0 +1,70 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm start:*)",
+      "Bash(npm run:*)",
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eas:*)",
+      "Bash(bunx:*)",
+      "Bash(bun:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(curl -s http://localhost:*)",
+      "Bash(curl -s https://*trycloudflare*)",
+      "Bash(cloudflared tunnel:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)",
+      "Bash(ps aux:*)",
+      "Bash(pkill:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Read(/Volumes/SAMSUNG 1TB/MMCC-app/**)",
+      "Write(/Volumes/SAMSUNG 1TB/MMCC-app/**)",
+      "Edit(/Volumes/SAMSUNG 1TB/MMCC-app/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf /Volumes/SAMSUNG 1TB/MMCC-app)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "file=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [ -n \"$file\" ] && echo \"$file\" | grep -qE '\\.(lock|lockb)$'; then echo 'BLOCK: Do not edit lock files directly. Use npm/bun install instead.' >&2; exit 1; fi; exit 0"
+      },
+      {
+        "matcher": "Edit|Write",
+        "command": "file=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [ -n \"$file\" ] && echo \"$file\" | grep -qE '\\.(tsx?|jsx?)$'; then content=$(echo \"$TOOL_INPUT\" | grep -o '\"new_string\":\"[^\"]*\"\\|\"content\":\"[^\"]*\"' | head -1); if echo \"$content\" | grep -qiE 'ActivityIndicator|marine|dock|seawall|piling|boat.lift|MMCC|Morgan Marine|HandyHero|morganmarine'; then echo 'WARN: Convention violation — ActivityIndicator usage or old branding detected. Use SkeletonLoader and AGCC branding.' >&2; fi; fi; exit 0"
+      },
+      {
+        "matcher": "Edit|Write",
+        "command": "file=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [ -n \"$file\" ] && echo \"$file\" | grep -qE 'app-store\\.tsx$'; then content=$(echo \"$TOOL_INPUT\" | grep -o '\"new_string\":\"[^\"]*\"' | head -1); if echo \"$content\" | grep -q 'return useMemo'; then echo 'WARN: Editing app-store return object — verify useMemo deps array matches the return object exactly.' >&2; fi; fi; exit 0"
+      },
+      {
+        "matcher": "Edit",
+        "command": "file=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [ -n \"$file\" ] && echo \"$file\" | grep -qE 'translations\\.ts$'; then content=$(echo \"$TOOL_INPUT\" | grep -o '\"new_string\":\"[^\"]*\"' | head -1); if echo \"$content\" | grep -q \"en:\" && ! echo \"$content\" | grep -q \"es:\"; then echo 'WARN: Adding to translations.ts — make sure both en AND es sections are updated.' >&2; fi; fi; exit 0"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "file=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [ -n \"$file\" ] && echo \"$file\" | grep -qE '\\.(ts|tsx)$'; then cd \"/Volumes/SAMSUNG 1TB/MMCC-app\" && npx expo lint --fix \"$file\" 2>/dev/null; fi; exit 0"
+      }
+    ]
+  }
+}

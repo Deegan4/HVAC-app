@@ -1,0 +1,79 @@
+# AI Engineering System Configuration — AGCC
+version: "1.0"
+
+project:
+  name: "AGCC"
+  slug: "agcc-app"
+  type: "mobile-app"
+  framework: "expo"
+  root: "."
+  bundle_id_ios: "com.agcc.app"
+  bundle_id_android: "com.agcc.app"
+
+models:
+  default: "claude-opus-4-6"
+  temperature: 0.7
+  max_tokens: 4096
+
+development:
+  runtime: "react-native"
+  language: "typescript"
+  package_manager: "bun"
+  linter: "eslint"
+  formatter: "eslint-config-expo"
+  test_framework: "none"
+  build_system: "expo"
+
+stack:
+  react: "19.1.0"
+  react_native: "0.81.5"
+  expo: "54"
+  expo_router: "6"
+  state: "zustand-5 + tanstack-react-query-5"
+  persistence: "async-storage"
+  api: "trpc + hono"
+  database: "supabase (configured, using AsyncStorage fallback)"
+  icons: "lucide-react-native"
+  ui: "glass-design-system (GlassCard, GlassButton, GlassFAB, GlassHeader, GlassTabBar)"
+
+quality:
+  code_review: true
+  security_scan: true
+  performance_threshold: 500
+
+paths:
+  source: "app/"
+  components: "components/"
+  hooks: "hooks/"
+  utils: "utils/"
+  constants: "constants/"
+  types: "types/"
+  mocks: "mocks/"
+  assets: "assets/"
+
+features:
+  auth: "pin + biometric + role-based (owner/technician)"
+  localization: "en, es (via constants/translations.ts)"
+  theme: "light/dark (via hooks/theme-store.tsx)"
+  offline: "utils/OfflineStorageManager.ts"
+  permissions: "15-flag TechnicianPermissions system"
+  subscriptions: "basic, essentials, max tiers"
+  analytics: "utils/AnalyticsLogger.ts (structured console, swap for real SDK)"
+
+logging:
+  level: "INFO"
+  file: ".ai-eng/logs/ai-eng.log"
+  max_size: "10MB"
+
+status:
+  phase_1_localization: "completed"
+  phase_2_dark_mode: "completed"
+  phase_3_technician_polish: "completed"
+  phase_4_launch_readiness: "completed"
+  next_priorities:
+    - "Connect Supabase backend (replace AsyncStorage mock data)"
+    - "Wire tRPC API layer"
+    - "Add test suite (Jest + React Native Testing Library)"
+    - "EAS Build setup for TestFlight/Play Store"
+    - "Integrate real analytics SDK (Firebase/Mixpanel)"
+    - "Push notifications backend"

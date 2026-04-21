@@ -14,7 +14,7 @@ import {
   Plus, 
   Calendar, 
   FileText, 
-  Wrench, 
+  Anchor,
   FolderOpen,
   ListFilter,
 } from 'lucide-react-native';
@@ -181,7 +181,7 @@ export default function DashboardScreen() {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#10B981"
+            stroke="#10B981" /* chart color - SVG doesn't support dynamic theming */
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={`${progress} ${circumference}`}
@@ -203,7 +203,7 @@ export default function DashboardScreen() {
     return (
       <TouchableOpacity
         key={job.id}
-        style={[styles.workCard, { backgroundColor: colors.surface }]}
+        style={[styles.workCard, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
         onPress={() => router.push({
           pathname: '/job-details',
           params: { jobId: job.id }
@@ -243,7 +243,7 @@ export default function DashboardScreen() {
           <ListFilter size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]} numberOfLines={1}>
-          HANDYHERO
+          AGCC
         </Text>
         <TouchableOpacity 
           style={styles.headerRight}
@@ -294,8 +294,8 @@ export default function DashboardScreen() {
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
-            <Wrench size={18} color={colors.text.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Jobs</Text>
+            <Anchor size={18} color={colors.text.primary} />
+            <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Projects</Text>
           </View>
           <View style={styles.jobsCardContent}>
             {renderLineChart()}
@@ -364,8 +364,8 @@ export default function DashboardScreen() {
                   style={[styles.addJobButton, { backgroundColor: colors.primary }]}
                   onPress={() => router.push('/new-job')}
                 >
-                  <Plus size={16} color="#FFFFFF" />
-                  <Text style={styles.addJobButtonText}>Add Job</Text>
+                  <Plus size={16} color={colors.text.inverse} />
+                  <Text style={[styles.addJobButtonText, { color: colors.text.inverse }]}>Add Job</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -383,7 +383,7 @@ export default function DashboardScreen() {
             {upcomingJobs.slice(0, 2).map((job, index) => (
               <TouchableOpacity
                 key={job.id}
-                style={styles.upcomingItem}
+                style={[styles.upcomingItem, { borderBottomColor: colors.border }]}
                 onPress={() => router.push({
                   pathname: '/job-details',
                   params: { jobId: job.id }
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   workCardLeft: {
     width: 70,
@@ -660,7 +660,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   addJobButtonText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600' as const,
   },
@@ -668,7 +667,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   upcomingLeft: {
     width: 60,

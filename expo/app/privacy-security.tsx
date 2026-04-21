@@ -171,7 +171,7 @@ export default function PrivacySecurityScreen() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `oliva-refrigeration-backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `agcc-backup-${new Date().toISOString().split('T')[0]}.json`;
         link.click();
         URL.revokeObjectURL(url);
         Alert.alert('Success', 'Data exported successfully!');
@@ -179,7 +179,7 @@ export default function PrivacySecurityScreen() {
         // For mobile, use Share API
         await Share.share({
           message: jsonData,
-          title: 'Oliva Refrigeration Data Export',
+          title: 'AGCC Data Export',
         });
       }
     } catch (error) {
@@ -338,7 +338,7 @@ export default function PrivacySecurityScreen() {
             <SecurityItem
               icon={Shield}
               title="Location Tracking"
-              description="Allow location tracking for job routing and technician dispatch"
+              description="Allow location tracking for project routing and crew dispatch"
               hasSwitch
               switchValue={settings.locationTracking}
               onSwitchChange={(value) => saveSettings({ ...settings, locationTracking: value })}
@@ -401,7 +401,7 @@ export default function PrivacySecurityScreen() {
             </View>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />
-              <Text style={styles.tipText}>Keep location tracking enabled for accurate job routing</Text>
+              <Text style={styles.tipText}>Keep location tracking enabled for accurate project routing</Text>
             </View>
             <View style={styles.tipItem}>
               <CheckCircle size={16} color={Colors.status.completed} />

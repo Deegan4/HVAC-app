@@ -87,9 +87,9 @@ export default function TeamManagementScreen() {
       
       setNewTech({ name: '', email: '', phone: '', specialties: '', availability: 'available' });
       setShowAddModal(false);
-      Alert.alert('Success', 'Technician added successfully!');
+      Alert.alert('Success', 'Crew member added successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to add technician. Please try again.');
+      Alert.alert('Error', 'Failed to add crew member. Please try again.');
       console.log('Error adding technician:', error);
     }
   };
@@ -107,9 +107,9 @@ export default function TeamManagementScreen() {
       
       setEditingTech(null);
       setShowEditModal(false);
-      Alert.alert('Success', 'Technician updated successfully!');
+      Alert.alert('Success', 'Crew member updated successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update technician. Please try again.');
+      Alert.alert('Error', 'Failed to update crew member. Please try again.');
       console.log('Error updating technician:', error);
     }
   };
@@ -117,7 +117,7 @@ export default function TeamManagementScreen() {
   const handleDeleteTechnician = (techId: string) => {
     const tech = technicians.find(t => t.id === techId);
     Alert.alert(
-      'Delete Technician',
+      'Remove Crew Member',
       `Are you sure you want to remove ${tech?.name} from your team?`,
       [
         { text: 'Cancel', style: 'cancel' },
@@ -127,9 +127,9 @@ export default function TeamManagementScreen() {
           onPress: async () => {
             try {
               deleteTechnician(techId);
-              Alert.alert('Success', 'Technician removed successfully!');
+              Alert.alert('Success', 'Crew member removed successfully!');
             } catch (error) {
-              Alert.alert('Error', 'Failed to remove technician.');
+              Alert.alert('Error', 'Failed to remove crew member.');
             }
           }
         }
@@ -190,7 +190,7 @@ export default function TeamManagementScreen() {
           <View style={styles.overviewCard}>
             <View style={styles.overviewItem}>
               <Text style={styles.overviewNumber}>{technicians.length}</Text>
-              <Text style={styles.overviewLabel}>Total Technicians</Text>
+              <Text style={styles.overviewLabel}>Total Crew Members</Text>
             </View>
             <View style={styles.overviewItem}>
               <Text style={styles.overviewNumber}>
@@ -209,7 +209,7 @@ export default function TeamManagementScreen() {
 
         {/* Technicians List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Technicians</Text>
+          <Text style={styles.sectionTitle}>Crew Members</Text>
           <View style={styles.sectionContent}>
             {technicians.map((tech, index) => {
               const StatusIcon = getStatusIcon(tech.availability);
@@ -289,7 +289,7 @@ export default function TeamManagementScreen() {
                         <View style={styles.detailRow}>
                           <Clock size={16} color={Colors.status.inProgress} />
                           <Text style={[styles.detailText, { color: Colors.status.inProgress }]}>
-                            Currently on job #{tech.currentJobId}
+                            Currently on project #{tech.currentJobId}
                           </Text>
                         </View>
                       )}
@@ -307,7 +307,7 @@ export default function TeamManagementScreen() {
           <View style={styles.sectionContent}>
             <TouchableOpacity style={styles.actionItem} onPress={handleAddTechnician}>
               <UserPlus size={20} color={Colors.primary} />
-              <Text style={styles.actionText}>Add New Technician</Text>
+              <Text style={styles.actionText}>Add New Crew Member</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionItem}>
               <Users size={20} color={Colors.primary} />
@@ -328,7 +328,7 @@ export default function TeamManagementScreen() {
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add New Technician</Text>
+              <Text style={styles.modalTitle}>Add New Crew Member</Text>
               <TouchableOpacity onPress={() => setShowAddModal(false)}>
                 <X size={24} color={Colors.text.secondary} />
               </TouchableOpacity>
@@ -341,11 +341,11 @@ export default function TeamManagementScreen() {
                   style={styles.textInput}
                   value={newTech.name}
                   onChangeText={(text) => setNewTech(prev => ({ ...prev, name: text }))}
-                  placeholder="Enter technician name"
+                  placeholder="Enter crew member name"
                   autoCapitalize="words"
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Email *</Text>
                 <TextInput
@@ -357,7 +357,7 @@ export default function TeamManagementScreen() {
                   autoCapitalize="none"
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Phone *</Text>
                 <TextInput
@@ -368,14 +368,14 @@ export default function TeamManagementScreen() {
                   keyboardType="phone-pad"
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Specialties</Text>
                 <TextInput
                   style={styles.textInput}
                   value={newTech.specialties}
                   onChangeText={(text) => setNewTech(prev => ({ ...prev, specialties: text }))}
-                  placeholder="e.g., HVAC, Refrigeration, Electrical"
+                  placeholder="e.g., Renovations, New Builds, Repairs, Remodels"
                   multiline
                 />
                 <Text style={styles.inputHint}>Separate multiple specialties with commas</Text>
@@ -393,7 +393,7 @@ export default function TeamManagementScreen() {
                 style={styles.modalSaveButton}
                 onPress={handleSaveNewTechnician}
               >
-                <Text style={styles.modalSaveText}>Add Technician</Text>
+                <Text style={styles.modalSaveText}>Add Crew Member</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -407,7 +407,7 @@ export default function TeamManagementScreen() {
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Technician</Text>
+              <Text style={styles.modalTitle}>Edit Crew Member</Text>
               <TouchableOpacity onPress={() => setShowEditModal(false)}>
                 <X size={24} color={Colors.text.secondary} />
               </TouchableOpacity>
@@ -421,11 +421,11 @@ export default function TeamManagementScreen() {
                     style={styles.textInput}
                     value={editingTech.name}
                     onChangeText={(text) => setEditingTech(prev => prev ? { ...prev, name: text } : null)}
-                    placeholder="Enter technician name"
+                    placeholder="Enter crew member name"
                     autoCapitalize="words"
                   />
                 </View>
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Email *</Text>
                   <TextInput
@@ -437,7 +437,7 @@ export default function TeamManagementScreen() {
                     autoCapitalize="none"
                   />
                 </View>
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Phone *</Text>
                   <TextInput
@@ -448,22 +448,22 @@ export default function TeamManagementScreen() {
                     keyboardType="phone-pad"
                   />
                 </View>
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Specialties</Text>
                   <TextInput
                     style={styles.textInput}
-                    value={(editingTech.specialties && editingTech.specialties.length > 0) 
-                      ? editingTech.specialties.join(', ') 
-                      : (editingTech.skills && editingTech.skills.length > 0) 
-                        ? editingTech.skills.join(', ') 
+                    value={(editingTech.specialties && editingTech.specialties.length > 0)
+                      ? editingTech.specialties.join(', ')
+                      : (editingTech.skills && editingTech.skills.length > 0)
+                        ? editingTech.skills.join(', ')
                         : ''
                     }
-                    onChangeText={(text) => setEditingTech(prev => prev ? { 
-                      ...prev, 
+                    onChangeText={(text) => setEditingTech(prev => prev ? {
+                      ...prev,
                       specialties: text.split(',').map(s => s.trim()).filter(s => s)
                     } : null)}
-                    placeholder="e.g., HVAC, Refrigeration, Electrical"
+                    placeholder="e.g., Renovations, New Builds, Repairs, Remodels"
                     multiline
                   />
                   <Text style={styles.inputHint}>Separate multiple specialties with commas</Text>

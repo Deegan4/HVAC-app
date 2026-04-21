@@ -195,7 +195,7 @@ export default function PinSetupScreen({ onPinSet, isFirstTime = true, userRole 
           {/* Header */}
           <View style={styles.header}>
             <SpinningSnowflake size={64} color={Colors.primary} />
-            <Text style={styles.title}>HandyHero</Text>
+            <Text style={styles.title}>AGCC</Text>
             <Text style={styles.subtitle}>
               {isFirstTime 
                 ? `Welcome ${userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''}! Set up your security PIN`

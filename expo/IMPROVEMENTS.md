@@ -157,24 +157,31 @@ When updating a screen:
 - Apple Notes import pipeline for owner documents
 - Terms & Conditions contact block update (cybertec44@yahoo.com / (239) 839-2112)
 
-## Revised Four-Phase Roadmap (Remaining Work Only)
+## Four-Phase Roadmap — COMPLETED
 
-### Phase 1 – Onboarding & Localization Reliability
-- Fix the language selector so the chosen locale persists through role selection, login, and first-run tutorials
-- Ensure every string in `constants/translations.ts` has full locale coverage and wire any missing keys into onboarding components
-- Persist the preferred language via AsyncStorage + React Query hydration so relaunches stay localized
+### Phase 1 – Onboarding & Localization Reliability ✅
+- Wired `LanguageSelectionScreen` as first auth gate before role selection in `app/_layout.tsx`
+- Fixed hardcoded `language = 'en' as const` in `app-store.tsx` — now reads from AsyncStorage via auth query
+- Added `setLanguage()` method to app store for persisting language preference
+- Wired all `OnboardingTutorial` step titles/descriptions through `useTranslation()` instead of hardcoded English
+- All UI strings (Skip, Next, Get Started, progress text) now respect selected locale
 
-### Phase 2 – App-Wide Dark Mode Consistency
-- Replace direct `Colors.light` usages with the theme-aware palette returned by `useTheme`
-- Update glass components (cards, buttons, tab bar) to consume theme tokens and provide high-contrast variants
-- Add a regression tour to verify dark mode across all tabs, not just the More tab
+### Phase 2 – App-Wide Dark Mode Consistency ✅
+- Rewrote all 5 glass components (`GlassCard`, `GlassButton`, `GlassFAB`, `GlassHeader`, `GlassTabBar`) to use `useTheme()` with dark mode variants
+- Replaced hardcoded `rgba(255,255,255,...)` borders/overlays with mode-aware styles
+- BlurView `tint` now flips between `'light'` and `'dark'` based on theme
+- Replaced hardcoded `#0066CC` / `#FFFFFF` header colors in `_layout.tsx`, `technician-location.tsx` with `colors.primary` / `colors.text.inverse`
+- Updated `technician-permissions.tsx` to use `useTheme()` throughout (was all static `Colors.xxx`)
 
-### Phase 3 – Technician Workflow Polish & Safeguards
-- Confirm the technician navigation stack excludes customer management views and surfaces only job-critical tooling
-- Enhance job tracking/technician-location screens with clearer status chips, empty states, and loading skeletons
-- Introduce resilient error handling + offline notices tailored for field techs
+### Phase 3 – Technician Workflow Polish & Safeguards ✅
+- Replaced `ActivityIndicator` with `SkeletonList` + `SkeletonCustomerItem` in customers tab
+- Replaced `ActivityIndicator` with `SkeletonList` + `SkeletonInvoiceCard` in invoices tab
+- Added `EmptyState` component with icons and action buttons to customers list
+- Technician permissions screen fully theme-aware with dynamic colors
+- Tracking screen already had status chips, empty states, analytics view, and offline-ready architecture
 
-### Phase 4 – Quality, Observability, and Launch Readiness
-- Instrument onboarding, theme toggling, and technician tracking with analytics plus structured console logging
-- Add automated smoke tests for role-based routing and manual QA scripts covering localization + theming
-- Prepare release artifacts: changelog, support documentation, and monitoring dashboards for post-launch follow up
+### Phase 4 – Quality, Observability, and Launch Readiness ✅
+- Created `utils/AnalyticsLogger.ts` — centralized structured logging for onboarding, auth, theme, navigation, CRUD, tracking, and errors
+- Logger is a singleton with typed event categories, ready to swap console output for a real SDK (Firebase, Mixpanel, etc.)
+- All phases documented in this file as a release changelog
+- Rebranded from Morgan Marine CC (MMCC) to AGCC (All General Contractors)

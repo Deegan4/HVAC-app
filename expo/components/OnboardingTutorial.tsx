@@ -19,68 +19,33 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/theme-store';
 import { HapticFeedback } from '@/utils/HapticFeedback';
-
-
+import { useTranslation, Language } from '@/constants/translations';
 
 interface OnboardingStep {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ComponentType<{ size: number; color: string }>;
   color: string;
 }
 
-const ONBOARDING_STEPS: OnboardingStep[] = [
-  {
-    id: 'customers',
-    title: 'Manage Customers',
-    description: 'Keep all your customer information organized in one place. Add contacts, addresses, service history, and equipment details.',
-    icon: Users,
-    color: '#0066CC',
-  },
-  {
-    id: 'scheduling',
-    title: 'Schedule Jobs',
-    description: 'Create and manage service appointments with ease. Set priorities, assign technicians, and track job status in real-time.',
-    icon: Calendar,
-    color: '#10B981',
-  },
-  {
-    id: 'invoicing',
-    title: 'Create Invoices',
-    description: 'Generate professional invoices quickly. Track payments, send reminders, and manage your accounts receivable effortlessly.',
-    icon: FileText,
-    color: '#F59E0B',
-  },
-  {
-    id: 'tracking',
-    title: 'Track Your Team',
-    description: 'Monitor technician locations and job status. Optimize routes and improve response times with real-time GPS tracking.',
-    icon: MapPin,
-    color: '#EF4444',
-  },
-  {
-    id: 'messaging',
-    title: 'Team Communication',
-    description: 'Stay connected with your team through built-in messaging. Share updates, photos, and job notes instantly.',
-    icon: MessageCircle,
-    color: '#8B5CF6',
-  },
-  {
-    id: 'reports',
-    title: 'Analytics & Reports',
-    description: 'Gain insights into your business performance. Track revenue, job completion rates, and technician productivity.',
-    icon: BarChart3,
-    color: '#06B6D4',
-  },
+const ONBOARDING_STEP_KEYS: OnboardingStep[] = [
+  { id: 'customers', titleKey: 'customerExcellenceTitle', descriptionKey: 'customerExcellenceDescription', icon: Users, color: '#0066CC' },
+  { id: 'scheduling', titleKey: 'jobManagementTitle', descriptionKey: 'jobManagementDescription', icon: Calendar, color: '#10B981' },
+  { id: 'invoicing', titleKey: 'invoicingTitle', descriptionKey: 'invoicingDescription', icon: FileText, color: '#F59E0B' },
+  { id: 'tracking', titleKey: 'trackingTitle', descriptionKey: 'trackingDescription', icon: MapPin, color: '#EF4444' },
+  { id: 'messaging', titleKey: 'collaborationTitle', descriptionKey: 'collaborationDescription', icon: MessageCircle, color: '#8B5CF6' },
+  { id: 'reports', titleKey: 'analyticsTitle', descriptionKey: 'analyticsDescription', icon: BarChart3, color: '#06B6D4' },
 ];
 
 interface OnboardingTutorialProps {
   onComplete: () => void;
+  language?: Language;
 }
 
-export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
+export default function OnboardingTutorial({ onComplete, language = 'en' }: OnboardingTutorialProps) {
   const { colors } = useTheme();
+  const t = useTranslation(language);
   const [currentStep, setCurrentStep] = useState(0);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -89,7 +54,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const handleNext = () => {
     HapticFeedback.light();
     
-    if (currentStep < ONBOARDING_STEPS.length - 1) {
+    if (currentStep < ONBOARDING_STEP_KEYS.length - 1) {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -148,15 +113,15 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     });
   };
 
-  const step = ONBOARDING_STEPS[currentStep];
+  const step = ONBOARDING_STEP_KEYS[currentStep];
   const IconComponent = step.icon;
-  const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
+  const isLastStep = currentStep === ONBOARDING_STEP_KEYS.length - 1;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-          <Text style={[styles.skipText, { color: colors.text.secondary }]}>Skip</Text>
+          <Text style={[styles.skipText, { color: colors.text.secondary }]}>{t.skip}</Text>
         </TouchableOpacity>
       </View>
 
@@ -186,16 +151,16 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             },
           ]}
         >
-          <Text style={[styles.title, { color: colors.text.primary }]}>{step.title}</Text>
+          <Text style={[styles.title, { color: colors.text.primary }]}>{(t as any)[step.titleKey]}</Text>
           <Text style={[styles.description, { color: colors.text.secondary }]}>
-            {step.description}
+            {(t as any)[step.descriptionKey]}
           </Text>
         </Animated.View>
       </View>
 
       <View style={styles.footer}>
         <View style={styles.pagination}>
-          {ONBOARDING_STEPS.map((_, index) => (
+          {ONBOARDING_STEP_KEYS.map((_, index) => (
             <TouchableOpacity
               key={index}
               onPress={() => handleDotPress(index)}
@@ -223,11 +188,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           {isLastStep ? (
             <>
               <Check size={20} color="#FFFFFF" />
-              <Text style={styles.nextButtonText}>Get Started</Text>
+              <Text style={styles.nextButtonText}>{t.getStarted}</Text>
             </>
           ) : (
             <>
-              <Text style={styles.nextButtonText}>Next</Text>
+              <Text style={styles.nextButtonText}>{t.next}</Text>
               <ChevronRight size={20} color="#FFFFFF" />
             </>
           )}
@@ -246,13 +211,13 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               styles.progressFill,
               {
                 backgroundColor: colors.primary,
-                width: `${((currentStep + 1) / ONBOARDING_STEPS.length) * 100}%`,
+                width: `${((currentStep + 1) / ONBOARDING_STEP_KEYS.length) * 100}%`,
               },
             ]}
           />
         </View>
         <Text style={[styles.progressText, { color: colors.text.light }]}>
-          {currentStep + 1} of {ONBOARDING_STEPS.length}
+          {currentStep + 1} {t.progressText} {ONBOARDING_STEP_KEYS.length}
         </Text>
       </View>
     </SafeAreaView>

@@ -34,7 +34,7 @@ export default function NewJobScreen() {
       return;
     }
     if (!description) {
-      Alert.alert('Error', 'Please enter a job description');
+      Alert.alert('Error', 'Please enter a project description');
       return;
     }
 
@@ -95,7 +95,7 @@ export default function NewJobScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Job Type</Text>
           <View style={styles.buttonGroup}>
-            {(['repair', 'maintenance', 'installation', 'inspection'] as const).map(type => (
+            {(['repair', 'maintenance', 'installation', 'inspection', 'construction', 'consulting'] as const).map(type => (
               <TouchableOpacity
                 key={type}
                 style={[
@@ -167,7 +167,7 @@ export default function NewJobScreen() {
 
         {/* Technician */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Assign Technician</Text>
+          <Text style={styles.sectionTitle}>Assign Crew Member</Text>
           <View style={styles.pickerContainer}>
             <User size={20} color={Colors.text.secondary} />
             <View style={styles.picker}>
@@ -215,7 +215,7 @@ export default function NewJobScreen() {
               style={styles.textArea}
               value={description}
               onChangeText={setDescription}
-              placeholder="Describe the job..."
+              placeholder="Describe the project..."
               placeholderTextColor={Colors.text.light}
               multiline
               numberOfLines={4}
@@ -258,7 +258,7 @@ export default function NewJobScreen() {
 
         {/* Submit Button */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Create Job</Text>
+          <Text style={styles.submitButtonText}>Create Project</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

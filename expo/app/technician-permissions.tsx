@@ -11,13 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { Save, Shield, Users, FileText, DollarSign, Settings, MessageCircle } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
 import { useAppStore } from '@/hooks/app-store';
+import { useTheme } from '@/hooks/theme-store';
 import { TechnicianPermissions } from '@/types';
 import { useTranslation } from '@/constants/translations';
 
 export default function TechnicianPermissionsScreen() {
   const { technicianPermissions, updateTechnicianPermissions, language } = useAppStore();
+  const { colors } = useTheme();
   const t = useTranslation(language);
   const [permissions, setPermissions] = useState<TechnicianPermissions>(technicianPermissions);
   const [hasChanges, setHasChanges] = useState(false);
@@ -33,7 +34,7 @@ export default function TechnicianPermissionsScreen() {
   const handleSave = async () => {
     try {
       await updateTechnicianPermissions(permissions);
-      Alert.alert('Success', 'Technician permissions updated successfully');
+      Alert.alert('Success', 'Crew permissions updated successfully');
       setHasChanges(false);
       router.back();
     } catch {
@@ -65,8 +66,8 @@ export default function TechnicianPermissionsScreen() {
       title: 'Job Management',
       icon: Settings,
       items: [
-        { key: 'canViewAllJobs' as keyof TechnicianPermissions, label: 'View All Jobs', description: 'See all scheduled jobs, not just assigned ones' },
-        { key: 'canEditAllJobs' as keyof TechnicianPermissions, label: 'Edit All Jobs', description: 'Modify any job details' },
+        { key: 'canViewAllJobs' as keyof TechnicianPermissions, label: 'View All Projects', description: 'See all scheduled projects, not just assigned ones' },
+        { key: 'canEditAllJobs' as keyof TechnicianPermissions, label: 'Edit All Projects', description: 'Modify any project details' },
       ],
     },
     {
@@ -90,21 +91,21 @@ export default function TechnicianPermissionsScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Stack.Screen
         options={{
-          title: 'Technician Permissions',
-          headerStyle: { backgroundColor: Colors.surface },
-          headerTintColor: Colors.text.primary,
+          title: 'Crew Permissions',
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text.primary,
           headerShadowVisible: false,
           headerRight: () => (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleSave}
               disabled={!hasChanges}
               style={[styles.saveButton, !hasChanges && styles.saveButtonDisabled]}
             >
-              <Save size={20} color={hasChanges ? Colors.primary : Colors.text.light} />
-              <Text style={[styles.saveButtonText, !hasChanges && styles.saveButtonTextDisabled]}>
+              <Save size={20} color={hasChanges ? colors.primary : colors.text.light} />
+              <Text style={[styles.saveButtonText, { color: hasChanges ? colors.primary : colors.text.light }]}>
                 {t.save}
               </Text>
             </TouchableOpacity>
@@ -113,39 +114,40 @@ export default function TechnicianPermissionsScreen() {
       />
 
       <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Shield size={32} color={Colors.primary} />
-          <Text style={styles.headerTitle}>Control Technician Access</Text>
-          <Text style={styles.headerDescription}>
-            Configure what features and data technicians can access. These permissions apply to all technician accounts.
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Shield size={32} color={colors.primary} />
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Control Crew Access</Text>
+          <Text style={[styles.headerDescription, { color: colors.text.secondary }]}>
+            Configure what features and data crew members can access. These permissions apply to all crew member accounts.
           </Text>
         </View>
 
         {permissionSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <section.icon size={20} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <section.icon size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{section.title}</Text>
             </View>
 
-            <View style={styles.permissionsList}>
+            <View style={[styles.permissionsList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               {section.items.map((item, itemIndex) => (
                 <View
                   key={itemIndex}
                   style={[
                     styles.permissionItem,
+                    { borderBottomColor: colors.border },
                     itemIndex === section.items.length - 1 && styles.lastPermissionItem,
                   ]}
                 >
                   <View style={styles.permissionInfo}>
-                    <Text style={styles.permissionLabel}>{item.label}</Text>
-                    <Text style={styles.permissionDescription}>{item.description}</Text>
+                    <Text style={[styles.permissionLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                    <Text style={[styles.permissionDescription, { color: colors.text.secondary }]}>{item.description}</Text>
                   </View>
                   <Switch
                     value={permissions[item.key]}
                     onValueChange={() => handleToggle(item.key)}
-                    trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                    thumbColor={permissions[item.key] ? Colors.primary : '#f4f3f4'}
+                    trackColor={{ false: colors.border, true: colors.primaryLight }}
+                    thumbColor={permissions[item.key] ? colors.primary : '#f4f3f4'}
                   />
                 </View>
               ))}
@@ -153,10 +155,10 @@ export default function TechnicianPermissionsScreen() {
           </View>
         ))}
 
-        <View style={styles.infoBox}>
-          <Shield size={20} color={Colors.primary} />
-          <Text style={styles.infoText}>
-            Owners always have full access to all features. These permissions only affect technician accounts.
+        <View style={[styles.infoBox, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+          <Shield size={20} color={colors.primary} />
+          <Text style={[styles.infoText, { color: colors.primary }]}>
+            Owners always have full access to all features. These permissions only affect crew member accounts.
           </Text>
         </View>
 
@@ -169,7 +171,6 @@ export default function TechnicianPermissionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -188,28 +189,20 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.primary,
-  },
-  saveButtonTextDisabled: {
-    color: Colors.text.light,
   },
   header: {
     padding: 20,
-    backgroundColor: Colors.surface,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: Colors.text.primary,
     marginTop: 12,
     marginBottom: 8,
   },
   headerDescription: {
     fontSize: 14,
-    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -226,13 +219,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text.primary,
   },
   permissionsList: {
-    backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   permissionItem: {
     flexDirection: 'row',
@@ -241,7 +231,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   lastPermissionItem: {
     borderBottomWidth: 0,
@@ -253,30 +242,25 @@ const styles = StyleSheet.create({
   permissionLabel: {
     fontSize: 16,
     fontWeight: '500' as const,
-    color: Colors.text.primary,
     marginBottom: 4,
   },
   permissionDescription: {
     fontSize: 13,
-    color: Colors.text.secondary,
     lineHeight: 18,
   },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: Colors.primaryLight,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 24,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.primary,
   },
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: Colors.primary,
     lineHeight: 20,
   },
   bottomSpacing: {

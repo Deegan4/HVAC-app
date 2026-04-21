@@ -1,0 +1,131 @@
+[     293ms] [WARNING] Unrecognized feature: 'vr'. @ https://www.morganmarinecc.com/contact:784
+[     330ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[     636ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[     949ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[     951ms] TypeError: Failed to fetch
+    at value (https://www.morganmarinecc.com/contact:99:4978)
+    at Object.flushHandler (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:30494)
+    at te.flush (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:29301)
+    at te.enqueue (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:29428)
+    at https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:29748
+    at A.invoke (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:10160)
+    at U.report (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:13681)
+    at U.reportTransactionFinish (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:14592)
+    at T.finish (https://static.parastorage.com/services/wix-thunderbolt/dist/main.f0457c49.bundle.min.js:1:8630)
+    at G (https://www.morganmarinecc.com/contact:927:4228)
+[    1025ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at tr.enqueue (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122918)
+    at https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:123227
+    at P.invoke (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:103646)
+    at W.report (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:107154)
+    at W.reportTransactionStart (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:107598)
+    at C.start (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:102027)
+    at j (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:264626)
+    at S.interactionStarted (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:265113)
+    at E (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:51934)
+    at Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52528)
+    at https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:139996
+    at c (https://static.parastorage.com/unpkg/lodash@4.17.21/lodash.min.js:10:339)
+    at Z.yf [as map] (https://static.parastorage.com/unpkg/lodash@4.17.21/lodash.min.js:85:83)
+    at Object.initWixCodeApiForApplication (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:139966)
+    at async Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52539)
+    at async q (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:107795)
+    at async Promise.all (index 1)
+    at async G (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:108302)
+    at async Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52539)
+    at async Object.init (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:111898)
+    at async Promise.all (index 1)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:290163)
+    at async fm (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:1541)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:6550) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    1025ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at tr.enqueue (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122918)
+    at https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:123227
+    at P.invoke (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:103646)
+    at W.report (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:107154)
+    at W.reportTransactionFinish (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:108065)
+    at C.finish (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:102116)
+    at j (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:264652)
+    at S.interactionEnded (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:265289)
+    at w (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52158)
+    at Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52556)
+    at async Promise.all (index 2)
+    at async Object.initWixCodeApiForApplication (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:139944)
+    at async Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52539)
+    at async q (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:107795)
+    at async Promise.all (index 2)
+    at async G (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:108302)
+    at async Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52539)
+    at async Object.init (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:111898)
+    at async Promise.all (index 1)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:290163)
+    at async fm (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:1541)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:6550) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    1253ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[    1283ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://sentry-next.wixpress.com/api/68/envelope/?sentry_key=605a7baede844d278b89dc95ae0a9123&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.120.3:0
+[    1324ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at flushThrottled.tt.leading (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122702)
+    at b (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:206892)
+    at O (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207179)
+    at w (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207117)
+    at n (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:51036) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    1890ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at flushThrottled.tt.leading (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122702)
+    at b (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:206892)
+    at tr.x [as flushThrottled] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207370)
+    at tr.enqueue (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122932)
+    at https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:123227
+    at P.invoke (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:103646)
+    at W.report (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:107154)
+    at W.reportTransactionFinish (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:108065)
+    at C.finish (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:102116)
+    at j (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:264652)
+    at S.appLoadingPhaseFinish (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:265598)
+    at Object.withReportingAndErrorHandling (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:53418)
+    at async https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:105874
+    at async Promise.all (index 0)
+    at async V (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:105724)
+    at async q (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:108241)
+    at async Promise.all (index 1)
+    at async G (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:108302)
+    at async Object.x [as runAsyncAndReport] (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:52539)
+    at async Object.init (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:111898)
+    at async Promise.all (index 1)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:56:290163)
+    at async fm (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:1541)
+    at async runPlatformOnPage (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:58:6550) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    2008ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[    2008ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at flushThrottled.tt.leading (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122702)
+    at b (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:206892)
+    at O (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207179)
+    at w (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207117)
+    at n (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:51036) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    2164ms] [WARNING] react-i18next:: It seems you are still using the old wait option, you may migrate to the new useSuspense behaviour. @ https://browser.sentry-cdn.com/7.120.3/bundle.tracing.es5.min.js:1
+[    2481ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://panorama.wixapps.net/api/v1/bulklog:0
+[    2481ms] [ERROR] TypeError: Failed to fetch
+    at t (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:57:5721)
+    at Object.flushHandler (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:124005)
+    at tr.flush (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122791)
+    at flushThrottled.tt.leading (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:122702)
+    at b (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:206892)
+    at O (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207179)
+    at w (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:207117)
+    at n (https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:2:51036) @ https://www.morganmarinecc.com/_partials/wix-thunderbolt/dist/clientWorker.b8bdcec4.bundle.min.js:1
+[    2566ms] [WARNING] Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading @ https://maps.googleapis.com/maps/api/js?callback=initMap&client=gme-wixcomltd2&libraries=places&language=en:1379
+[    2570ms] [WARNING] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide. @ https://maps.googleapis.com/maps/api/js?callback=initMap&client=gme-wixcomltd2&libraries=places&language=en:1478
